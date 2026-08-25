@@ -1,0 +1,10 @@
+# Optional local-development configuration.
+# Dashboard bindings are easier for the first deployment.
+name = "str-welcome-display"
+compatibility_date = "2026-08-25"
+pages_build_output_dir = "public"
+
+# For local development, create a KV namespace and add:
+# [[kv_namespaces]]
+# binding = "STR_SETTINGS"
+# id = "YOUR_KV_NAMESPACE_ID"

@@ -133,9 +133,9 @@ function attractionInsights(payload, parkName) {
     .filter(item => item.entityType === "ATTRACTION" && item.status === "OPERATING")
     .map(item => ({ name: item.name, park: parkName, wait: Number(item.queue?.STANDBY?.waitTime) }))
     .filter(item => Number.isFinite(item.wait) && item.wait > 0 && item.wait <= 180);
-  const unavailable = live.filter(item =>
-    item.entityType === "ATTRACTION" && /DOWN|REFURBISHMENT/i.test(String(item.status || ""))
-  ).length;
+  const unavailable = live
+    .filter(item => item.entityType === "ATTRACTION" && /DOWN|REFURBISHMENT/i.test(String(item.status || "")))
+    .map(item => ({ name: item.name || "Unnamed attraction", park: parkName }));
   return { waits, unavailable };
 }
 
@@ -179,11 +179,14 @@ async function parkData() {
     .filter(park => park.closingTime)
     .sort((a, b) => new Date(b.closingTime) - new Date(a.closingTime))[0];
   const bestBets = results.flatMap(park => park.waits).sort((a, b) => a.wait - b.wait).slice(0, 3);
-  const unavailable = results.reduce((sum, park) => sum + park.unavailable, 0);
+  const unavailableAttractions = results
+    .flatMap(park => park.unavailable)
+    .filter((item, index, all) => all.findIndex(other => other.name === item.name && other.park === item.park) === index);
   const insights = {
     latestClosing: latest ? { park: latest.name, time: easternTime(latest.closingTime) } : null,
     bestBets,
-    unavailable
+    unavailable: unavailableAttractions.length,
+    unavailableAttractions
   };
   const parks = results.map(({ closingTime, waits, unavailable: unavailableCount, ...park }) => park);
   return { updatedAt: new Date().toISOString(), source: "ThemeParks.wiki", parks, insights };
@@ -231,7 +234,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v6`);
+      const key = new Request(`${url.origin}/api/parks?cache=v7`);
       const cached = await cache.match(key);
       if (cached) return cached;
 

@@ -66,7 +66,9 @@ async function publish() {
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || (response.status === 401 ? "Incorrect admin password." : "Unable to publish."));
-    setStatus("Published. The display will update within five minutes.", "success");
+    if (body.settings) apply(body.settings);
+    const selectedTheme = $("theme").selectedOptions[0]?.textContent || body.settings?.theme || "selected theme";
+    setStatus(`Published: ${selectedTheme}. The display will update within five minutes.`, "success");
   } catch (error) {
     setStatus(error.message, "error");
   }

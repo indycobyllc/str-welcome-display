@@ -228,10 +228,16 @@ function renderParks(data) {
 
   const insights = data.insights || {};
   const bestBets = (insights.bestBets || []).map(item => `${escapeHtml(item.name)} · ${Number(item.wait)} min`).join("<br>");
+  const unavailableAttractions = Array.isArray(insights.unavailableAttractions) ? insights.unavailableAttractions : [];
+  const disruptions = unavailableAttractions.length
+    ? unavailableAttractions.map(item => `<span>${escapeHtml(item.name)} <small>${escapeHtml(item.park)}</small></span>`).join("")
+    : Number(insights.unavailable)
+      ? `<span>${Number(insights.unavailable)} attractions temporarily unavailable</span>`
+      : "No major disruptions reported";
   $("insightsGrid").innerHTML = `
     <article><span>Open latest</span><strong>${insights.latestClosing ? `${escapeHtml(insights.latestClosing.park)} · ${escapeHtml(insights.latestClosing.time)}` : "Schedule updating"}</strong></article>
     <article><span>Low waits right now</span><strong>${bestBets || "Live waits updating"}</strong></article>
-    <article><span>Good to know</span><strong>${Number(insights.unavailable) ? `${insights.unavailable} attraction${insights.unavailable === 1 ? "" : "s"} temporarily unavailable` : "No major disruptions reported"}</strong></article>`;
+    <article><span>${unavailableAttractions.length ? `Unavailable now · ${unavailableAttractions.length}` : "Good to know"}</span><strong class="disruption-list">${disruptions}</strong></article>`;
 
   const updated = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString("en-US", {
     hour: "numeric", minute: "2-digit", timeZone: "America/New_York"

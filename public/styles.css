@@ -39,6 +39,7 @@ body { color: var(--text); background: var(--bg); }
 #display[data-theme="star-wars"] { --bg-start:#01040a;--bg-mid:#071426;--bg-end:#172a40;--glow:rgba(73,192,255,.2);--accent:#75dcff;--accent2:#ffe46b;--muted:#b9cad8;--panel:rgba(2,9,18,.8);--panel-strong:rgba(1,5,11,.95);--horizon-a:rgba(32,54,67,.7);--horizon-b:rgba(1,4,8,.98); }
 #display[data-theme="toy-story"] { --bg-start:#087fc2;--bg-mid:#39ace4;--bg-end:#95dbf3;--glow:rgba(255,255,255,.55);--accent:#ffe04f;--accent2:#d7f5ff;--muted:#effaff;--panel:rgba(7,77,127,.66);--panel-strong:rgba(5,53,98,.88);--horizon-a:rgba(76,177,75,.92);--horizon-b:rgba(20,98,51,.98); }
 #display[data-theme="wizarding"] { --bg-start:#100d0b;--bg-mid:#3a2117;--bg-end:#74532b;--glow:rgba(255,190,92,.22);--accent:#e4bd72;--accent2:#d6c8a6;--muted:#d2c6b2;--panel:rgba(29,20,15,.78);--panel-strong:rgba(16,12,9,.95);--horizon-a:rgba(50,39,28,.84);--horizon-b:rgba(9,8,7,.98); }
+#display[data-theme="harry-potter-immersive"] { --bg-start:#05090d;--bg-mid:#111b20;--bg-end:#251a14;--glow:rgba(226,177,87,.2);--accent:#e9c678;--accent2:#bdced1;--muted:#d4cec0;--panel:rgba(8,12,13,.69);--panel-strong:rgba(5,8,9,.91);--horizon-a:rgba(27,31,29,.78);--horizon-b:rgba(3,5,6,.98); }
 #display[data-theme="princess"] { --bg-start:#38205f;--bg-mid:#8a5bb3;--bg-end:#e4a9cf;--glow:rgba(255,223,244,.46);--accent:#ffe6a7;--accent2:#ffd5f2;--muted:#f2e6f5;--panel:rgba(62,33,91,.66);--panel-strong:rgba(43,24,69,.9);--horizon-a:rgba(120,91,157,.66);--horizon-b:rgba(46,27,76,.94); }
 
 #display[data-theme="star-wars"] .stars i { width:3px;height:3px;box-shadow:0 0 8px 2px rgba(117,220,255,.6); }
@@ -47,13 +48,15 @@ body { color: var(--text); background: var(--bg); }
 #display[data-theme="toy-story"] .sky-glow { background:radial-gradient(circle,rgba(255,255,255,.4),transparent 65%); }
 #display[data-theme="wizarding"] .stars i { background:#e9bd69;box-shadow:0 0 16px 4px rgba(233,189,105,.38); }
 #display[data-theme="wizarding"] .welcome-slide h1 { font-family:Georgia,"Times New Roman",serif;letter-spacing:-.025em; }
+#display[data-theme="harry-potter-immersive"] .welcome-slide h1,#display[data-theme="harry-potter-immersive"] .page-title { font-family:Georgia,"Times New Roman",serif; }
 #display[data-theme="princess"] .stars i { background:#fff3c4;box-shadow:0 0 15px 4px rgba(255,220,243,.65); }
 #display[data-theme="princess"] .welcome-slide h1 { font-family:Georgia,"Times New Roman",serif;letter-spacing:-.025em; }
 
 .theme-art { position:absolute;z-index:-1;inset:0;overflow:hidden;pointer-events:none;display:none; }
 .theme-art i { position:absolute;display:block; }
 .space-scene { display:none;position:absolute;inset:0;overflow:hidden; }
-#display[data-theme="star-wars"] .theme-art,#display[data-theme="toy-story"] .theme-art,#display[data-theme="wizarding"] .theme-art,#display[data-theme="princess"] .theme-art { display:block; }
+.wizard-scene { display:none;position:absolute;inset:0;overflow:hidden; }
+#display[data-theme="star-wars"] .theme-art,#display[data-theme="toy-story"] .theme-art,#display[data-theme="wizarding"] .theme-art,#display[data-theme="princess"] .theme-art,#display[data-theme="harry-potter-immersive"] .theme-art { display:block; }
 #display[data-theme="star-wars"] .theme-art::before { content:"";position:absolute;width:34vw;height:34vw;left:-12vw;bottom:-12vw;border-radius:50%;background:radial-gradient(circle at 66% 28%,rgba(117,220,255,.16),rgba(18,39,62,.9) 46%,#01040a 70%);box-shadow:0 0 70px rgba(117,220,255,.12); }
 #display[data-theme="star-wars"] .theme-art::after { content:"";position:absolute;left:12%;right:12%;bottom:-22%;height:48%;background:repeating-linear-gradient(90deg,rgba(117,220,255,.11) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(117,220,255,.1) 0 1px,transparent 1px 54px);transform:perspective(400px) rotateX(64deg);transform-origin:center top;animation:grid-flight 8s linear infinite;mask-image:linear-gradient(to bottom,transparent,#000 35%); }
 #display[data-theme="star-wars"] .theme-art i { width:1px;height:70px;background:linear-gradient(transparent,rgba(167,229,255,.85),transparent);animation:light-streak 5s linear infinite; }
@@ -87,6 +90,28 @@ body { color: var(--text); background: var(--bg); }
 #display[data-theme="wizarding"] .theme-art i { width:4px;height:4px;border-radius:50%;background:#ffd27d;box-shadow:0 0 16px 5px rgba(255,174,69,.35);animation:ember-rise 7s ease-in infinite; }
 #display[data-theme="wizarding"] .theme-art i:nth-child(1){left:12%;bottom:-3%;animation-delay:-1s}#display[data-theme="wizarding"] .theme-art i:nth-child(2){left:32%;bottom:-3%;animation-delay:-4s}#display[data-theme="wizarding"] .theme-art i:nth-child(3){left:56%;bottom:-3%;animation-delay:-2s}#display[data-theme="wizarding"] .theme-art i:nth-child(4){left:76%;bottom:-3%;animation-delay:-5s}#display[data-theme="wizarding"] .theme-art i:nth-child(5){left:91%;bottom:-3%;animation-delay:-3s}
 #display[data-theme="wizarding"] .park-card,#display[data-theme="wizarding"] .forecast-card,#display[data-theme="wizarding"] .insights-grid article { border-color:rgba(228,189,114,.3);box-shadow:0 20px 50px rgba(0,0,0,.28),inset 0 0 35px rgba(228,189,114,.035); }
+
+#display[data-theme="harry-potter-immersive"] .wizard-scene { display:block; }
+#display[data-theme="harry-potter-immersive"] .theme-art::before { content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 54px,rgba(255,255,255,.025) 55px 57px),repeating-linear-gradient(90deg,transparent 0 105px,rgba(255,255,255,.02) 106px 109px);opacity:.65; }
+#display[data-theme="harry-potter-immersive"] .theme-art::after { content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 28%,rgba(0,0,0,.62) 90%); }
+.wizard-moon { position:absolute;right:7vw;top:12vh;width:19vw;height:19vw;border-radius:50%;background:radial-gradient(circle at 42% 38%,#f7edcb,#c5b990 48%,#7e806f 72%);box-shadow:0 0 80px rgba(215,225,200,.19);opacity:.62;animation:wizard-moon-glow 8s ease-in-out infinite; }
+.castle { position:absolute;right:1vw;bottom:7vh;width:34vw;height:45vh;filter:drop-shadow(0 -5px 18px rgba(219,183,107,.12));opacity:.78; }
+.castle::before { content:"";position:absolute;inset:28% 0 0;background:linear-gradient(90deg,#030506,#111313 50%,#020304);clip-path:polygon(0 100%,0 56%,10% 56%,10% 34%,18% 34%,18% 52%,29% 52%,29% 20%,39% 20%,39% 48%,52% 48%,52% 30%,62% 30%,62% 52%,73% 52%,73% 9%,84% 9%,84% 44%,92% 44%,92% 61%,100% 61%,100% 100%); }
+.castle::after { content:"";position:absolute;left:3%;right:3%;bottom:0;height:4px;background:#0b0d0d;box-shadow:30px -75px 10px #d7a94f,126px -118px 8px #d7a94f,235px -62px 8px #d7a94f,355px -145px 9px #d7a94f;opacity:.75; }
+.castle span { position:absolute;bottom:28%;width:14%;height:54%;background:#060808;clip-path:polygon(50% 0,63% 22%,74% 22%,74% 100%,25% 100%,25% 22%,38% 22%); }
+.castle span:nth-child(1){left:8%;height:48%}.castle span:nth-child(2){left:28%;height:70%}.castle span:nth-child(3){left:49%;height:56%}.castle span:nth-child(4){left:68%;height:82%}.castle span:nth-child(5){left:84%;height:44%}
+.house-banners { position:absolute;top:90px;left:5vw;display:flex;gap:10px;opacity:.86; }
+.house-banner { position:relative;width:clamp(60px,5.2vw,98px);height:clamp(108px,14vh,165px);display:flex;align-items:center;justify-content:center;flex-direction:column;border:2px solid rgba(215,184,112,.7);border-top-width:7px;box-shadow:0 10px 26px rgba(0,0,0,.32);clip-path:polygon(0 0,100% 0,100% 85%,50% 100%,0 85%);animation:banner-sway 6s ease-in-out infinite;transform-origin:center top; }
+.house-banner b { font:700 clamp(27px,2.5vw,48px)/1 Georgia,serif;color:#e4c77e;text-shadow:0 3px 4px rgba(0,0,0,.55); }
+.house-banner small { margin-top:8px;font-size:clamp(7px,.62vw,12px);letter-spacing:.08em;text-transform:uppercase;color:#f2e5bd; }
+.gryffindor{background:linear-gradient(135deg,#7b1821,#3b080d)}.ravenclaw{background:linear-gradient(135deg,#183f67,#081a31);animation-delay:-1.2s}.hufflepuff{background:linear-gradient(135deg,#c29624,#4d3707);animation-delay:-2.4s}.slytherin{background:linear-gradient(135deg,#1b5c43,#08271c);animation-delay:-3.6s}
+.floating-candles span { position:absolute;width:5px;height:32px;border-radius:2px;background:linear-gradient(90deg,#987f55,#f3e5bc,#866e49);box-shadow:0 -11px 9px 3px rgba(255,174,53,.4);animation:candle-float 7s ease-in-out infinite; }
+.floating-candles span::before { content:"";position:absolute;left:0;top:-10px;width:5px;height:10px;border-radius:50% 50% 45% 45%;background:#fff1a8;box-shadow:0 0 14px 5px #ef9f32;animation:flame-flicker 1.2s ease-in-out infinite; }
+.floating-candles span:nth-child(1){left:39%;top:15%;animation-delay:-1s}.floating-candles span:nth-child(2){left:48%;top:28%;animation-delay:-3s}.floating-candles span:nth-child(3){left:58%;top:12%;animation-delay:-5s}.floating-candles span:nth-child(4){left:68%;top:31%;animation-delay:-2s}.floating-candles span:nth-child(5){left:77%;top:19%;animation-delay:-4s}.floating-candles span:nth-child(6){left:88%;top:36%;animation-delay:-6s}.floating-candles span:nth-child(7){left:31%;top:40%;animation-delay:-.4s}
+.spell-trail { position:absolute;left:20%;top:62%;width:48vw;height:19vh;border-top:2px solid rgba(132,222,255,.7);border-radius:50%;transform:rotate(-13deg);filter:drop-shadow(0 0 7px #6fdcff);animation:spell-sweep 9s ease-in-out infinite; }
+.spell-trail::after { content:"✦";position:absolute;right:-6px;top:-13px;color:#e8fbff;font-size:24px;text-shadow:0 0 14px #66d9ff; }
+.wizard-fog { position:absolute;left:-20%;bottom:-8%;width:80%;height:27%;border-radius:50%;background:rgba(188,201,196,.12);filter:blur(35px);animation:fog-drift 16s ease-in-out infinite alternate; }.fog-two{left:42%;bottom:1%;animation-delay:-8s}
+#display[data-theme="harry-potter-immersive"] .park-card,#display[data-theme="harry-potter-immersive"] .forecast-card,#display[data-theme="harry-potter-immersive"] .insights-grid article,#display[data-theme="harry-potter-immersive"] .hours-card,#display[data-theme="harry-potter-immersive"] .stay-strip { border-color:rgba(222,187,108,.32);box-shadow:0 18px 45px rgba(0,0,0,.42),inset 0 1px rgba(255,231,169,.09);backdrop-filter:blur(14px); }
 
 #display[data-theme="princess"] .theme-art::before { content:"";position:absolute;left:4%;bottom:8%;width:25vw;height:24vw;background:linear-gradient(180deg,rgba(255,232,248,.16),rgba(71,38,108,.35));clip-path:polygon(0 100%,0 72%,10% 72%,10% 42%,15% 30%,20% 42%,20% 64%,31% 64%,31% 30%,37% 18%,43% 30%,43% 60%,54% 60%,54% 22%,61% 0,68% 22%,68% 66%,78% 66%,78% 45%,84% 34%,90% 45%,90% 74%,100% 74%,100% 100%);filter:drop-shadow(0 0 24px rgba(255,210,241,.17)); }
 #display[data-theme="princess"] .theme-art::after { content:"";position:absolute;width:50vw;height:28vw;left:18%;top:14%;border-top:2px solid rgba(255,231,169,.28);border-radius:50%;transform:rotate(-12deg);animation:magic-arc 8s ease-in-out infinite; }
@@ -224,6 +249,12 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 @keyframes toy-float { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-18px) rotate(12deg)} }
 @keyframes candle-bloom { 0%,100%{opacity:.55;transform:scale(.94)} 50%{opacity:1;transform:scale(1.06)} }
 @keyframes ember-rise { from{transform:translateY(0);opacity:0} 20%{opacity:1} to{transform:translateY(-105vh) translateX(35px);opacity:0} }
+@keyframes wizard-moon-glow { 0%,100%{opacity:.48;transform:scale(.97)} 50%{opacity:.7;transform:scale(1.03)} }
+@keyframes banner-sway { 0%,100%{transform:perspective(300px) rotateY(-3deg) rotate(-.5deg)} 50%{transform:perspective(300px) rotateY(4deg) rotate(.6deg)} }
+@keyframes candle-float { 0%,100%{transform:translateY(-5px) rotate(-1deg)} 50%{transform:translateY(13px) rotate(2deg)} }
+@keyframes flame-flicker { 0%,100%{transform:scale(.85) rotate(-4deg);opacity:.8} 50%{transform:scale(1.18) rotate(5deg);opacity:1} }
+@keyframes spell-sweep { 0%,15%{opacity:0;transform:translateX(-22vw) rotate(-13deg) scale(.6)} 30%,62%{opacity:.7} 78%,100%{opacity:0;transform:translateX(32vw) rotate(-8deg) scale(1.08)} }
+@keyframes fog-drift { from{transform:translateX(-7%) scale(1)} to{transform:translateX(18%) scale(1.15)} }
 @keyframes magic-arc { 0%,100%{opacity:.25;transform:rotate(-12deg) scale(.96)} 50%{opacity:.75;transform:rotate(-10deg) scale(1.04)} }
 @keyframes princess-sparkle { 0%,100%{opacity:.2;transform:scale(.6) rotate(0)} 50%{opacity:1;transform:scale(1.4) rotate(45deg)} }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }

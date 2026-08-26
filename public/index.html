@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guest Welcome Display</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="display-body">
+  <main id="display" aria-live="polite">
+    <section class="slide active welcome-slide">
+      <div class="eyebrow">Welcome to your Orlando vacation</div>
+      <h1 id="guestName">Welcome!</h1>
+      <p id="occasion" class="occasion"></p>
+      <p id="welcomeMessage" class="welcome-message">Your adventure begins here.</p>
+      <div id="stayDates" class="stay-dates"></div>
+    </section>
+
+    <section class="slide parks-slide">
+      <div class="eyebrow">Today at Walt Disney World</div>
+      <h2>Park Hours & Entertainment</h2>
+      <div id="parksGrid" class="parks-grid">
+        <div class="loading">Loading today's schedules…</div>
+      </div>
+      <p id="parksUpdated" class="updated"></p>
+      <p class="disclaimer">Park hours and entertainment are unofficial and subject to change. Confirm in the official Disney app.</p>
+    </section>
+
+    <section class="slide house-slide">
+      <div class="eyebrow">Your stay</div>
+      <h2>House Information</h2>
+      <div class="house-grid">
+        <article>
+          <span>Wi-Fi</span>
+          <strong id="wifiName">Guest Wi-Fi</strong>
+          <small id="wifiPassword"></small>
+        </article>
+        <article>
+          <span>Checkout</span>
+          <strong id="checkoutTime">10:00 AM</strong>
+          <small>Please review the house guide before departure.</small>
+        </article>
+        <article id="guideCard">
+          <span>Digital house guide</span>
+          <strong>Scan to open</strong>
+          <div id="qrCode" class="qr-placeholder">QR</div>
+        </article>
+        <article>
+          <span>Need assistance?</span>
+          <strong id="contactText">Message us through your booking app.</strong>
+        </article>
+      </div>
+    </section>
+
+    <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+  </main>
+
+  <script src="/display.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome Display Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin-body">
+  <main class="admin-shell">
+    <header>
+      <p class="eyebrow">Remote control</p>
+      <h1>Guest Welcome Display</h1>
+      <p>Update the next guest, occasion, house information, and display options.</p>
+    </header>
+
+    <div id="status" class="status" aria-live="polite"></div>
+
+    <section class="admin-card">
+      <h2>Admin access</h2>
+      <label>
+        Admin password
+        <input id="adminToken" type="password" autocomplete="current-password" placeholder="Enter your Cloudflare admin password">
+      </label>
+      <p class="help">This password is sent only when you load or publish settings. It is not stored by this page.</p>
+      <button id="loadButton" type="button" class="secondary">Load current settings</button>
+    </section>
+
+    <section class="admin-card">
+      <h2>Guest welcome</h2>
+      <div class="form-grid">
+        <label>
+          Guest display name
+          <input id="guestName" maxlength="80" placeholder="The Thompson Family">
+        </label>
+        <label>
+          Special occasion
+          <input id="occasion" maxlength="100" placeholder="Celebrating Emma's 8th Birthday">
+        </label>
+        <label class="wide">
+          Welcome message
+          <input id="welcomeMessage" maxlength="160" placeholder="Your adventure begins here!">
+        </label>
+        <label>
+          Check-in date
+          <input id="checkIn" type="date">
+        </label>
+        <label>
+          Checkout date
+          <input id="checkOut" type="date">
+        </label>
+        <label>
+          Theme
+          <select id="theme">
+            <option value="galactic">Galactic</option>
+            <option value="celebration">Celebration</option>
+            <option value="elegant">Elegant</option>
+            <option value="holiday">Holiday</option>
+            <option value="neutral">Neutral</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>House information</h2>
+      <div class="form-grid">
+        <label>
+          Wi-Fi name
+          <input id="wifiName" maxlength="80">
+        </label>
+        <label>
+          Wi-Fi password
+          <input id="wifiPassword" maxlength="80">
+        </label>
+        <label>
+          Checkout time
+          <input id="checkoutTime" maxlength="30" placeholder="10:00 AM">
+        </label>
+        <label>
+          Contact instruction
+          <input id="contactText" maxlength="140" placeholder="Message us through your booking app.">
+        </label>
+        <label class="wide">
+          House-guide URL
+          <input id="guideUrl" type="url" placeholder="https://example.com/house-guide">
+        </label>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>Display options</h2>
+      <label class="check-row"><input id="showParks" type="checkbox"> Show Disney park-hours slide</label>
+      <label class="check-row"><input id="showHouse" type="checkbox"> Show house-information slide</label>
+      <label>
+        Seconds per slide
+        <input id="slideSeconds" type="number" min="8" max="120" value="18">
+      </label>
+    </section>
+
+    <div class="actions">
+      <button id="publishButton" type="button">Publish to display</button>
+      <a href="/" target="_blank" rel="noopener">Preview public display</a>
+    </div>
+  </main>
+  <script src="/admin.js" defer></script>
+</body>
+</html>

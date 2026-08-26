@@ -345,7 +345,7 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 .forecast-tip { color:var(--muted);font-size:12px;line-height:1.25;margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);width:100%; }
 .forecast-note { color:var(--muted);font-size:13px;margin:18px 0 0; }
 
-.duelist{top:24%}.saber-clash{top:38%}
+.duelist{top:24%}.saber-clash{top:38%}.duel-pants{stroke:#100c0c;stroke-width:6;stroke-linejoin:round}.light-pants{fill:#594335}.dark-pants{fill:#171416}
 @keyframes twinkle { 0%,100%{opacity:.25;transform:scale(.7)} 50%{opacity:1;transform:scale(1.25)} }
 @keyframes ambient-gradient { from{background-position:0% 20%} to{background-position:100% 75%} }
 @keyframes horizon-drift { from{transform:translate3d(-1%,0,0) scaleX(1.01)} to{transform:translate3d(1%,1.5%,0) scaleX(1.04)} }

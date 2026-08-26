@@ -162,20 +162,23 @@ function attractionInsights(payload, parkName) {
 
 function extractEvents(payload) {
   const today = easternDate();
+  const now = Date.now();
   const live = Array.isArray(payload?.liveData) ? payload.liveData : [];
   const rows = [];
   for (const item of live) {
     for (const show of (Array.isArray(item.showtimes) ? item.showtimes : [])) {
       const start = show.startTime || show.start;
-      if (!start || easternDate(start) !== today) continue;
-      rows.push({ name: item.name || "Entertainment", time: easternTime(start) });
+      const startsAt = start ? new Date(start).getTime() : NaN;
+      if (!start || easternDate(start) !== today || !Number.isFinite(startsAt) || startsAt <= now) continue;
+      rows.push({ name: item.name || "Entertainment", time: easternTime(start), startsAt });
     }
   }
   const priority = /happily ever after|luminous|fantasmic|fireworks|parade|starlight|nighttime/i;
   return rows
-    .sort((a, b) => Number(priority.test(b.name)) - Number(priority.test(a.name)))
+    .sort((a, b) => Number(priority.test(b.name)) - Number(priority.test(a.name)) || a.startsAt - b.startsAt)
     .filter((x, i, all) => all.findIndex(y => y.name === x.name && y.time === x.time) === i)
-    .slice(0, 4);
+    .slice(0, 4)
+    .map(({ startsAt, ...event }) => event);
 }
 
 async function parkData() {
@@ -258,7 +261,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v7`);
+      const key = new Request(`${url.origin}/api/parks?cache=v8`);
       const cached = await cache.match(key);
       if (cached) return cached;
 

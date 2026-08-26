@@ -39,7 +39,8 @@ function authorized(request, env) {
 function sanitize(input) {
   const text = (v, n) => String(v ?? "").trim().slice(0, n);
   const themes = new Set([
-    "galactic", "celebration", "elegant", "holiday", "christmas-immersive", "halloween-immersive", "fourth-july-immersive", "neutral",
+    "galactic", "celebration", "elegant", "holiday", "christmas-immersive", "halloween-immersive", "fourth-july-immersive",
+    "aurora-immersive", "iron-man-immersive", "spider-man-immersive", "superhero-immersive", "neutral",
     "star-wars", "star-wars-immersive", "toy-story", "wizarding", "princess", "harry-potter-immersive"
   ]);
   return {

@@ -44,6 +44,24 @@ function makeQr(url) {
   holder.replaceChildren(img);
 }
 
+function updateClock() {
+  const now = new Date();
+  $("currentTime").textContent = now.toLocaleTimeString("en-US", {
+    hour: "numeric", minute: "2-digit", timeZone: "America/New_York"
+  });
+  $("currentDate").textContent = now.toLocaleDateString("en-US", {
+    weekday: "long", month: "short", day: "numeric", timeZone: "America/New_York"
+  });
+}
+
+function parkIcon(name) {
+  if (/kingdom/i.test(name) && !/animal/i.test(name)) return "♜";
+  if (/epcot/i.test(name)) return "◉";
+  if (/hollywood/i.test(name)) return "★";
+  if (/animal/i.test(name)) return "♧";
+  return "✦";
+}
+
 async function loadSettings() {
   try {
     const response = await fetch("/api/settings", { cache: "no-store" });
@@ -78,7 +96,8 @@ function applySettings(s) {
   makeQr(s.guideUrl);
 
   document.querySelector(".parks-slide").hidden = !s.showParks;
-  document.querySelector(".house-slide").hidden = !s.showHouse;
+  document.querySelector(".house-details").hidden = !s.showHouse;
+  document.querySelector(".welcome-layout").classList.toggle("welcome-only", !s.showHouse);
 }
 
 function renderParks(data) {
@@ -94,7 +113,7 @@ function renderParks(data) {
       .map(event => `<div>${escapeHtml(event.name)} — ${escapeHtml(event.time)}</div>`)
       .join("");
     return `<article class="park-card">
-      <h3>${escapeHtml(park.name)}</h3>
+      <div class="park-card-heading"><span class="park-icon" aria-hidden="true">${parkIcon(park.name)}</span><h3>${escapeHtml(park.name)}</h3></div>
       <div class="hours">${escapeHtml(park.hours || "Hours unavailable")}</div>
       <div class="events">${events || "No major entertainment listed."}</div>
     </article>`;
@@ -146,5 +165,7 @@ async function refreshAll() {
   startSlides(settings.slideSeconds);
 }
 
+updateClock();
+setInterval(updateClock, 30 * 1000);
 refreshAll();
 setInterval(refreshAll, 5 * 60 * 1000);

@@ -172,6 +172,17 @@ body { color: var(--text); background: var(--bg); }
 #display[data-theme="iron-man-immersive"] .park-card,#display[data-theme="iron-man-immersive"] .forecast-card,#display[data-theme="iron-man-immersive"] .insights-grid article,#display[data-theme="iron-man-immersive"] .hours-card,#display[data-theme="spider-man-immersive"] .park-card,#display[data-theme="spider-man-immersive"] .forecast-card,#display[data-theme="spider-man-immersive"] .insights-grid article,#display[data-theme="spider-man-immersive"] .hours-card { border-radius:3px;clip-path:polygon(0 10px,10px 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%);backdrop-filter:blur(13px) }
 #display[data-theme="aurora-immersive"] .park-card,#display[data-theme="aurora-immersive"] .forecast-card,#display[data-theme="aurora-immersive"] .insights-grid article,#display[data-theme="aurora-immersive"] .hours-card,#display[data-theme="superhero-immersive"] .park-card,#display[data-theme="superhero-immersive"] .forecast-card,#display[data-theme="superhero-immersive"] .insights-grid article,#display[data-theme="superhero-immersive"] .hours-card { border-color:rgba(135,224,255,.3);box-shadow:0 18px 48px rgba(0,0,0,.36);backdrop-filter:blur(13px) }
 
+/* Detailed vector heroes live in the upper-center safe zone above park-hour cards. */
+.iron-hero { left:48%;right:auto;top:12%;bottom:auto;width:clamp(145px,14vw,255px);height:auto; }
+.iron-hero svg,.spider-hero svg,.cape-hero svg { display:block;width:100%;height:auto;overflow:visible; }
+.armor-shadow{fill:#3a0508;stroke:#e69222;stroke-width:3}.armor-red{fill:#a71116;stroke:#ed5425;stroke-width:3}.armor-gold,.faceplate{fill:#d99a26;stroke:#ffe17a;stroke-width:2}.faceplate{fill:#a91314}.eye-slots{fill:#dffcff;filter:drop-shadow(0 0 6px #55eaff)}.vector-core{fill:#efffff;stroke:#69ebff;stroke-width:9;filter:drop-shadow(0 0 12px #52e7ff)}.vector-repulsor{fill:#fff;stroke:#6cecff;stroke-width:8;filter:drop-shadow(0 0 12px #4ee7ff)}
+.reactor-rays { left:40%;right:auto;top:7%;width:30vw;height:30vw; }.arc-reactor{left:47%;right:auto;top:28%;width:clamp(72px,7vw,125px);opacity:.62}.repulsor-trail{left:52%;right:auto;bottom:4%;width:6vw;height:28vh}
+.spider-hero { left:48%;top:13%;width:clamp(135px,13vw,235px);height:auto;background:none;clip-path:none;filter:drop-shadow(0 14px 11px #000) drop-shadow(0 0 13px rgba(255,39,58,.3)); }
+.spider-mask,.spider-suit,.spider-limb{fill:#bd1725;stroke:#ff4551;stroke-width:3}.spider-blue{fill:#092858;stroke:#1765a8;stroke-width:3}.spider-eye-svg{fill:#f6fbff;stroke:#172135;stroke-width:5;filter:drop-shadow(0 0 5px #7cc6ff)}.spider-emblem-svg{fill:#080b13}.suit-webbing{fill:none;stroke:rgba(8,13,24,.65);stroke-width:3}
+.swing-line{left:53%;height:38%}.shot-one{top:32%}.shot-two{top:45%}
+.cape-hero { left:47%;right:auto;top:16%;width:clamp(180px,18vw,330px);height:auto; }
+.cape-hero::before,.cape-hero::after{content:none}.hero-head{fill:#17213d;stroke:#88baff;stroke-width:3}.hero-body{fill:#123b74;stroke:#68b4ff;stroke-width:4}.hero-cape{fill:#b9162b;stroke:#f04c55;stroke-width:4;transform-origin:135px 101px;animation:cape-wave-svg 2.7s ease-in-out infinite}.hero-shield{fill:#ffd83f;stroke:#fff0a3;stroke-width:3}.hero-mark{fill:#d82335}.hero-beacon{left:31%;bottom:5%}.comic-burst{right:1%;top:10%;width:27vw;height:27vw}
+
 #display[data-theme="toy-story"] .theme-art::before { content:"";position:absolute;width:150px;height:48px;left:12%;top:18%;border-radius:50%;background:rgba(255,255,255,.3);box-shadow:70px 8px 0 10px rgba(255,255,255,.25),-55px 12px 0 rgba(255,255,255,.22);animation:cloud-float 20s ease-in-out infinite alternate; }
 #display[data-theme="toy-story"] .theme-art::after { content:"";position:absolute;left:7%;bottom:8%;width:82px;height:82px;border-radius:12px;background:#e64c3c;box-shadow:95px 28px 0 #f2c84b,190px -5px 0 #397fc4;opacity:.5;transform:rotate(-8deg); }
 #display[data-theme="toy-story"] .theme-art i { width:18px;height:18px;border-radius:4px;background:#ffd83d;animation:toy-float 8s ease-in-out infinite; }
@@ -381,6 +392,7 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 @keyframes beacon-sweep { 0%,100%{transform:rotate(-22deg)} 50%{transform:rotate(34deg)} }
 @keyframes hero-flight { 0%,100%{transform:translate(-9vw,4vh) rotate(-6deg)} 50%{transform:translate(6vw,-7vh) rotate(4deg)} }
 @keyframes cape-wave { 0%,100%{transform:skewY(-5deg) scaleX(.92)} 50%{transform:skewY(8deg) scaleX(1.12)} }
+@keyframes cape-wave-svg { 0%,100%{transform:skewY(-3deg) scaleX(.94)} 50%{transform:skewY(5deg) scaleX(1.06)} }
 @keyframes speed-line { from{transform:translateX(0);opacity:0} 20%{opacity:.65} to{transform:translateX(135vw);opacity:0} }
 @keyframes cloud-float { to{transform:translateX(18vw)} }
 @keyframes toy-float { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-18px) rotate(12deg)} }

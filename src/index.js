@@ -169,7 +169,7 @@ function attractionInsights(payload, parkName) {
     .map(item => ({ name: item.name, park: parkName, wait: Number(item.queue?.STANDBY?.waitTime) }))
     .filter(item => Number.isFinite(item.wait) && item.wait > 0 && item.wait <= 180);
   const unavailable = live
-    .filter(item => item.entityType === "ATTRACTION" && /DOWN|REFURBISHMENT/i.test(String(item.status || "")))
+    .filter(item => item.entityType === "ATTRACTION" && /REFURBISHMENT/i.test(String(item.status || "")))
     .map(item => ({ name: item.name || "Unnamed attraction", park: parkName }));
   return { waits, unavailable };
 }
@@ -279,7 +279,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v9`);
+      const key = new Request(`${url.origin}/api/parks?cache=v10`);
       const cached = await cache.match(key);
       if (cached) return cached;
 

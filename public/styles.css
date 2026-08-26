@@ -343,6 +343,7 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 .disruption-list span { color:var(--text);font-size:inherit;font-weight:650;letter-spacing:0;text-transform:none; }
 .disruption-list span:not(:last-child)::after { content:" ·";color:var(--accent); }
 .disruption-list small { color:var(--muted);font-size:.75em;font-weight:500;white-space:nowrap; }
+.disruption-list>span:not(.disruption-more){max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.disruption-list .disruption-more{flex:none;color:var(--accent);white-space:nowrap}
 .park-card { position:relative; overflow:hidden; transition:transform .35s ease,border-color .35s ease; }
 .park-card::after { content:""; position:absolute; width:130px; height:130px; right:-60px; top:-65px; border-radius:50%; background:var(--accent2); opacity:.07; }
 .park-card-heading { height:46px; display:flex; align-items:center; border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:15px; }

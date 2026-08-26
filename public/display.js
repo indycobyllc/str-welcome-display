@@ -419,15 +419,18 @@ function renderParks(data) {
   const insights = data.insights || {};
   const bestBets = (insights.bestBets || []).map(item => `${escapeHtml(item.name)} · ${Number(item.wait)} min`).join("<br>");
   const unavailableAttractions = Array.isArray(insights.unavailableAttractions) ? insights.unavailableAttractions : [];
+  const unavailableLimit = window.innerWidth <= 720 ? 3 : window.innerWidth <= 1050 ? 4 : 7;
+  const visibleUnavailable = unavailableAttractions.slice(0, unavailableLimit);
+  const unavailableRemaining = Math.max(0, unavailableAttractions.length - visibleUnavailable.length);
   const disruptions = unavailableAttractions.length
-    ? unavailableAttractions.map(item => `<span>${escapeHtml(item.name)} <small>${escapeHtml(item.park)}</small></span>`).join("")
+    ? `${visibleUnavailable.map(item => `<span title="${escapeHtml(`${item.name} · ${item.park}`)}">${escapeHtml(item.name)} <small>${escapeHtml(item.park)}</small></span>`).join("")}${unavailableRemaining ? `<span class="disruption-more">+${unavailableRemaining} more</span>` : ""}`
     : Number(insights.unavailable)
-      ? `<span>${Number(insights.unavailable)} attractions temporarily unavailable</span>`
-      : "No major disruptions reported";
+      ? `<span>${Number(insights.unavailable)} attractions under refurbishment</span>`
+      : "No refurbishments reported";
   $("insightsGrid").innerHTML = `
     <article><span>Open latest</span><strong>${insights.latestClosing ? `${escapeHtml(insights.latestClosing.park)} · ${escapeHtml(insights.latestClosing.time)}` : "Schedule updating"}</strong></article>
     <article><span>Low waits right now</span><strong>${bestBets || "Live waits updating"}</strong></article>
-    <article><span>${unavailableAttractions.length ? `Unavailable now · ${unavailableAttractions.length}` : "Good to know"}</span><strong class="disruption-list">${disruptions}</strong></article>`;
+    <article><span>${unavailableAttractions.length ? `Refurbishments · ${unavailableAttractions.length}` : "Refurbishments"}</span><strong class="disruption-list">${disruptions}</strong></article>`;
   renderRecommendation(data, currentWeather);
 
   const updated = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString("en-US", {

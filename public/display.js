@@ -158,6 +158,42 @@ function forecastHint(day) {
   return "A flexible park day";
 }
 
+function uvLabel(value = 0) {
+  if (value >= 11) return "Extreme";
+  if (value >= 8) return "Very high";
+  if (value >= 6) return "High";
+  if (value >= 3) return "Moderate";
+  return "Low";
+}
+
+function shortDay(date) {
+  return new Date(`${date}T12:00:00-04:00`).toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function packingAdvice(day) {
+  const items = [];
+  if ((day.rainChance || 0) >= 40) items.push("ponchos");
+  if ((day.uvIndex || 0) >= 6) items.push("sunscreen");
+  if ((day.high || 0) >= 88) items.push("water bottles");
+  if ((day.low || 100) <= 62) items.push("a light layer");
+  return items.length ? items.slice(0, 3).join(" · ") : "Comfortable shoes · park-ready layers";
+}
+
+function renderWeatherSnapshot(days) {
+  const snapshot = $("weatherSnapshot");
+  if (!days.length) return snapshot.replaceChildren();
+  const best = [...days].sort((a, b) => {
+    const score = day => (day.rainChance || 0) + Math.abs(Math.min(Math.max(day.high || 80, 72), 86) - (day.high || 80)) * 3;
+    return score(a) - score(b);
+  })[0];
+  const packDay = days.find(day => day.date > days[0].date) || days[0];
+  const sunset = days[0].sunset ? new Date(days[0].sunset).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "After dinner";
+  snapshot.innerHTML = `
+    <article><span class="snapshot-icon">★</span><div><small>Best park day</small><strong>${escapeHtml(shortDay(best.date))}</strong><p>${Math.round(best.rainChance || 0)}% rain · High ${Math.round(best.high)}°</p></div></article>
+    <article><span class="snapshot-icon">⌁</span><div><small>Pack for ${packDay === days[0] ? "today" : shortDay(packDay.date)}</small><strong>${escapeHtml(packingAdvice(packDay))}</strong><p>UV ${uvLabel(packDay.uvIndex)} · ${Math.round(packDay.rainChance || 0)}% rain</p></div></article>
+    <article><span class="snapshot-icon">☀</span><div><small>Tonight's sunset</small><strong>${escapeHtml(sunset)}</strong><p>Plan photos and nighttime arrival around dusk</p></div></article>`;
+}
+
 function renderForecast(weather, settings) {
   const grid = $("forecastGrid");
   const today = new Intl.DateTimeFormat("en-CA", {
@@ -172,23 +208,32 @@ function renderForecast(weather, settings) {
     grid.innerHTML = `<div class="schedule-empty">The extended forecast is updating.</div>`;
     $("forecastRange").textContent = "Orlando, Florida";
     $("forecastNote").textContent = `Weather data by ${weather.source || "Open-Meteo"} · Orlando, Florida`;
+    $("weatherSnapshot").replaceChildren();
     return;
   }
 
+  const hottest = Math.max(...days.map(day => day.high || 0));
+  const wettest = Math.max(...days.map(day => day.rainChance || 0));
   grid.style.setProperty("--forecast-days", Math.min(days.length, 8));
   grid.innerHTML = days.map((day, index) => {
     const date = new Date(`${day.date}T12:00:00-04:00`);
     const label = index === 0 && day.date === today ? "Today" : date.toLocaleDateString("en-US", { weekday: "short" });
     const detail = weatherDetails(day.weatherCode, true);
+    const flags = [];
+    if (days.length > 1 && day.high === hottest) flags.push("Hottest");
+    if (days.length > 1 && wettest >= 35 && day.rainChance === wettest) flags.push("Wettest");
     return `<article class="forecast-card">
+      ${flags.length ? `<div class="forecast-flags">${flags.map(flag => `<span>${flag}</span>`).join("")}</div>` : ""}
       <div class="forecast-day">${escapeHtml(label)}</div>
       <div class="forecast-date">${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
       <div class="forecast-icon" aria-hidden="true">${detail.icon}</div>
       <div class="forecast-temps"><strong>${Math.round(day.high)}°</strong><span>${Math.round(day.low)}°</span></div>
       <div class="forecast-rain">${Math.round(day.rainChance || 0)}% rain</div>
+      <div class="forecast-uv"><span style="--uv:${Math.min(day.uvIndex || 0, 11)}"></span>UV ${escapeHtml(uvLabel(day.uvIndex))}</div>
       <div class="forecast-tip">${escapeHtml(forecastHint(day))}</div>
     </article>`;
   }).join("");
+  renderWeatherSnapshot(days);
 
   const first = new Date(`${days[0].date}T12:00:00-04:00`);
   const last = new Date(`${days[days.length - 1].date}T12:00:00-04:00`);

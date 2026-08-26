@@ -13,7 +13,7 @@ const DEFAULTS = {
 const PARKS = [
   { name: "Magic Kingdom", id: "75ea578a-adc8-4116-a54d-dccb60765ef9" },
   { name: "EPCOT", id: "47f90d2c-e191-4239-a466-5892ef59a88b" },
-  { name: "Hollywood Studios", id: "6f612806-3d2f-4e3b-8e9a-78c7b7b9a6f6" },
+  { name: "Hollywood Studios", id: "288747d1-8b4f-4a64-867e-ea7c9b27bad8" },
   { name: "Animal Kingdom", id: "1c84a229-8862-4648-9c71-378ddd2c7693" },
   { name: "Universal Studios Florida", id: "eb3f4560-2383-4a36-9152-6b3e5ed6bc57" },
   { name: "Universal Islands of Adventure", id: "267615cc-8943-4c2a-ae2c-5da728ca591f" },
@@ -180,7 +180,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v4`);
+      const key = new Request(`${url.origin}/api/parks?cache=v5`);
       const cached = await cache.match(key);
       if (cached) return cached;
 

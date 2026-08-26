@@ -51,7 +51,8 @@ function sanitize(input) {
   const themes = new Set([
     "galactic", "celebration", "elegant", "holiday", "christmas-immersive", "halloween-immersive", "fourth-july-immersive",
     "aurora-immersive", "iron-man-immersive", "spider-man-immersive", "superhero-immersive", "neutral",
-    "star-wars", "star-wars-immersive", "toy-story", "wizarding", "princess", "harry-potter-immersive"
+    "star-wars", "star-wars-immersive", "toy-story", "wizarding", "princess", "harry-potter-immersive",
+    "harry-potter-express", "mario-immersive", "pokemon-immersive"
   ]);
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,

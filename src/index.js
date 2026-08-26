@@ -40,7 +40,7 @@ function sanitize(input) {
   const text = (v, n) => String(v ?? "").trim().slice(0, n);
   const themes = new Set([
     "galactic", "celebration", "elegant", "holiday", "neutral",
-    "star-wars", "toy-story", "wizarding", "princess"
+    "star-wars", "toy-story", "wizarding", "princess", "harry-potter-immersive"
   ]);
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,

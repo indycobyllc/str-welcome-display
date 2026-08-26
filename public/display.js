@@ -212,7 +212,7 @@ function renderParks(data) {
     <strong>${escapeHtml(park.hours || "Hours unavailable")}</strong>
   </article>`).join("");
 
-  eventsGrid.innerHTML = data.parks.map(park => {
+  const eventCards = data.parks.map(park => {
     const events = (park.events || []).slice(0, 3)
       .map(event => `<li><span>${escapeHtml(event.name)}</span><strong>${escapeHtml(event.time)}</strong></li>`)
       .join("");
@@ -220,7 +220,11 @@ function renderParks(data) {
       <div class="park-card-heading">${parkMark(park.name)}</div>
       <ul class="event-list">${events || "<li><span>No major entertainment listed.</span></li>"}</ul>
     </article>`;
-  }).join("");
+  });
+  const firstGroup = eventCards.slice(0, 4).join("");
+  const secondGroup = eventCards.slice(4).join("");
+  eventsGrid.innerHTML = `<div class="event-page active" data-event-page="0">${firstGroup}</div>
+    ${secondGroup ? `<div class="event-page" data-event-page="1">${secondGroup}</div>` : ""}`;
 
   const insights = data.insights || {};
   const bestBets = (insights.bestBets || []).map(item => `${escapeHtml(item.name)} · ${Number(item.wait)} min`).join("<br>");
@@ -236,6 +240,21 @@ function renderParks(data) {
 }
 
 let slideTimer;
+let eventPageTimer;
+
+function showEventPage(index) {
+  const pages = [...document.querySelectorAll(".event-page")];
+  pages.forEach((page, pageIndex) => page.classList.toggle("active", pageIndex === index));
+}
+
+function resetEventPages(duration) {
+  clearTimeout(eventPageTimer);
+  showEventPage(0);
+  if (document.querySelectorAll(".event-page").length > 1) {
+    eventPageTimer = setTimeout(() => showEventPage(1), duration / 2);
+  }
+}
+
 function startSlides(seconds) {
   const visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden);
   if (!visibleSlides.length) return;
@@ -243,6 +262,7 @@ function startSlides(seconds) {
   let index = 0;
   visibleSlides[0].classList.add("active");
   const duration = Math.max(8, Number(seconds) || 18) * 1000;
+  if (visibleSlides[0].classList.contains("parks-slide")) resetEventPages(duration);
 
   clearInterval(slideTimer);
   if (visibleSlides.length > 1) {
@@ -250,6 +270,11 @@ function startSlides(seconds) {
       visibleSlides[index].classList.remove("active");
       index = (index + 1) % visibleSlides.length;
       visibleSlides[index].classList.add("active");
+      if (visibleSlides[index].classList.contains("parks-slide")) {
+        resetEventPages(duration);
+      } else {
+        clearTimeout(eventPageTimer);
+      }
     }, duration);
   }
 }

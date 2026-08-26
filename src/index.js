@@ -280,7 +280,7 @@ export default {
 
     if (url.pathname === "/api/weather" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/weather?cache=v3`);
+      const key = new Request(`${url.origin}/api/weather?cache=v4`);
       const cached = await cache.match(key);
       if (cached) return cached;
 
@@ -293,6 +293,7 @@ export default {
         if (!weatherResponse.ok) throw new Error(`${weatherResponse.status} from Open-Meteo`);
         const payload = await weatherResponse.json();
         const response = json({
+          source: "Open-Meteo",
           temperature: payload.current?.temperature_2m,
           weatherCode: payload.current?.weather_code,
           isDay: Boolean(payload.current?.is_day),

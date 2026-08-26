@@ -166,13 +166,12 @@ function renderForecast(weather, settings) {
   const start = settings.checkIn && settings.checkIn > today ? settings.checkIn : today;
   const end = settings.checkOut || "9999-12-31";
   let days = (weather.daily || []).filter(day => day.date >= start && day.date <= end);
-  const isStayForecast = Boolean(settings.checkIn && settings.checkOut);
   if (!days.length) days = (weather.daily || []).slice(0, 7);
 
   if (!days.length) {
     grid.innerHTML = `<div class="schedule-empty">The extended forecast is updating.</div>`;
     $("forecastRange").textContent = "Orlando, Florida";
-    $("forecastNote").textContent = "";
+    $("forecastNote").textContent = `Weather data by ${weather.source || "Open-Meteo"} · Orlando, Florida`;
     return;
   }
 
@@ -194,7 +193,7 @@ function renderForecast(weather, settings) {
   const first = new Date(`${days[0].date}T12:00:00-04:00`);
   const last = new Date(`${days[days.length - 1].date}T12:00:00-04:00`);
   $("forecastRange").textContent = `${first.toLocaleDateString("en-US", { month: "long", day: "numeric" })} – ${last.toLocaleDateString("en-US", { month: "long", day: "numeric" })}`;
-  $("forecastNote").textContent = isStayForecast ? "Forecast matched to the dates entered in the guest admin." : "Add check-in and checkout dates in the admin to match the guest’s stay.";
+  $("forecastNote").textContent = `Weather data by ${weather.source || "Open-Meteo"} · Orlando, Florida`;
 }
 
 function parkLogo(name) {
@@ -254,14 +253,18 @@ function applySettings(s) {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const checkIn = calendarDate(s.checkIn), checkOut = calendarDate(s.checkOut), todayValue = calendarDate(today);
   let dayline = "Your Orlando adventure awaits";
+  let eyebrow = "Your Orlando stay";
   if (checkIn && checkOut && todayValue >= checkIn && todayValue <= checkOut) {
     const day = Math.floor((todayValue - checkIn) / 86400000) + 1;
     const remaining = Math.max(0, Math.ceil((checkOut - todayValue) / 86400000));
     dayline = todayValue === checkIn ? "Your adventure begins today" : todayValue === checkOut ? "Safe travels home" : `Day ${day} of your vacation · ${remaining} day${remaining === 1 ? "" : "s"} remaining`;
+    eyebrow = todayValue === checkIn ? "Welcome to your Orlando stay" : todayValue === checkOut ? "Until next time" : "Make today unforgettable";
   } else if (checkIn && todayValue < checkIn) {
     const until = Math.ceil((checkIn - todayValue) / 86400000);
     dayline = `${until} day${until === 1 ? "" : "s"} until your vacation`;
+    eyebrow = "Your getaway is almost here";
   }
+  $("welcomeEyebrowText").textContent = eyebrow;
   $("vacationDayline").textContent = dayline;
   $("arrivalMessage").textContent = s.occasion || "The adventure is waiting.";
   $("arrivalGuest").textContent = guest;

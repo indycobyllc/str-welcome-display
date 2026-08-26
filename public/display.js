@@ -255,12 +255,17 @@ function resetEventPages(duration) {
   }
 }
 
+function updatePageTitle(slide) {
+  $("pageTitle").textContent = slide?.dataset.pageTitle || "";
+}
+
 function startSlides(seconds) {
   const visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden);
   if (!visibleSlides.length) return;
   visibleSlides.forEach(s => s.classList.remove("active"));
   let index = 0;
   visibleSlides[0].classList.add("active");
+  updatePageTitle(visibleSlides[0]);
   const duration = Math.max(8, Number(seconds) || 18) * 1000;
   if (visibleSlides[0].classList.contains("parks-slide")) resetEventPages(duration);
 
@@ -270,6 +275,7 @@ function startSlides(seconds) {
       visibleSlides[index].classList.remove("active");
       index = (index + 1) % visibleSlides.length;
       visibleSlides[index].classList.add("active");
+      updatePageTitle(visibleSlides[index]);
       if (visibleSlides[index].classList.contains("parks-slide")) {
         resetEventPages(duration);
       } else {

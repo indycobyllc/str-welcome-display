@@ -3,6 +3,8 @@ const FIELDS = [
   "wifiName", "wifiPassword", "slideSeconds", "showWelcome", "showEvents",
   "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
   "artworkIntensity", "transitionStyle"
+  , "showHomeInfo", "showStoreyLake", "showLocalFavorites", "homeInfo",
+  "localFavorites", "reviewUrl", "reviewMessage"
 ];
 const $ = id => document.getElementById(id);
 

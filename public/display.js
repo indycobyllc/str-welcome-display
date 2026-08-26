@@ -13,6 +13,13 @@ const DEFAULTS = {
   showForecast: true,
   showClock: true,
   showArrival: true,
+  showHomeInfo: false,
+  showStoreyLake: true,
+  showLocalFavorites: false,
+  homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
+  localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
+  reviewUrl: "",
+  reviewMessage: "Thank you for staying with us. If you enjoyed your visit, we would be grateful if you shared your experience.",
   parkOrder: "disney-first",
   motionIntensity: "full",
   artworkIntensity: 80,
@@ -50,6 +57,15 @@ function escapeHtml(value = "") {
   }[c]));
 }
 
+function safeUrl(value = "") {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
 function formatDateRange(start, end) {
   if (!start && !end) return "";
   const opts = { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" };
@@ -63,6 +79,31 @@ function calendarDate(value) {
   if (!value) return null;
   const [year, month, day] = value.split("-").map(Number);
   return Date.UTC(year, month - 1, day);
+}
+
+function parseRows(value, columns) {
+  return String(value || "").split("\n").map(row => row.split("|").map(item => item.trim()).slice(0, columns)).filter(row => row.some(Boolean));
+}
+
+function renderGuestPages(s) {
+  const homeRows = parseRows(s.homeInfo, 2);
+  $("homeInfoGrid").innerHTML = homeRows.map(([title, detail], index) => `<article><span>${["⌂", "◌", "◇", "♻", "✓", "? "][index % 6]}</span><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(detail)}</p></div></article>`).join("");
+  const favorites = parseRows(s.localFavorites, 4);
+  $("favoritesGrid").innerHTML = favorites.map(([category, name, note, url]) => { const link = safeUrl(url); return `<article><small>${escapeHtml(category)}</small><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? `<a href="${escapeHtml(link)}">View details ↗</a>` : ""}</article>`; }).join("");
+}
+
+function applyReviewMoment(s, todayValue, checkOut) {
+  const slide = document.querySelector(".review-slide");
+  const reviewUrl = safeUrl(s.reviewUrl);
+  if (!reviewUrl || !checkOut || todayValue > checkOut) return slide.hidden = true;
+  const daysUntil = Math.ceil((checkOut - todayValue) / 86400000);
+  slide.hidden = daysUntil < 0 || daysUntil > 2;
+  if (slide.hidden) return;
+  $("reviewMessage").textContent = s.reviewMessage || DEFAULTS.reviewMessage;
+  $("reviewTiming").textContent = daysUntil === 0 ? "Safe travels home" : daysUntil === 1 ? "Before tomorrow's checkout" : "As your stay winds down";
+  const qr = $("reviewQr");
+  qr.src = `https://quickchart.io/qr?size=320&margin=2&text=${encodeURIComponent(reviewUrl)}`;
+  qr.alt = "QR code linking to the Airbnb review page";
 }
 
 function applyStaySummary(start, end) {
@@ -334,6 +375,11 @@ function applySettings(s) {
   document.querySelector(".welcome-slide").hidden = !s.showWelcome;
   document.querySelector(".parks-slide").hidden = !s.showEvents;
   document.querySelector(".forecast-slide").hidden = !s.showForecast;
+  document.querySelector(".home-info-slide").hidden = !s.showHomeInfo;
+  document.querySelector(".storey-lake-slide").hidden = !s.showStoreyLake;
+  document.querySelector(".favorites-slide").hidden = !s.showLocalFavorites;
+  renderGuestPages(s);
+  applyReviewMoment(s, todayValue, checkOut);
   $("currentTime").parentElement.hidden = !s.showClock;
   applyStaySummary(s.checkIn, s.checkOut);
 }

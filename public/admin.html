@@ -82,13 +82,31 @@
     <section class="admin-card">
       <h2>Display controls</h2>
       <p class="admin-section-intro">Choose pages, motion, content order, and TV behavior.</p>
-      <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
+      <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showHomeInfo" type="checkbox"> Home information</label><label><input id="showStoreyLake" type="checkbox" checked> Storey Lake amenities</label><label><input id="showLocalFavorites" type="checkbox"> Local favorites</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
       <div class="form-grid control-grid">
         <label>Seconds per page<input id="slideSeconds" type="number" min="8" max="120" value="18"></label>
         <label>Park order<select id="parkOrder"><option value="disney-first">Disney first</option><option value="universal-first">Universal first</option></select></label>
         <label>Motion<select id="motionIntensity"><option value="full">Full cinematic</option><option value="reduced">Reduced</option><option value="still">Still artwork</option></select></label>
         <label>Transitions<select id="transitionStyle"><option value="auto">Match theme</option><option value="cinematic">Cinematic</option><option value="fade">Simple fade</option></select></label>
         <label class="wide">Artwork intensity <small>20% subtle · 100% vivid</small><input id="artworkIntensity" type="range" min="20" max="100" value="80"></label>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>Guest guide pages</h2>
+      <p class="admin-section-intro">Use one line per card and separate each part with a vertical bar.</p>
+      <div class="form-grid">
+        <label class="wide">Home information <small>Heading | details</small><textarea id="homeInfo" rows="8" placeholder="Parking | Park only in the driveway"></textarea></label>
+        <label class="wide">Local favorites <small>Category | name | personal note | optional link</small><textarea id="localFavorites" rows="8" placeholder="Dinner | Restaurant name | What we love about it | https://..."></textarea></label>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <h2>Checkout review moment</h2>
+      <p class="admin-section-intro">Appears automatically during the final two days of the stay. Leave the URL empty to disable it.</p>
+      <div class="form-grid">
+        <label class="wide">Airbnb review URL<input id="reviewUrl" type="url" maxlength="500" placeholder="https://airbnb.com/..."></label>
+        <label class="wide">Review message<textarea id="reviewMessage" rows="3" maxlength="500"></textarea></label>
       </div>
     </section>
 

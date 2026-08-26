@@ -7,11 +7,6 @@ const DEFAULTS = {
   theme: "galactic",
   wifiName: "Guest Wi-Fi",
   wifiPassword: "",
-  checkoutTime: "10:00 AM",
-  contactText: "Message us through your booking app.",
-  guideUrl: "",
-  showParks: true,
-  showHouse: true,
   slideSeconds: 18
 };
 
@@ -19,7 +14,10 @@ const PARKS = [
   { name: "Magic Kingdom", id: "75ea578a-adc8-4116-a54d-dccb60765ef9" },
   { name: "EPCOT", id: "47f90d2c-e191-4239-a466-5892ef59a88b" },
   { name: "Hollywood Studios", id: "6f612806-3d2f-4e3b-8e9a-78c7b7b9a6f6" },
-  { name: "Animal Kingdom", id: "1c84a229-8862-4648-9c71-378ddd2c7693" }
+  { name: "Animal Kingdom", id: "1c84a229-8862-4648-9c71-378ddd2c7693" },
+  { name: "Universal Studios Florida", id: "eb3f4560-2383-4a36-9152-6b3e5ed6bc57" },
+  { name: "Universal Islands of Adventure", id: "267615cc-8943-4c2a-ae2c-5da728ca591f" },
+  { name: "Universal Epic Universe", id: "12dbb85b-265f-44e6-bccf-f1faa17211fc" }
 ];
 
 function json(data, status = 200, extra = {}) {
@@ -40,7 +38,10 @@ function authorized(request, env) {
 
 function sanitize(input) {
   const text = (v, n) => String(v ?? "").trim().slice(0, n);
-  const themes = new Set(["galactic", "celebration", "elegant", "holiday", "neutral"]);
+  const themes = new Set([
+    "galactic", "celebration", "elegant", "holiday", "neutral",
+    "star-wars", "toy-story", "wizarding", "princess"
+  ]);
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,
     occasion: text(input.occasion, 100),
@@ -50,11 +51,6 @@ function sanitize(input) {
     theme: themes.has(input.theme) ? input.theme : "galactic",
     wifiName: text(input.wifiName, 80),
     wifiPassword: text(input.wifiPassword, 80),
-    checkoutTime: text(input.checkoutTime, 30),
-    contactText: text(input.contactText, 140),
-    guideUrl: text(input.guideUrl, 500),
-    showParks: Boolean(input.showParks),
-    showHouse: Boolean(input.showHouse),
     slideSeconds: Math.min(120, Math.max(8, Number(input.slideSeconds) || 18))
   };
 }
@@ -178,7 +174,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v2`);
+      const key = new Request(`${url.origin}/api/parks?cache=v3`);
       const cached = await cache.match(key);
       if (cached) return cached;
 
@@ -195,6 +191,33 @@ export default {
           parks: PARKS.map(p => ({ name: p.name, hours: "Check official app", events: [] })),
           error: error instanceof Error ? error.message : "Park data unavailable"
         });
+      }
+    }
+
+    if (url.pathname === "/api/weather" && request.method === "GET") {
+      const cache = caches.default;
+      const key = new Request(`${url.origin}/api/weather?cache=v1`);
+      const cached = await cache.match(key);
+      if (cached) return cached;
+
+      try {
+        const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=28.3772&longitude=-81.5707&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=America%2FNew_York";
+        const weatherResponse = await fetch(weatherUrl, {
+          headers: { "accept": "application/json", "user-agent": "STR-Welcome-Display/3.0" },
+          cf: { cacheTtl: 600, cacheEverything: true }
+        });
+        if (!weatherResponse.ok) throw new Error(`${weatherResponse.status} from Open-Meteo`);
+        const payload = await weatherResponse.json();
+        const response = json({
+          temperature: payload.current?.temperature_2m,
+          weatherCode: payload.current?.weather_code,
+          isDay: Boolean(payload.current?.is_day),
+          updatedAt: payload.current?.time
+        }, 200, { "cache-control": "public, max-age=300, s-maxage=600" });
+        await cache.put(key, response.clone());
+        return response;
+      } catch (error) {
+        return json({ error: error instanceof Error ? error.message : "Weather unavailable" }, 502);
       }
     }
 

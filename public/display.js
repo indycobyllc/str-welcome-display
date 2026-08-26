@@ -7,11 +7,6 @@ const DEFAULTS = {
   theme: "galactic",
   wifiName: "Guest Wi-Fi",
   wifiPassword: "",
-  checkoutTime: "10:00 AM",
-  contactText: "Message us through your booking app.",
-  guideUrl: "",
-  showParks: true,
-  showHouse: true,
   slideSeconds: 18
 };
 
@@ -32,16 +27,41 @@ function formatDateRange(start, end) {
   return (s || e).toLocaleDateString("en-US", opts);
 }
 
-function makeQr(url) {
-  const holder = $("qrCode");
-  if (!url) {
-    holder.textContent = "QR";
+function calendarDate(value) {
+  if (!value) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+function applyStaySummary(start, end) {
+  const holder = $("staySummary");
+  const checkIn = calendarDate(start);
+  const checkOut = calendarDate(end);
+  if (!checkIn || !checkOut || checkOut <= checkIn) {
+    holder.hidden = true;
     return;
   }
-  const img = document.createElement("img");
-  img.alt = "QR code for the digital house guide";
-  img.src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(url)}`;
-  holder.replaceChildren(img);
+
+  const todayText = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(new Date());
+  const today = calendarDate(todayText);
+  const dayMs = 86400000;
+  const nights = Math.round((checkOut - checkIn) / dayMs);
+  $("stayLength").textContent = `${nights}-night stay`;
+
+  if (today < checkIn) {
+    const until = Math.ceil((checkIn - today) / dayMs);
+    $("daysRemaining").textContent = `Begins in ${until} day${until === 1 ? "" : "s"}`;
+  } else if (today < checkOut) {
+    const remaining = Math.ceil((checkOut - today) / dayMs);
+    $("daysRemaining").textContent = `${remaining} day${remaining === 1 ? "" : "s"} remaining`;
+  } else if (today === checkOut) {
+    $("daysRemaining").textContent = "Departure day";
+  } else {
+    $("daysRemaining").textContent = "Thanks for staying with us";
+  }
+  holder.hidden = false;
 }
 
 function updateClock() {
@@ -54,12 +74,44 @@ function updateClock() {
   });
 }
 
-function parkIcon(name) {
-  if (/kingdom/i.test(name) && !/animal/i.test(name)) return "♜";
-  if (/epcot/i.test(name)) return "◉";
-  if (/hollywood/i.test(name)) return "★";
-  if (/animal/i.test(name)) return "♧";
-  return "✦";
+function weatherDetails(code, isDay = true) {
+  if (code === 0) return { icon: isDay ? "☀" : "☾", text: "Clear" };
+  if ([1, 2].includes(code)) return { icon: isDay ? "🌤" : "☁", text: "Partly cloudy" };
+  if (code === 3) return { icon: "☁", text: "Cloudy" };
+  if ([45, 48].includes(code)) return { icon: "≋", text: "Foggy" };
+  if ([51, 53, 55, 56, 57].includes(code)) return { icon: "🌦", text: "Drizzle" };
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { icon: "☂", text: "Rain" };
+  if ([95, 96, 99].includes(code)) return { icon: "ϟ", text: "Thunderstorms" };
+  return { icon: "○", text: "Orlando" };
+}
+
+async function loadWeather() {
+  try {
+    const response = await fetch("/api/weather", { cache: "no-store" });
+    if (!response.ok) throw new Error("Weather unavailable");
+    const weather = await response.json();
+    const details = weatherDetails(weather.weatherCode, weather.isDay);
+    $("weatherIcon").textContent = details.icon;
+    $("weatherTemp").textContent = `${Math.round(weather.temperature)}°`;
+    $("weatherText").textContent = details.text;
+  } catch {
+    $("weatherText").textContent = "Orlando";
+  }
+}
+
+function parkLogo(name) {
+  if (/magic kingdom/i.test(name)) return "/assets/parks/magic-kingdom.svg";
+  if (/epcot/i.test(name)) return "/assets/parks/epcot.svg";
+  if (/hollywood/i.test(name)) return "/assets/parks/hollywood-studios.svg";
+  if (/animal kingdom/i.test(name)) return "/assets/parks/animal-kingdom.svg";
+  return "";
+}
+
+function parkMark(name) {
+  const logo = parkLogo(name);
+  if (logo) return `<img src="${logo}" alt="${escapeHtml(name)}">`;
+  const shortName = name.replace(/^Universal\s+/i, "");
+  return `<span class="universal-mark"><small>Universal</small>${escapeHtml(shortName)}</span>`;
 }
 
 async function loadSettings() {
@@ -91,31 +143,31 @@ function applySettings(s) {
   $("stayDates").textContent = formatDateRange(s.checkIn, s.checkOut);
   $("wifiName").textContent = s.wifiName || "Guest Wi-Fi";
   $("wifiPassword").textContent = s.wifiPassword ? `Password: ${s.wifiPassword}` : "";
-  $("checkoutTime").textContent = s.checkoutTime || "10:00 AM";
-  $("contactText").textContent = s.contactText || "Message us through your booking app.";
-  makeQr(s.guideUrl);
-
-  document.querySelector(".parks-slide").hidden = !s.showParks;
-  document.querySelector(".house-details").hidden = !s.showHouse;
-  document.querySelector(".welcome-layout").classList.toggle("welcome-only", !s.showHouse);
+  applyStaySummary(s.checkIn, s.checkOut);
 }
 
 function renderParks(data) {
-  const grid = $("parksGrid");
+  const hoursGrid = $("parkHoursGrid");
+  const eventsGrid = $("eventsGrid");
   if (!data.parks?.length) {
-    grid.innerHTML = `<div class="park-card"><h3>Schedules updating</h3><div class="events">Please confirm current hours in the official Disney app.</div></div>`;
+    hoursGrid.innerHTML = `<div class="schedule-empty">Park schedules are updating.</div>`;
+    eventsGrid.innerHTML = `<div class="schedule-empty">Please confirm current events in the official park apps.</div>`;
     $("parksUpdated").textContent = "";
     return;
   }
 
-  grid.innerHTML = data.parks.map(park => {
+  hoursGrid.innerHTML = data.parks.map(park => `<article class="hours-card">
+    <div class="park-mark">${parkMark(park.name)}</div>
+    <strong>${escapeHtml(park.hours || "Hours unavailable")}</strong>
+  </article>`).join("");
+
+  eventsGrid.innerHTML = data.parks.map(park => {
     const events = (park.events || []).slice(0, 3)
-      .map(event => `<div>${escapeHtml(event.name)} — ${escapeHtml(event.time)}</div>`)
+      .map(event => `<li><span>${escapeHtml(event.name)}</span><strong>${escapeHtml(event.time)}</strong></li>`)
       .join("");
     return `<article class="park-card">
-      <div class="park-card-heading"><span class="park-icon" aria-hidden="true">${parkIcon(park.name)}</span><h3>${escapeHtml(park.name)}</h3></div>
-      <div class="hours">${escapeHtml(park.hours || "Hours unavailable")}</div>
-      <div class="events">${events || "No major entertainment listed."}</div>
+      <div class="park-card-heading">${parkMark(park.name)}</div>
+      <ul class="event-list">${events || "<li><span>No major entertainment listed.</span></li>"}</ul>
     </article>`;
   }).join("");
 
@@ -159,7 +211,7 @@ function startSlides(seconds) {
 }
 
 async function refreshAll() {
-  const [settings, parks] = await Promise.all([loadSettings(), loadParks()]);
+  const [settings, parks] = await Promise.all([loadSettings(), loadParks(), loadWeather()]);
   applySettings(settings);
   renderParks(parks);
   startSlides(settings.slideSeconds);

@@ -12,57 +12,47 @@
     <div class="stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <header class="display-header">
       <div class="resort-mark"><span class="resort-mark-icon">✦</span> Orlando Escape</div>
-      <div class="display-time"><span id="currentTime"></span><small id="currentDate"></small></div>
+      <div class="header-status">
+        <div id="weather" class="weather" aria-label="Current Orlando weather">
+          <span id="weatherIcon" class="weather-icon">○</span>
+          <span id="weatherTemp">--°</span>
+          <small id="weatherText">Orlando</small>
+        </div>
+        <div class="header-divider"></div>
+        <div class="display-time"><span id="currentTime"></span><small id="currentDate"></small></div>
+      </div>
     </header>
 
     <section class="slide active welcome-slide">
-      <div class="welcome-layout">
-        <div class="welcome-copy">
-          <div class="eyebrow"><span class="eyebrow-star">✦</span> Your vacation begins here</div>
-          <h1 id="guestName">Welcome!</h1>
+      <div class="welcome-copy">
+        <div class="eyebrow"><span class="eyebrow-star">✦</span> Welcome to your Orlando vacation</div>
+        <h1 id="guestName">Welcome!</h1>
+        <div class="welcome-meta">
           <p id="occasion" class="occasion"></p>
           <p id="welcomeMessage" class="welcome-message">Your adventure begins here.</p>
           <div id="stayDates" class="stay-dates"></div>
         </div>
+      </div>
 
-        <div class="house-details" aria-label="House information">
-          <article>
-            <div class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M5 12.6a10.5 10.5 0 0 1 14 0M8 16a6 6 0 0 1 8 0M11 19.3a1.5 1.5 0 1 1 2 0"/></svg>
-            </div>
-            <div class="card-copy"><span>Wi-Fi</span><strong id="wifiName">Guest Wi-Fi</strong><small id="wifiPassword"></small></div>
-          </article>
-          <article>
-            <div class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>
-            </div>
-            <div class="card-copy"><span>Checkout</span><strong id="checkoutTime">10:00 AM</strong></div>
-          </article>
-          <article id="guideCard" class="guide-card">
-            <div class="card-copy">
-              <span>Digital house guide</span>
-              <strong>Scan to open</strong>
-            </div>
-            <div id="qrCode" class="qr-placeholder">QR</div>
-          </article>
-          <article>
-            <div class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M20 15a3 3 0 0 1-3 3H9l-5 3v-6a3 3 0 0 1-1-2V7a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>
-            </div>
-            <div class="card-copy"><span>Need assistance?</span><strong id="contactText">Message us through your booking app.</strong></div>
-          </article>
-        </div>
+      <div class="section-label"><span>Today’s Orlando park hours</span><small>Times may change</small></div>
+      <div id="parkHoursGrid" class="park-hours-grid">
+        <div class="loading">Loading today’s hours…</div>
+      </div>
+
+      <div class="stay-strip">
+        <div><span>Wi-Fi</span><strong id="wifiName">Guest Wi-Fi</strong><small id="wifiPassword"></small></div>
+        <div id="staySummary" hidden><span>Your stay</span><strong id="stayLength"></strong><small id="daysRemaining"></small></div>
       </div>
     </section>
 
     <section class="slide parks-slide">
       <div class="eyebrow"><span class="eyebrow-star">✦</span> Plan your day</div>
-      <div class="parks-heading"><h2>Today at the Parks</h2><div class="today-pill">Live schedule</div></div>
-      <div id="parksGrid" class="parks-grid">
+      <div class="parks-heading"><h2>Entertainment & Events</h2><div class="today-pill">Today</div></div>
+      <div id="eventsGrid" class="events-grid">
         <div class="loading">Loading today's schedules…</div>
       </div>
       <p id="parksUpdated" class="updated"></p>
-      <p class="disclaimer">Park hours and entertainment are unofficial and subject to change. Confirm in the official Disney app.</p>
+      <p class="disclaimer">Park hours and entertainment are unofficial and subject to change. Confirm in the official park apps.</p>
     </section>
 
     <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>

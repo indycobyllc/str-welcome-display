@@ -1,7 +1,6 @@
 const FIELDS = [
   "guestName", "occasion", "welcomeMessage", "checkIn", "checkOut", "theme",
-  "wifiName", "wifiPassword", "checkoutTime", "contactText", "guideUrl",
-  "showParks", "showHouse", "slideSeconds"
+  "wifiName", "wifiPassword", "slideSeconds"
 ];
 const $ = id => document.getElementById(id);
 

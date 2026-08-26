@@ -57,13 +57,17 @@
             <option value="elegant">Elegant</option>
             <option value="holiday">Holiday</option>
             <option value="neutral">Neutral</option>
+            <option value="star-wars">Star Wars Inspired</option>
+            <option value="toy-story">Toy Story Inspired</option>
+            <option value="wizarding">Wizarding World Inspired</option>
+            <option value="princess">Princess Inspired</option>
           </select>
         </label>
       </div>
     </section>
 
     <section class="admin-card">
-      <h2>House information</h2>
+      <h2>Stay details</h2>
       <div class="form-grid">
         <label>
           Wi-Fi name
@@ -73,25 +77,11 @@
           Wi-Fi password
           <input id="wifiPassword" maxlength="80">
         </label>
-        <label>
-          Checkout time
-          <input id="checkoutTime" maxlength="30" placeholder="10:00 AM">
-        </label>
-        <label>
-          Contact instruction
-          <input id="contactText" maxlength="140" placeholder="Message us through your booking app.">
-        </label>
-        <label class="wide">
-          House-guide URL
-          <input id="guideUrl" type="url" placeholder="https://example.com/house-guide">
-        </label>
       </div>
     </section>
 
     <section class="admin-card">
       <h2>Display options</h2>
-      <label class="check-row"><input id="showParks" type="checkbox"> Show Disney park-hours slide</label>
-      <label class="check-row"><input id="showHouse" type="checkbox"> Show house information on welcome screen</label>
       <label>
         Seconds per slide
         <input id="slideSeconds" type="number" min="8" max="120" value="18">

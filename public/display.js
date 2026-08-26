@@ -136,7 +136,8 @@ async function loadParks() {
 
 function applySettings(s) {
   $("display").dataset.theme = s.theme || "galactic";
-  $("guestName").textContent = s.guestName || "Welcome!";
+  const legacyWelcome = "Welcome to Your Orlando Vacation!";
+  $("guestName").textContent = !s.guestName || s.guestName === legacyWelcome ? "Welcome!" : s.guestName;
   $("occasion").textContent = s.occasion || "";
   $("occasion").hidden = !s.occasion;
   $("welcomeMessage").textContent = s.welcomeMessage || "";

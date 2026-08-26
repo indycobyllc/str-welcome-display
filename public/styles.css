@@ -60,7 +60,7 @@ body { color: var(--text); background: var(--bg); }
 .stars { position:absolute; z-index:-1; inset:0; pointer-events:none; }
 .stars i { position:absolute; width:4px; height:4px; border-radius:50%; background:#fff; box-shadow:0 0 12px 3px rgba(255,255,255,.45); animation:twinkle 3.5s ease-in-out infinite; }
 .stars i:nth-child(1){left:9%;top:19%}.stars i:nth-child(2){left:28%;top:11%;animation-delay:-1s}.stars i:nth-child(3){left:56%;top:18%;animation-delay:-2.4s}.stars i:nth-child(4){left:81%;top:31%;animation-delay:-.5s}.stars i:nth-child(5){left:91%;top:12%;animation-delay:-1.7s}.stars i:nth-child(6){left:70%;top:70%;animation-delay:-3s}
-.display-header { position:absolute; z-index:10; top:0; left:0; right:0; height:88px; padding:0 clamp(42px,5vw,82px); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.12); background:linear-gradient(180deg,rgba(3,12,28,.42),rgba(3,12,28,.05)); backdrop-filter:blur(12px); }
+.display-header { position:absolute; z-index:10; top:0; left:0; right:0; height:88px; padding:0 clamp(42px,5vw,82px); display:flex; align-items:center; justify-content:flex-end; border-bottom:1px solid rgba(255,255,255,.12); background:linear-gradient(180deg,rgba(3,12,28,.56),rgba(3,12,28,.08)); }
 .resort-mark { font-size:clamp(16px,1.35vw,23px); font-weight:650; letter-spacing:.16em; text-transform:uppercase; }
 .resort-mark-icon,.eyebrow-star { color:var(--accent); }
 .header-status { display:flex; align-items:center; gap:24px; }
@@ -136,6 +136,10 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 .admin-shell header p { color:#52606d; }
 .admin-card { background:#fff; border:1px solid #d9e1e8; border-radius:16px; padding:22px; margin:16px 0; }
 .admin-card h2 { font-size:22px; margin:0 0 18px; }
+.admin-section-intro { margin:-8px 0 20px; color:#647383; }
+.admin-card label small { color:#71808f; font-size:12px; font-weight:500; }
+.automatic-card { border-left:4px solid #1c69a7; }
+.automatic-card p { margin:0; color:#52606d; line-height:1.55; }
 .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 label { display:flex; flex-direction:column; gap:7px; font-weight:650; }
 label.wide { grid-column:1/-1; }

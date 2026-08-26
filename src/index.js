@@ -1,5 +1,5 @@
 const DEFAULTS = {
-  guestName: "Welcome to Your Orlando Vacation!",
+  guestName: "Welcome!",
   occasion: "",
   welcomeMessage: "Relax, explore, and make unforgettable memories.",
   checkIn: "",
@@ -98,7 +98,13 @@ function getOpeningHours(day) {
 function normalHours(payload) {
   const today = easternDate();
   const entries = getScheduleEntries(payload);
-  const day = entries.find(x => x.date === today) || entries[0];
+  const todayEntries = entries.filter(x => x.date === today);
+  const direct =
+    todayEntries.find(x => /OPERATING|REGULAR/i.test(String(x.type || "")) && x.openingTime && x.closingTime) ||
+    todayEntries.find(x => x.openingTime && x.closingTime);
+  if (direct) return `${easternTime(direct.openingTime)} – ${easternTime(direct.closingTime)}`;
+
+  const day = todayEntries[0] || entries[0];
   const hours = getOpeningHours(day);
   const regular =
     hours.find(x => /OPERATING|REGULAR/i.test(String(x.type || ""))) ||
@@ -174,7 +180,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v3`);
+      const key = new Request(`${url.origin}/api/parks?cache=v4`);
       const cached = await cache.match(key);
       if (cached) return cached;
 

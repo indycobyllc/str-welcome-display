@@ -11,7 +11,7 @@
     <header>
       <p class="eyebrow">Remote control</p>
       <h1>Guest Welcome Display</h1>
-      <p>Update the next guest, occasion, house information, and display options.</p>
+      <p>Everything you personalize here appears on the guest TV. Live weather and park information update automatically.</p>
     </header>
 
     <div id="status" class="status" aria-live="polite"></div>
@@ -27,30 +27,31 @@
     </section>
 
     <section class="admin-card">
-      <h2>Guest welcome</h2>
+      <h2>Page 1 · Guest welcome</h2>
+      <p class="admin-section-intro">Controls the large welcome area on the left side of the first screen.</p>
       <div class="form-grid">
         <label>
-          Guest display name
+          Guest name <small>Large headline</small>
           <input id="guestName" maxlength="80" placeholder="The Thompson Family">
         </label>
         <label>
-          Special occasion
+          Special occasion <small>Highlighted below the name</small>
           <input id="occasion" maxlength="100" placeholder="Celebrating Emma's 8th Birthday">
         </label>
         <label class="wide">
-          Welcome message
+          Welcome message <small>Supporting sentence below the name</small>
           <input id="welcomeMessage" maxlength="160" placeholder="Your adventure begins here!">
         </label>
         <label>
-          Check-in date
+          Check-in date <small>Used for the date range and countdown</small>
           <input id="checkIn" type="date">
         </label>
         <label>
-          Checkout date
+          Checkout date <small>Used for stay length and days remaining</small>
           <input id="checkOut" type="date">
         </label>
         <label>
-          Theme
+          Theme <small>Changes both display pages</small>
           <select id="theme">
             <option value="galactic">Galactic</option>
             <option value="celebration">Celebration</option>
@@ -67,25 +68,32 @@
     </section>
 
     <section class="admin-card">
-      <h2>Stay details</h2>
+      <h2>Page 1 · Stay details</h2>
+      <p class="admin-section-intro">Shown in the small information row along the bottom of the welcome screen.</p>
       <div class="form-grid">
         <label>
-          Wi-Fi name
+          Wi-Fi name <small>Network shown to guests</small>
           <input id="wifiName" maxlength="80">
         </label>
         <label>
-          Wi-Fi password
+          Wi-Fi password <small>Password shown beside the network</small>
           <input id="wifiPassword" maxlength="80">
         </label>
       </div>
     </section>
 
     <section class="admin-card">
-      <h2>Display options</h2>
+      <h2>Screen rotation</h2>
+      <p class="admin-section-intro">Page 1 shows the welcome and park hours. Page 2 shows entertainment and events.</p>
       <label>
-        Seconds per slide
+        Seconds per page
         <input id="slideSeconds" type="number" min="8" max="120" value="18">
       </label>
+    </section>
+
+    <section class="admin-card automatic-card">
+      <h2>Automatic information</h2>
+      <p>Orlando weather, current time, Disney and Universal park hours, and entertainment schedules update automatically. There is nothing to enter for these items.</p>
     </section>
 
     <div class="actions">

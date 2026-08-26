@@ -21,6 +21,9 @@ function apply(settings) {
     if (el.type === "checkbox") el.checked = Boolean(settings[id]);
     else if (settings[id] !== undefined && settings[id] !== null) el.value = settings[id];
   }
+  if (settings.guestName === "Welcome to Your Orlando Vacation!") {
+    $("guestName").value = "Welcome!";
+  }
 }
 
 function collect() {

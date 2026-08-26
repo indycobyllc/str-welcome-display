@@ -112,6 +112,33 @@ function normalHours(payload) {
   return regular ? `${easternTime(regular.startTime)} – ${easternTime(regular.endTime)}` : "";
 }
 
+function operatingWindow(payload) {
+  const today = easternDate();
+  const entries = getScheduleEntries(payload).filter(x => x.date === today);
+  const direct =
+    entries.find(x => /OPERATING|REGULAR/i.test(String(x.type || "")) && x.openingTime && x.closingTime) ||
+    entries.find(x => x.openingTime && x.closingTime);
+  if (direct) return { openingTime: direct.openingTime, closingTime: direct.closingTime };
+
+  const hours = getOpeningHours(entries[0]);
+  const regular =
+    hours.find(x => /OPERATING|REGULAR/i.test(String(x.type || ""))) ||
+    hours.find(x => x.startTime && x.endTime);
+  return regular ? { openingTime: regular.startTime, closingTime: regular.endTime } : null;
+}
+
+function attractionInsights(payload, parkName) {
+  const live = Array.isArray(payload?.liveData) ? payload.liveData : [];
+  const waits = live
+    .filter(item => item.entityType === "ATTRACTION" && item.status === "OPERATING")
+    .map(item => ({ name: item.name, park: parkName, wait: Number(item.queue?.STANDBY?.waitTime) }))
+    .filter(item => Number.isFinite(item.wait) && item.wait > 0 && item.wait <= 180);
+  const unavailable = live.filter(item =>
+    item.entityType === "ATTRACTION" && /DOWN|REFURBISHMENT/i.test(String(item.status || ""))
+  ).length;
+  return { waits, unavailable };
+}
+
 function extractEvents(payload) {
   const today = easternDate();
   const live = Array.isArray(payload?.liveData) ? payload.liveData : [];
@@ -136,13 +163,30 @@ async function parkData() {
       fetchApi(`https://api.themeparks.wiki/v1/entity/${park.id}/schedule`).catch(() => ({})),
       fetchApi(`https://api.themeparks.wiki/v1/entity/${park.id}/live`).catch(() => ({}))
     ]);
+    const window = operatingWindow(schedule);
+    const attractionData = attractionInsights(live, park.name);
     return {
       name: park.name,
       hours: normalHours(schedule) || "Check official app",
-      events: extractEvents(live)
+      events: extractEvents(live),
+      closingTime: window?.closingTime || "",
+      waits: attractionData.waits,
+      unavailable: attractionData.unavailable
     };
   }));
-  return { updatedAt: new Date().toISOString(), source: "ThemeParks.wiki", parks: results };
+
+  const latest = results
+    .filter(park => park.closingTime)
+    .sort((a, b) => new Date(b.closingTime) - new Date(a.closingTime))[0];
+  const bestBets = results.flatMap(park => park.waits).sort((a, b) => a.wait - b.wait).slice(0, 3);
+  const unavailable = results.reduce((sum, park) => sum + park.unavailable, 0);
+  const insights = {
+    latestClosing: latest ? { park: latest.name, time: easternTime(latest.closingTime) } : null,
+    bestBets,
+    unavailable
+  };
+  const parks = results.map(({ closingTime, waits, unavailable: unavailableCount, ...park }) => park);
+  return { updatedAt: new Date().toISOString(), source: "ThemeParks.wiki", parks, insights };
 }
 
 export default {
@@ -187,7 +231,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v5`);
+      const key = new Request(`${url.origin}/api/parks?cache=v6`);
       const cached = await cache.match(key);
       if (cached) return cached;
 
@@ -209,12 +253,12 @@ export default {
 
     if (url.pathname === "/api/weather" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/weather?cache=v1`);
+      const key = new Request(`${url.origin}/api/weather?cache=v2`);
       const cached = await cache.match(key);
       if (cached) return cached;
 
       try {
-        const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=28.3772&longitude=-81.5707&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=America%2FNew_York";
+        const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=28.3772&longitude=-81.5707&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=16";
         const weatherResponse = await fetch(weatherUrl, {
           headers: { "accept": "application/json", "user-agent": "STR-Welcome-Display/3.0" },
           cf: { cacheTtl: 600, cacheEverything: true }
@@ -225,7 +269,17 @@ export default {
           temperature: payload.current?.temperature_2m,
           weatherCode: payload.current?.weather_code,
           isDay: Boolean(payload.current?.is_day),
-          updatedAt: payload.current?.time
+          updatedAt: payload.current?.time,
+          daily: (payload.daily?.time || []).map((date, index) => ({
+            date,
+            weatherCode: payload.daily.weather_code?.[index],
+            high: payload.daily.temperature_2m_max?.[index],
+            low: payload.daily.temperature_2m_min?.[index],
+            rainChance: payload.daily.precipitation_probability_max?.[index],
+            uvIndex: payload.daily.uv_index_max?.[index],
+            sunrise: payload.daily.sunrise?.[index],
+            sunset: payload.daily.sunset?.[index]
+          }))
         }, 200, { "cache-control": "public, max-age=300, s-maxage=600" });
         await cache.put(key, response.clone());
         return response;

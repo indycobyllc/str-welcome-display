@@ -10,6 +10,7 @@
   <main id="display" aria-live="polite">
     <div class="sky-glow" aria-hidden="true"></div>
     <div class="stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="theme-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <header class="display-header">
       <div class="header-status">
         <div id="weather" class="weather" aria-label="Current Orlando weather">
@@ -47,11 +48,24 @@
     <section class="slide parks-slide">
       <div class="eyebrow"><span class="eyebrow-star">✦</span> Plan your day</div>
       <div class="parks-heading"><h2>Entertainment & Events</h2><div class="today-pill">Today</div></div>
+      <div id="insightsGrid" class="insights-grid" aria-label="Park insights"></div>
       <div id="eventsGrid" class="events-grid">
         <div class="loading">Loading today's schedules…</div>
       </div>
       <p id="parksUpdated" class="updated"></p>
       <p class="disclaimer">Park hours and entertainment are unofficial and subject to change. Confirm in the official park apps.</p>
+    </section>
+
+    <section class="slide forecast-slide">
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> Your vacation forecast</div>
+      <div class="forecast-heading">
+        <h2>Weather for Your Stay</h2>
+        <p id="forecastRange"></p>
+      </div>
+      <div id="forecastGrid" class="forecast-grid">
+        <div class="loading">Loading your forecast…</div>
+      </div>
+      <p id="forecastNote" class="forecast-note"></p>
     </section>
 
   </main>

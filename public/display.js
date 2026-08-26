@@ -94,9 +94,59 @@ async function loadWeather() {
     $("weatherIcon").textContent = details.icon;
     $("weatherTemp").textContent = `${Math.round(weather.temperature)}°`;
     $("weatherText").textContent = details.text;
+    return weather;
   } catch {
     $("weatherText").textContent = "Orlando";
+    return { daily: [] };
   }
+}
+
+function forecastHint(day) {
+  if (day.rainChance >= 70) return "Pack ponchos";
+  if (day.uvIndex >= 8 && day.high >= 92) return "Hydrate & take breaks";
+  if (day.uvIndex >= 8) return "High UV · sunscreen";
+  if (day.high >= 92) return "Plan a cool-down break";
+  if (day.rainChance <= 25) return "Great park weather";
+  return "A flexible park day";
+}
+
+function renderForecast(weather, settings) {
+  const grid = $("forecastGrid");
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(new Date());
+  const start = settings.checkIn && settings.checkIn > today ? settings.checkIn : today;
+  const end = settings.checkOut || "9999-12-31";
+  let days = (weather.daily || []).filter(day => day.date >= start && day.date <= end);
+  const isStayForecast = Boolean(settings.checkIn && settings.checkOut);
+  if (!days.length) days = (weather.daily || []).slice(0, 7);
+
+  if (!days.length) {
+    grid.innerHTML = `<div class="schedule-empty">The extended forecast is updating.</div>`;
+    $("forecastRange").textContent = "Orlando, Florida";
+    $("forecastNote").textContent = "";
+    return;
+  }
+
+  grid.style.setProperty("--forecast-days", Math.min(days.length, 8));
+  grid.innerHTML = days.map((day, index) => {
+    const date = new Date(`${day.date}T12:00:00-04:00`);
+    const label = index === 0 && day.date === today ? "Today" : date.toLocaleDateString("en-US", { weekday: "short" });
+    const detail = weatherDetails(day.weatherCode, true);
+    return `<article class="forecast-card">
+      <div class="forecast-day">${escapeHtml(label)}</div>
+      <div class="forecast-date">${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</div>
+      <div class="forecast-icon" aria-hidden="true">${detail.icon}</div>
+      <div class="forecast-temps"><strong>${Math.round(day.high)}°</strong><span>${Math.round(day.low)}°</span></div>
+      <div class="forecast-rain">${Math.round(day.rainChance || 0)}% rain</div>
+      <div class="forecast-tip">${escapeHtml(forecastHint(day))}</div>
+    </article>`;
+  }).join("");
+
+  const first = new Date(`${days[0].date}T12:00:00-04:00`);
+  const last = new Date(`${days[days.length - 1].date}T12:00:00-04:00`);
+  $("forecastRange").textContent = `${first.toLocaleDateString("en-US", { month: "long", day: "numeric" })} – ${last.toLocaleDateString("en-US", { month: "long", day: "numeric" })}`;
+  $("forecastNote").textContent = isStayForecast ? "Forecast matched to the dates entered in the guest admin." : "Add check-in and checkout dates in the admin to match the guest’s stay.";
 }
 
 function parkLogo(name) {
@@ -172,6 +222,13 @@ function renderParks(data) {
     </article>`;
   }).join("");
 
+  const insights = data.insights || {};
+  const bestBets = (insights.bestBets || []).map(item => `${escapeHtml(item.name)} · ${Number(item.wait)} min`).join("<br>");
+  $("insightsGrid").innerHTML = `
+    <article><span>Open latest</span><strong>${insights.latestClosing ? `${escapeHtml(insights.latestClosing.park)} · ${escapeHtml(insights.latestClosing.time)}` : "Schedule updating"}</strong></article>
+    <article><span>Low waits right now</span><strong>${bestBets || "Live waits updating"}</strong></article>
+    <article><span>Good to know</span><strong>${Number(insights.unavailable) ? `${insights.unavailable} attraction${insights.unavailable === 1 ? "" : "s"} temporarily unavailable` : "No major disruptions reported"}</strong></article>`;
+
   const updated = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString("en-US", {
     hour: "numeric", minute: "2-digit", timeZone: "America/New_York"
   }) : "";
@@ -198,9 +255,10 @@ function startSlides(seconds) {
 }
 
 async function refreshAll() {
-  const [settings, parks] = await Promise.all([loadSettings(), loadParks(), loadWeather()]);
+  const [settings, parks, weather] = await Promise.all([loadSettings(), loadParks(), loadWeather()]);
   applySettings(settings);
   renderParks(parks);
+  renderForecast(weather, settings);
   startSlides(settings.slideSeconds);
 }
 

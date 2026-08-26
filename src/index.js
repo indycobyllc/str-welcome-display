@@ -157,6 +157,13 @@ export default {
       return json({ ...DEFAULTS, ...(stored || {}) });
     }
 
+    if (url.pathname === "/api/admin/status" && request.method === "GET") {
+      return json({
+        adminConfigured: Boolean(env.ADMIN_TOKEN),
+        settingsStorageConfigured: Boolean(env.STR_SETTINGS)
+      });
+    }
+
     if (url.pathname === "/api/admin/settings") {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
 

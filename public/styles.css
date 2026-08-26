@@ -52,11 +52,27 @@ body { color: var(--text); background: var(--bg); }
 
 .theme-art { position:absolute;z-index:-1;inset:0;overflow:hidden;pointer-events:none;display:none; }
 .theme-art i { position:absolute;display:block; }
+.space-scene { display:none;position:absolute;inset:0;overflow:hidden; }
 #display[data-theme="star-wars"] .theme-art,#display[data-theme="toy-story"] .theme-art,#display[data-theme="wizarding"] .theme-art,#display[data-theme="princess"] .theme-art { display:block; }
 #display[data-theme="star-wars"] .theme-art::before { content:"";position:absolute;width:34vw;height:34vw;left:-12vw;bottom:-12vw;border-radius:50%;background:radial-gradient(circle at 66% 28%,rgba(117,220,255,.16),rgba(18,39,62,.9) 46%,#01040a 70%);box-shadow:0 0 70px rgba(117,220,255,.12); }
 #display[data-theme="star-wars"] .theme-art::after { content:"";position:absolute;left:12%;right:12%;bottom:-22%;height:48%;background:repeating-linear-gradient(90deg,rgba(117,220,255,.11) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(117,220,255,.1) 0 1px,transparent 1px 54px);transform:perspective(400px) rotateX(64deg);transform-origin:center top;animation:grid-flight 8s linear infinite;mask-image:linear-gradient(to bottom,transparent,#000 35%); }
 #display[data-theme="star-wars"] .theme-art i { width:1px;height:70px;background:linear-gradient(transparent,rgba(167,229,255,.85),transparent);animation:light-streak 5s linear infinite; }
 #display[data-theme="star-wars"] .theme-art i:nth-child(1){left:18%;top:-15%;animation-delay:-1s}#display[data-theme="star-wars"] .theme-art i:nth-child(2){left:36%;top:-20%;animation-delay:-3.2s}#display[data-theme="star-wars"] .theme-art i:nth-child(3){left:57%;top:-10%;animation-delay:-.4s}#display[data-theme="star-wars"] .theme-art i:nth-child(4){left:76%;top:-16%;animation-delay:-4s}#display[data-theme="star-wars"] .theme-art i:nth-child(5){left:91%;top:-12%;animation-delay:-2.1s}
+#display[data-theme="star-wars"] .space-scene { display:block; }
+.space-burst { position:absolute;left:48%;top:46%;width:10px;height:10px;border-radius:50%;background:#dff7ff;box-shadow:0 0 40px 18px rgba(117,220,255,.5);animation:hyperspace-burst 14s ease-out infinite; }
+.space-ship { position:absolute;display:block;background:linear-gradient(90deg,#182533,#8aa4b9 48%,#17232e);clip-path:polygon(0 50%,18% 35%,62% 5%,100% 42%,84% 50%,100% 58%,62% 95%,18% 65%);filter:drop-shadow(0 0 8px rgba(117,220,255,.28)); }
+.space-ship::after { content:"";position:absolute;left:7%;top:42%;width:18%;height:16%;background:#8fe8ff;box-shadow:0 0 15px #54cfff;clip-path:polygon(0 0,100% 35%,100% 65%,0 100%); }
+.ship-main { left:calc(48% - 125px);top:calc(46% - 48px);width:250px;height:96px;animation:ship-exit-hyperspace 14s cubic-bezier(.18,.7,.2,1) infinite; }
+.ship-wing-left,.ship-wing-right { width:92px;height:35px;opacity:0; }
+.ship-wing-left { left:12%;top:28%;animation:escort-left 14s ease-in-out infinite; }
+.ship-wing-right { right:13%;top:62%;animation:escort-right 14s ease-in-out infinite; }
+.space-laser { position:absolute;display:block;width:170px;height:2px;opacity:0;transform-origin:left center; }
+.laser-blue-one,.laser-blue-two { background:#86e8ff;box-shadow:0 0 7px 2px #2bc7ff;transform:rotate(-12deg); }
+.laser-red-one,.laser-red-two { background:#ff776d;box-shadow:0 0 7px 2px #ff3025;transform:rotate(168deg); }
+.laser-blue-one { left:22%;top:38%;animation:laser-blue 14s linear infinite; }
+.laser-blue-two { left:28%;top:53%;animation:laser-blue 14s linear infinite .55s; }
+.laser-red-one { right:18%;top:43%;animation:laser-red 14s linear infinite .25s; }
+.laser-red-two { right:24%;top:61%;animation:laser-red 14s linear infinite .85s; }
 #display[data-theme="star-wars"] .park-card,#display[data-theme="star-wars"] .forecast-card,#display[data-theme="star-wars"] .insights-grid article { border-radius:2px;clip-path:polygon(0 10px,10px 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%); }
 #display[data-theme="star-wars"] .eyebrow,#display[data-theme="star-wars"] .section-label,#display[data-theme="star-wars"] .forecast-day { letter-spacing:.28em; }
 
@@ -198,6 +214,12 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 @keyframes list-in { from{opacity:0;transform:translateX(10px)} to{opacity:1;transform:translateX(0)} }
 @keyframes grid-flight { to{background-position:80px 54px} }
 @keyframes light-streak { from{transform:translateY(-15vh);opacity:0} 15%{opacity:.8} to{transform:translateY(125vh);opacity:0} }
+@keyframes hyperspace-burst { 0%,8%{opacity:0;transform:scale(.1)} 12%{opacity:1;transform:scale(.7)} 18%{opacity:.85;transform:scale(7)} 24%,100%{opacity:0;transform:scale(12)} }
+@keyframes ship-exit-hyperspace { 0%,10%{opacity:0;transform:scale(.015) translateZ(0);filter:blur(8px)} 17%{opacity:1;transform:scale(.06);filter:blur(4px)} 29%{opacity:.88;transform:scale(.72);filter:blur(0)} 38%,68%{opacity:.48;transform:scale(1)} 82%{opacity:.2;transform:translate(24vw,-13vh) scale(.48) rotate(-7deg)} 88%,100%{opacity:0;transform:translate(34vw,-20vh) scale(.2) rotate(-12deg)} }
+@keyframes escort-left { 0%,30%{opacity:0;transform:translate(-18vw,12vh) scale(.35)} 40%{opacity:.48} 62%{opacity:.34;transform:translate(38vw,-7vh) scale(.75)} 72%,100%{opacity:0;transform:translate(62vw,-18vh) scale(.35)} }
+@keyframes escort-right { 0%,34%{opacity:0;transform:translate(18vw,-10vh) scale(.3) rotate(180deg)} 43%{opacity:.46} 65%{opacity:.32;transform:translate(-42vw,8vh) scale(.7) rotate(180deg)} 75%,100%{opacity:0;transform:translate(-65vw,18vh) scale(.3) rotate(180deg)} }
+@keyframes laser-blue { 0%,43%,48%,100%{opacity:0;transform:rotate(-12deg) translateX(0)} 44%{opacity:.95} 47%{opacity:0;transform:rotate(-12deg) translateX(50vw)} }
+@keyframes laser-red { 0%,51%,56%,100%{opacity:0;transform:rotate(168deg) translateX(0)} 52%{opacity:.9} 55%{opacity:0;transform:rotate(168deg) translateX(50vw)} }
 @keyframes cloud-float { to{transform:translateX(18vw)} }
 @keyframes toy-float { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-18px) rotate(12deg)} }
 @keyframes candle-bloom { 0%,100%{opacity:.55;transform:scale(.94)} 50%{opacity:1;transform:scale(1.06)} }

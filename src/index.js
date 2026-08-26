@@ -170,7 +170,11 @@ function extractEvents(payload) {
       const start = show.startTime || show.start;
       const startsAt = start ? new Date(start).getTime() : NaN;
       if (!start || easternDate(start) !== today || !Number.isFinite(startsAt) || startsAt <= now) continue;
-      rows.push({ name: item.name || "Entertainment", time: easternTime(start), startsAt });
+      const name = item.name || "Entertainment";
+      const category = /parade|starlight|festival of fantasy|procession/i.test(name) ? "parade"
+        : /fireworks|happily ever after|luminous|fantasmic|celestial|movie magic|nighttime|spectacular/i.test(name) ? "nighttime"
+        : "show";
+      rows.push({ name, time: easternTime(start), startsAt, category });
     }
   }
   const priority = /happily ever after|luminous|fantasmic|fireworks|parade|starlight|nighttime/i;
@@ -261,7 +265,7 @@ export default {
 
     if (url.pathname === "/api/parks" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/parks?cache=v8`);
+      const key = new Request(`${url.origin}/api/parks?cache=v9`);
       const cached = await cache.match(key);
       if (cached) return cached;
 

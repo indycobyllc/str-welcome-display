@@ -211,6 +211,23 @@ function parkMark(name) {
   return `<span class="universal-mark"><small>Universal</small>${escapeHtml(shortName)}</span>`;
 }
 
+function eventCategory(event) {
+  if (event.category) return event.category;
+  if (/parade|starlight|festival of fantasy|procession/i.test(event.name)) return "parade";
+  if (/fireworks|happily ever after|luminous|fantasmic|celestial|movie magic|nighttime|spectacular/i.test(event.name)) return "nighttime";
+  return "show";
+}
+
+function eventBadge(event) {
+  const category = eventCategory(event);
+  const details = {
+    nighttime: { icon: "✦", label: "Nighttime" },
+    parade: { icon: "⚑", label: "Parade" },
+    show: { icon: "◉", label: "Show" }
+  }[category];
+  return `<i class="event-type event-type-${category}" title="${details.label}" aria-label="${details.label}"><b>${details.icon}</b><small>${details.label}</small></i>`;
+}
+
 async function loadSettings() {
   try {
     const result = await cachedJson("/api/settings", "str-settings-v1");
@@ -296,7 +313,7 @@ function renderParks(data) {
 
   const eventCards = orderedParks.map(park => {
     const events = (park.events || []).slice(0, 3)
-      .map(event => `<li><span>${escapeHtml(event.name)}</span><strong>${escapeHtml(event.time)}</strong></li>`)
+      .map(event => `<li><span class="event-name">${eventBadge(event)}<span>${escapeHtml(event.name)}</span></span><strong>${escapeHtml(event.time)}</strong></li>`)
       .join("");
     return `<article class="park-card">
       <div class="park-card-heading">${parkMark(park.name)}</div>

@@ -37,6 +37,7 @@ body { color: var(--text); background: var(--bg); }
 #display[data-theme="holiday"] { --bg-start:#071d1b;--bg-mid:#174c3a;--bg-end:#782d35;--glow:rgba(255,210,139,.26);--accent:#f3d69c;--accent2:#bce7d1;--panel:rgba(6,39,31,.72);--panel-strong:rgba(5,31,26,.92); }
 #display[data-theme="neutral"] { --bg-start:#18334d;--bg-mid:#477c9d;--bg-end:#9ebbc8;--glow:rgba(232,248,255,.34);--accent:#fff0c9;--accent2:#d9f1ff;--muted:#e0ebf0;--panel:rgba(20,48,68,.65);--panel-strong:rgba(18,43,60,.88); }
 #display[data-theme="star-wars"] { --bg-start:#01040a;--bg-mid:#071426;--bg-end:#172a40;--glow:rgba(73,192,255,.2);--accent:#75dcff;--accent2:#ffe46b;--muted:#b9cad8;--panel:rgba(2,9,18,.8);--panel-strong:rgba(1,5,11,.95);--horizon-a:rgba(32,54,67,.7);--horizon-b:rgba(1,4,8,.98); }
+#display[data-theme="star-wars-immersive"] { --bg-start:#090303;--bg-mid:#391007;--bg-end:#ad3c0a;--glow:rgba(255,87,16,.33);--accent:#ffb34d;--accent2:#88dcff;--muted:#e0c4af;--panel:rgba(16,5,4,.7);--panel-strong:rgba(8,3,3,.93);--horizon-a:rgba(86,20,7,.82);--horizon-b:rgba(5,2,2,.98); }
 #display[data-theme="toy-story"] { --bg-start:#087fc2;--bg-mid:#39ace4;--bg-end:#95dbf3;--glow:rgba(255,255,255,.55);--accent:#ffe04f;--accent2:#d7f5ff;--muted:#effaff;--panel:rgba(7,77,127,.66);--panel-strong:rgba(5,53,98,.88);--horizon-a:rgba(76,177,75,.92);--horizon-b:rgba(20,98,51,.98); }
 #display[data-theme="wizarding"] { --bg-start:#100d0b;--bg-mid:#3a2117;--bg-end:#74532b;--glow:rgba(255,190,92,.22);--accent:#e4bd72;--accent2:#d6c8a6;--muted:#d2c6b2;--panel:rgba(29,20,15,.78);--panel-strong:rgba(16,12,9,.95);--horizon-a:rgba(50,39,28,.84);--horizon-b:rgba(9,8,7,.98); }
 #display[data-theme="harry-potter-immersive"] { --bg-start:#05090d;--bg-mid:#111b20;--bg-end:#251a14;--glow:rgba(226,177,87,.2);--accent:#e9c678;--accent2:#bdced1;--muted:#d4cec0;--panel:rgba(8,12,13,.69);--panel-strong:rgba(5,8,9,.91);--horizon-a:rgba(27,31,29,.78);--horizon-b:rgba(3,5,6,.98); }
@@ -56,7 +57,8 @@ body { color: var(--text); background: var(--bg); }
 .theme-art i { position:absolute;display:block; }
 .space-scene { display:none;position:absolute;inset:0;overflow:hidden; }
 .wizard-scene { display:none;position:absolute;inset:0;overflow:hidden; }
-#display[data-theme="star-wars"] .theme-art,#display[data-theme="toy-story"] .theme-art,#display[data-theme="wizarding"] .theme-art,#display[data-theme="princess"] .theme-art,#display[data-theme="harry-potter-immersive"] .theme-art { display:block; }
+.mustafar-scene { display:none;position:absolute;inset:0;overflow:hidden; }
+#display[data-theme="star-wars"] .theme-art,#display[data-theme="star-wars-immersive"] .theme-art,#display[data-theme="toy-story"] .theme-art,#display[data-theme="wizarding"] .theme-art,#display[data-theme="princess"] .theme-art,#display[data-theme="harry-potter-immersive"] .theme-art { display:block; }
 #display[data-theme="star-wars"] .theme-art::before { content:"";position:absolute;width:34vw;height:34vw;left:-12vw;bottom:-12vw;border-radius:50%;background:radial-gradient(circle at 66% 28%,rgba(117,220,255,.16),rgba(18,39,62,.9) 46%,#01040a 70%);box-shadow:0 0 70px rgba(117,220,255,.12); }
 #display[data-theme="star-wars"] .theme-art::after { content:"";position:absolute;left:12%;right:12%;bottom:-22%;height:48%;background:repeating-linear-gradient(90deg,rgba(117,220,255,.11) 0 1px,transparent 1px 80px),repeating-linear-gradient(0deg,rgba(117,220,255,.1) 0 1px,transparent 1px 54px);transform:perspective(400px) rotateX(64deg);transform-origin:center top;animation:grid-flight 8s linear infinite;mask-image:linear-gradient(to bottom,transparent,#000 35%); }
 #display[data-theme="star-wars"] .theme-art i { width:1px;height:70px;background:linear-gradient(transparent,rgba(167,229,255,.85),transparent);animation:light-streak 5s linear infinite; }
@@ -78,6 +80,26 @@ body { color: var(--text); background: var(--bg); }
 .laser-red-two { right:24%;top:61%;animation:laser-red 14s linear infinite .85s; }
 #display[data-theme="star-wars"] .park-card,#display[data-theme="star-wars"] .forecast-card,#display[data-theme="star-wars"] .insights-grid article { border-radius:2px;clip-path:polygon(0 10px,10px 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%); }
 #display[data-theme="star-wars"] .eyebrow,#display[data-theme="star-wars"] .section-label,#display[data-theme="star-wars"] .forecast-day { letter-spacing:.28em; }
+
+#display[data-theme="star-wars-immersive"] .mustafar-scene { display:block; }
+#display[data-theme="star-wars-immersive"] .stars { opacity:.15; }
+#display[data-theme="star-wars-immersive"] .sky-glow { background:radial-gradient(circle,#ff6a13,rgba(197,48,5,.3) 34%,transparent 68%); }
+.mustafar-sun { position:absolute;right:8vw;top:12vh;width:24vw;height:24vw;border-radius:50%;background:radial-gradient(circle,#ffe083 0,#ff7a18 28%,#a91e05 62%,transparent 70%);filter:blur(3px);opacity:.7;animation:mustafar-pulse 5s ease-in-out infinite; }
+.mustafar-mountains { position:absolute;left:-4%;right:-4%;bottom:18%;height:48%;background:linear-gradient(180deg,#160706,#030202);clip-path:polygon(0 100%,0 72%,8% 57%,13% 68%,21% 39%,29% 72%,37% 48%,45% 69%,55% 32%,62% 62%,69% 45%,76% 70%,86% 37%,93% 60%,100% 49%,100% 100%);filter:drop-shadow(0 -8px 22px rgba(255,75,10,.28)); }
+.mustafar-mountains::after { content:"";position:absolute;inset:45% 0 0;background:repeating-linear-gradient(104deg,transparent 0 80px,rgba(255,73,8,.45) 82px 87px,transparent 90px 145px);filter:blur(2px);animation:lava-veins 4s ease-in-out infinite alternate; }
+.lava-river { position:absolute;left:-8%;right:-8%;bottom:-8%;height:34%;background:radial-gradient(ellipse at 42% 30%,#fff2a0 0 2%,transparent 9%),repeating-linear-gradient(102deg,#6c1204 0 7%,#ff4d08 9%,#ffbc35 11%,#8b1805 15%,#270403 23%);filter:drop-shadow(0 -18px 40px rgba(255,67,8,.58));animation:lava-flow 6s linear infinite; }
+.mustafar-platform { position:absolute;left:17%;right:14%;bottom:21%;height:4%;background:linear-gradient(#343234,#080708);clip-path:polygon(0 40%,8% 0,92% 0,100% 40%,96% 100%,4% 100%);box-shadow:0 9px 16px #000; }
+.duelist { position:absolute;bottom:25%;width:9vw;height:31vh;transform-origin:center bottom;filter:drop-shadow(0 8px 8px #000); }
+.duelist-head { position:absolute;left:37%;top:0;width:27%;aspect-ratio:1;border-radius:45%;background:#080707; }
+.duelist-body { position:absolute;left:24%;top:15%;width:52%;height:72%;background:linear-gradient(90deg,#050505,#171313 52%,#050505);clip-path:polygon(25% 0,75% 0,100% 35%,78% 45%,92% 100%,8% 100%,22% 45%,0 35%); }
+.lightsaber { position:absolute;left:50%;top:34%;width:5px;height:clamp(180px,27vh,310px);border-radius:5px;transform-origin:center 5%;background:#fff; }
+.duelist-blue { left:28%;animation:duelist-blue-move 8s ease-in-out infinite; }.duelist-blue .lightsaber{box-shadow:0 0 6px 3px #fff,0 0 16px 8px #24a9ff,0 0 34px 12px rgba(36,169,255,.6);transform:rotate(-52deg)}
+.duelist-red { right:27%;animation:duelist-red-move 8s ease-in-out infinite; }.duelist-red .lightsaber{box-shadow:0 0 6px 3px #fff,0 0 16px 8px #ff2519,0 0 34px 12px rgba(255,37,25,.65);transform:rotate(52deg)}
+.saber-clash { position:absolute;left:calc(50% - 8px);top:43%;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 18px 8px #fff,0 0 45px 20px #ffb129,0 0 90px 35px rgba(73,181,255,.4);animation:clash-flash 8s ease-in-out infinite; }
+.lava-embers span { position:absolute;bottom:-3%;width:4px;height:4px;border-radius:50%;background:#fff1a1;box-shadow:0 0 10px 4px #ff5b16;animation:lava-ember 6s ease-out infinite; }.lava-embers span:nth-child(1){left:7%;animation-delay:-1s}.lava-embers span:nth-child(2){left:19%;animation-delay:-4.2s}.lava-embers span:nth-child(3){left:34%;animation-delay:-2.4s}.lava-embers span:nth-child(4){left:47%;animation-delay:-5s}.lava-embers span:nth-child(5){left:61%;animation-delay:-.6s}.lava-embers span:nth-child(6){left:74%;animation-delay:-3.3s}.lava-embers span:nth-child(7){left:86%;animation-delay:-1.8s}.lava-embers span:nth-child(8){left:95%;animation-delay:-4.8s}
+.heat-haze { position:absolute;inset:35% 0 0;background:repeating-linear-gradient(0deg,transparent 0 18px,rgba(255,186,105,.035) 20px 22px);filter:blur(2px);animation:heat-rise 3s linear infinite; }
+#display[data-theme="star-wars-immersive"] .park-card,#display[data-theme="star-wars-immersive"] .forecast-card,#display[data-theme="star-wars-immersive"] .insights-grid article,#display[data-theme="star-wars-immersive"] .hours-card,#display[data-theme="star-wars-immersive"] .stay-strip { border-radius:2px;border-color:rgba(255,129,53,.3);clip-path:polygon(0 10px,10px 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%);box-shadow:0 18px 45px rgba(0,0,0,.46),inset 0 0 28px rgba(255,76,13,.045);backdrop-filter:blur(13px); }
+#display[data-theme="star-wars-immersive"] .eyebrow,#display[data-theme="star-wars-immersive"] .section-label,#display[data-theme="star-wars-immersive"] .forecast-day { letter-spacing:.28em; }
 
 #display[data-theme="toy-story"] .theme-art::before { content:"";position:absolute;width:150px;height:48px;left:12%;top:18%;border-radius:50%;background:rgba(255,255,255,.3);box-shadow:70px 8px 0 10px rgba(255,255,255,.25),-55px 12px 0 rgba(255,255,255,.22);animation:cloud-float 20s ease-in-out infinite alternate; }
 #display[data-theme="toy-story"] .theme-art::after { content:"";position:absolute;left:7%;bottom:8%;width:82px;height:82px;border-radius:12px;background:#e64c3c;box-shadow:95px 28px 0 #f2c84b,190px -5px 0 #397fc4;opacity:.5;transform:rotate(-8deg); }
@@ -249,6 +271,14 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 @keyframes escort-right { 0%,34%{opacity:0;transform:translate(18vw,-10vh) scale(.3) rotate(180deg)} 43%{opacity:.46} 65%{opacity:.32;transform:translate(-42vw,8vh) scale(.7) rotate(180deg)} 75%,100%{opacity:0;transform:translate(-65vw,18vh) scale(.3) rotate(180deg)} }
 @keyframes laser-blue { 0%,43%,48%,100%{opacity:0;transform:rotate(-12deg) translateX(0)} 44%{opacity:.95} 47%{opacity:0;transform:rotate(-12deg) translateX(50vw)} }
 @keyframes laser-red { 0%,51%,56%,100%{opacity:0;transform:rotate(168deg) translateX(0)} 52%{opacity:.9} 55%{opacity:0;transform:rotate(168deg) translateX(50vw)} }
+@keyframes mustafar-pulse { 0%,100%{opacity:.58;transform:scale(.96)} 50%{opacity:.82;transform:scale(1.05)} }
+@keyframes lava-veins { from{opacity:.38;transform:translateX(-1%)} to{opacity:.85;transform:translateX(2%)} }
+@keyframes lava-flow { to{background-position:28vw 0} }
+@keyframes duelist-blue-move { 0%,100%{transform:translateX(-2vw) rotate(-3deg)} 45%,58%{transform:translateX(3vw) rotate(4deg)} }
+@keyframes duelist-red-move { 0%,100%{transform:translateX(2vw) rotate(3deg)} 45%,58%{transform:translateX(-3vw) rotate(-4deg)} }
+@keyframes clash-flash { 0%,35%,68%,100%{opacity:.15;transform:scale(.35)} 44%,56%{opacity:1;transform:scale(1.5)} 50%{transform:scale(2.4)} }
+@keyframes lava-ember { from{opacity:0;transform:translate(0,0) scale(.5)} 18%{opacity:1} to{opacity:0;transform:translate(5vw,-70vh) scale(1.5)} }
+@keyframes heat-rise { to{transform:translateY(-22px)} }
 @keyframes cloud-float { to{transform:translateX(18vw)} }
 @keyframes toy-float { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-18px) rotate(12deg)} }
 @keyframes candle-bloom { 0%,100%{opacity:.55;transform:scale(.94)} 50%{opacity:1;transform:scale(1.06)} }

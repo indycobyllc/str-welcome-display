@@ -60,6 +60,9 @@ function sanitize(input) {
     "aurora-immersive", "iron-man-immersive", "spider-man-immersive", "superhero-immersive", "neutral",
     "star-wars", "star-wars-immersive", "toy-story", "wizarding", "princess", "harry-potter-immersive",
     "harry-potter-express", "mario-immersive", "pokemon-immersive"
+    , "florida-sunshine", "orlando-nights", "retro-florida", "space-coast", "everglades-adventure",
+    "tropical-christmas", "beach-day", "pirate-adventure", "luxury-resort", "florida-storm",
+    "classic-theme-park", "orange-grove"
   ]);
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,

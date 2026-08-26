@@ -340,7 +340,7 @@ function applySettings(s) {
   const activeTheme = previewTheme || s.theme || "galactic";
   $("display").dataset.theme = activeTheme;
   $("display").dataset.motion = s.motionIntensity;
-  const themedTransition = /star-wars|iron-man/.test(activeTheme) ? "wipe" : /harry|wizard|princess/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora/.test(activeTheme) ? "curtain" : "cinematic";
+  const themedTransition = /star-wars|iron-man|space-coast/.test(activeTheme) ? "wipe" : /harry|wizard|princess|classic-theme-park/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora|florida-storm|everglades/.test(activeTheme) ? "curtain" : "cinematic";
   $("display").dataset.transition = s.transitionStyle === "auto" ? themedTransition : s.transitionStyle;
   $("display").style.setProperty("--art-opacity", String((Number(s.artworkIntensity) || 80) / 100));
   const legacyWelcome = "Welcome to Your Orlando Vacation!";

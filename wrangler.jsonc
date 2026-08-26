@@ -9,5 +9,16 @@
     "run_worker_first": [
       "/api/*"
     ]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "STR_SETTINGS",
+      "id": "80a82f4371204b189669e7153e2bcbe7"
+    }
+  ],
+  "secrets": {
+    "required": [
+      "ADMIN_TOKEN"
+    ]
   }
 }

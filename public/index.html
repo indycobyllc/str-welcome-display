@@ -74,6 +74,7 @@
     <header class="display-header">
       <div id="pageTitle" class="page-title"></div>
       <div class="header-status">
+        <span id="connectionStatus" class="connection-status" hidden>Offline · showing saved data</span>
         <div id="weather" class="weather" aria-label="Current Orlando weather">
           <span id="weatherIcon" class="weather-icon">○</span>
           <span id="weatherTemp">--°</span>
@@ -84,15 +85,21 @@
       </div>
     </header>
 
+    <section class="slide arrival-slide" hidden data-page-title="Welcome to Orlando">
+      <div class="arrival-content"><div class="arrival-mark">✦</div><p>Your stay begins today</p><h2 id="arrivalGuest">Welcome!</h2><strong id="arrivalMessage">The adventure is waiting.</strong></div>
+    </section>
+
     <section class="slide active welcome-slide">
       <div class="welcome-copy">
         <div class="eyebrow"><span class="eyebrow-star">✦</span> Your vacation begins here</div>
         <h1 id="guestName">Welcome!</h1>
         <div class="welcome-meta">
+          <strong id="vacationDayline" class="vacation-dayline"></strong>
           <p id="occasion" class="occasion"></p>
           <p id="welcomeMessage" class="welcome-message">Your adventure begins here.</p>
           <div id="stayDates" class="stay-dates"></div>
         </div>
+        <div id="hourlyTimeline" class="hourly-timeline" aria-label="Today's hourly weather"></div>
       </div>
 
       <div class="section-label"><span>Today’s Orlando park hours</span><small>Times may change</small></div>
@@ -109,6 +116,7 @@
     <section class="slide parks-slide" data-page-title="Entertainment & Events">
       <div class="eyebrow"><span class="eyebrow-star">✦</span> Plan your day</div>
       <div class="parks-heading"><div class="today-pill">Today</div></div>
+      <div id="smartRecommendation" class="smart-recommendation"></div>
       <div id="insightsGrid" class="insights-grid" aria-label="Park insights"></div>
       <div id="eventsGrid" class="events-grid">
         <div class="loading">Loading today's schedules…</div>

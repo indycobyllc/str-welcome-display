@@ -53,27 +53,15 @@
         <label>
           Theme <small>Changes both display pages</small>
           <select id="theme">
-            <option value="galactic">Galactic</option>
-            <option value="celebration">Celebration</option>
-            <option value="elegant">Elegant</option>
-            <option value="holiday">Holiday</option>
-            <option value="christmas-immersive">★ Christmas · IMMERSIVE (New)</option>
-            <option value="halloween-immersive">★ Halloween · IMMERSIVE (New)</option>
-            <option value="fourth-july-immersive">★ Fourth of July · IMMERSIVE (New)</option>
-            <option value="aurora-immersive">★ Aurora Borealis · IMMERSIVE</option>
-            <option value="iron-man-immersive">★ Iron Man · IMMERSIVE</option>
-            <option value="spider-man-immersive">★ Spider-Man · IMMERSIVE</option>
-            <option value="superhero-immersive">★ Superhero · IMMERSIVE</option>
-            <option value="neutral">Neutral</option>
-            <option value="star-wars">Star Wars Inspired · V1</option>
-            <option value="star-wars-immersive">★ Star Wars · MUSTAFAR IMMERSIVE (New)</option>
-            <option value="toy-story">Toy Story Inspired · V1</option>
-            <option value="wizarding">Wizarding World · Classic V1</option>
-            <option value="princess">Princess Inspired · V1</option>
-            <option value="harry-potter-immersive">★ Harry Potter · IMMERSIVE (New)</option>
+            <optgroup label="Immersive franchises"><option value="star-wars-immersive">Star Wars · Mustafar</option><option value="harry-potter-immersive">Harry Potter</option><option value="iron-man-immersive">Iron Man</option><option value="spider-man-immersive">Spider-Man</option><option value="superhero-immersive">Superhero</option></optgroup>
+            <optgroup label="Seasonal immersive"><option value="christmas-immersive">Christmas</option><option value="halloween-immersive">Halloween</option><option value="fourth-july-immersive">Fourth of July</option></optgroup>
+            <optgroup label="Scenic immersive"><option value="aurora-immersive">Aurora Borealis</option></optgroup>
+            <optgroup label="Classic V1"><option value="star-wars">Star Wars Inspired</option><option value="toy-story">Toy Story Inspired</option><option value="wizarding">Wizarding World Inspired</option><option value="princess">Princess Inspired</option></optgroup>
+            <optgroup label="Original"><option value="galactic">Galactic</option><option value="celebration">Celebration</option><option value="elegant">Elegant</option><option value="holiday">Holiday</option><option value="neutral">Neutral</option></optgroup>
           </select>
         </label>
       </div>
+      <div id="themeGallery" class="theme-gallery" aria-label="Theme previews"></div>
     </section>
 
     <section class="admin-card">
@@ -92,22 +80,26 @@
     </section>
 
     <section class="admin-card">
-      <h2>Screen rotation</h2>
-      <p class="admin-section-intro">Page 1 shows the welcome and park hours. Page 2 shows events and live insights. Page 3 shows the stay forecast.</p>
-      <label>
-        Seconds per page
-        <input id="slideSeconds" type="number" min="8" max="120" value="18">
-      </label>
+      <h2>Display controls</h2>
+      <p class="admin-section-intro">Choose pages, motion, content order, and TV behavior.</p>
+      <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
+      <div class="form-grid control-grid">
+        <label>Seconds per page<input id="slideSeconds" type="number" min="8" max="120" value="18"></label>
+        <label>Park order<select id="parkOrder"><option value="disney-first">Disney first</option><option value="universal-first">Universal first</option></select></label>
+        <label>Motion<select id="motionIntensity"><option value="full">Full cinematic</option><option value="reduced">Reduced</option><option value="still">Still artwork</option></select></label>
+        <label>Transitions<select id="transitionStyle"><option value="auto">Match theme</option><option value="cinematic">Cinematic</option><option value="fade">Simple fade</option></select></label>
+        <label class="wide">Artwork intensity <small>20% subtle · 100% vivid</small><input id="artworkIntensity" type="range" min="20" max="100" value="80"></label>
+      </div>
     </section>
 
     <section class="admin-card automatic-card">
       <h2>Automatic information</h2>
-      <p>Orlando weather, the stay forecast, current time, Disney and Universal park hours, entertainment schedules, and live park insights update automatically. There is nothing to enter for these items.</p>
+      <p>Orlando weather, hourly rain timing, sunset, the stay forecast, current time, Disney and Universal park hours, entertainment schedules, and smart park recommendations update automatically. The TV retains the last successful data if its connection drops.</p>
     </section>
 
     <div class="actions">
       <button id="publishButton" type="button">Publish to display</button>
-      <a href="/" target="_blank" rel="noopener">Preview public display</a>
+      <a id="previewLink" href="/" target="_blank" rel="noopener">Preview selected theme</a>
     </div>
   </main>
   <script src="/admin.js" defer></script>

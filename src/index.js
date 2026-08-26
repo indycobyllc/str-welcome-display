@@ -7,7 +7,16 @@ const DEFAULTS = {
   theme: "galactic",
   wifiName: "Guest Wi-Fi",
   wifiPassword: "",
-  slideSeconds: 18
+  slideSeconds: 18,
+  showWelcome: true,
+  showEvents: true,
+  showForecast: true,
+  showClock: true,
+  showArrival: true,
+  parkOrder: "disney-first",
+  motionIntensity: "full",
+  artworkIntensity: 80,
+  transitionStyle: "auto"
 };
 
 const PARKS = [
@@ -38,6 +47,7 @@ function authorized(request, env) {
 
 function sanitize(input) {
   const text = (v, n) => String(v ?? "").trim().slice(0, n);
+  const bool = (v, fallback = true) => v === undefined ? fallback : Boolean(v);
   const themes = new Set([
     "galactic", "celebration", "elegant", "holiday", "christmas-immersive", "halloween-immersive", "fourth-july-immersive",
     "aurora-immersive", "iron-man-immersive", "spider-man-immersive", "superhero-immersive", "neutral",
@@ -52,7 +62,16 @@ function sanitize(input) {
     theme: themes.has(input.theme) ? input.theme : "galactic",
     wifiName: text(input.wifiName, 80),
     wifiPassword: text(input.wifiPassword, 80),
-    slideSeconds: Math.min(120, Math.max(8, Number(input.slideSeconds) || 18))
+    slideSeconds: Math.min(120, Math.max(8, Number(input.slideSeconds) || 18)),
+    showWelcome: bool(input.showWelcome),
+    showEvents: bool(input.showEvents),
+    showForecast: bool(input.showForecast),
+    showClock: bool(input.showClock),
+    showArrival: bool(input.showArrival),
+    parkOrder: ["disney-first", "universal-first"].includes(input.parkOrder) ? input.parkOrder : "disney-first",
+    motionIntensity: ["full", "reduced", "still"].includes(input.motionIntensity) ? input.motionIntensity : "full",
+    artworkIntensity: Math.min(100, Math.max(20, Number(input.artworkIntensity) || 80)),
+    transitionStyle: ["auto", "fade", "cinematic"].includes(input.transitionStyle) ? input.transitionStyle : "auto"
   };
 }
 
@@ -183,11 +202,14 @@ async function parkData() {
   const unavailableAttractions = results
     .flatMap(park => park.unavailable)
     .filter((item, index, all) => all.findIndex(other => other.name === item.name && other.park === item.park) === index);
+  const eveningPick = results.flatMap(park => park.events.map(event => ({ ...event, park: park.name })))
+    .find(event => /fireworks|parade|fantasmic|luminous|nighttime|spectacular/i.test(event.name));
   const insights = {
     latestClosing: latest ? { park: latest.name, time: easternTime(latest.closingTime) } : null,
     bestBets,
     unavailable: unavailableAttractions.length,
-    unavailableAttractions
+    unavailableAttractions,
+    eveningPick: eveningPick || null
   };
   const parks = results.map(({ closingTime, waits, unavailable: unavailableCount, ...park }) => park);
   return { updatedAt: new Date().toISOString(), source: "ThemeParks.wiki", parks, insights };
@@ -257,12 +279,12 @@ export default {
 
     if (url.pathname === "/api/weather" && request.method === "GET") {
       const cache = caches.default;
-      const key = new Request(`${url.origin}/api/weather?cache=v2`);
+      const key = new Request(`${url.origin}/api/weather?cache=v3`);
       const cached = await cache.match(key);
       if (cached) return cached;
 
       try {
-        const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=28.3772&longitude=-81.5707&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=16";
+        const weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=28.3772&longitude=-81.5707&current=temperature_2m,weather_code,is_day&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=16";
         const weatherResponse = await fetch(weatherUrl, {
           headers: { "accept": "application/json", "user-agent": "STR-Welcome-Display/3.0" },
           cf: { cacheTtl: 600, cacheEverything: true }
@@ -274,6 +296,12 @@ export default {
           weatherCode: payload.current?.weather_code,
           isDay: Boolean(payload.current?.is_day),
           updatedAt: payload.current?.time,
+          hourly: (payload.hourly?.time || []).map((time, index) => ({
+            time,
+            temperature: payload.hourly.temperature_2m?.[index],
+            rainChance: payload.hourly.precipitation_probability?.[index],
+            weatherCode: payload.hourly.weather_code?.[index]
+          })),
           daily: (payload.daily?.time || []).map((date, index) => ({
             date,
             weatherCode: payload.daily.weather_code?.[index],

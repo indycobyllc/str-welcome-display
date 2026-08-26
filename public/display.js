@@ -7,10 +7,42 @@ const DEFAULTS = {
   theme: "galactic",
   wifiName: "Guest Wi-Fi",
   wifiPassword: "",
-  slideSeconds: 18
+  slideSeconds: 18,
+  showWelcome: true,
+  showEvents: true,
+  showForecast: true,
+  showClock: true,
+  showArrival: true,
+  parkOrder: "disney-first",
+  motionIntensity: "full",
+  artworkIntensity: 80,
+  transitionStyle: "auto"
 };
 
 const $ = (id) => document.getElementById(id);
+let currentWeather = null;
+let currentSettings = DEFAULTS;
+
+async function cachedJson(url, key) {
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`${url} unavailable`);
+    const data = await response.json();
+    try { localStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), data })); } catch {}
+    return { data, offline: false };
+  } catch (error) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || "null");
+      if (saved?.data) return { data: saved.data, offline: true };
+    } catch {}
+    throw error;
+  }
+}
+
+function setOffline(isOffline) {
+  $("connectionStatus").hidden = !isOffline;
+  $("display").classList.toggle("offline", isOffline);
+}
 
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>"']/g, c => ({
@@ -87,18 +119,34 @@ function weatherDetails(code, isDay = true) {
 
 async function loadWeather() {
   try {
-    const response = await fetch("/api/weather", { cache: "no-store" });
-    if (!response.ok) throw new Error("Weather unavailable");
-    const weather = await response.json();
+    const result = await cachedJson("/api/weather", "str-weather-v1");
+    const weather = result.data;
+    window.__dataOffline ||= result.offline;
     const details = weatherDetails(weather.weatherCode, weather.isDay);
     $("weatherIcon").textContent = details.icon;
     $("weatherTemp").textContent = `${Math.round(weather.temperature)}°`;
     $("weatherText").textContent = details.text;
+    renderHourlyTimeline(weather);
     return weather;
   } catch {
     $("weatherText").textContent = "Orlando";
     return { daily: [] };
   }
+}
+
+function renderHourlyTimeline(weather) {
+  const now = new Date();
+  const hours = (weather.hourly || []).filter(hour => new Date(hour.time) >= now).slice(0, 5);
+  if (!hours.length) return $("hourlyTimeline").replaceChildren();
+  const cells = hours.map((hour, index) => {
+    const date = new Date(hour.time);
+    const label = index === 0 ? "Now" : date.toLocaleTimeString("en-US", { hour: "numeric" });
+    const detail = weatherDetails(hour.weatherCode, date.getHours() >= 7 && date.getHours() < 19);
+    return `<div><span>${escapeHtml(label)}</span><b>${detail.icon} ${Math.round(hour.temperature)}°</b><small>${Math.round(hour.rainChance || 0)}% rain</small></div>`;
+  });
+  const sunset = weather.daily?.[0]?.sunset;
+  if (sunset) cells.push(`<div><span>Sunset</span><b>☀ ${new Date(sunset).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</b><small>Golden hour</small></div>`);
+  $("hourlyTimeline").innerHTML = cells.join("");
 }
 
 function forecastHint(day) {
@@ -166,9 +214,9 @@ function parkMark(name) {
 
 async function loadSettings() {
   try {
-    const response = await fetch("/api/settings", { cache: "no-store" });
-    if (!response.ok) throw new Error("Settings unavailable");
-    return { ...DEFAULTS, ...(await response.json()) };
+    const result = await cachedJson("/api/settings", "str-settings-v1");
+    window.__dataOffline ||= result.offline;
+    return { ...DEFAULTS, ...result.data };
   } catch {
     return DEFAULTS;
   }
@@ -176,24 +224,52 @@ async function loadSettings() {
 
 async function loadParks() {
   try {
-    const response = await fetch("/api/parks", { cache: "no-store" });
-    if (!response.ok) throw new Error("Park data unavailable");
-    return await response.json();
+    const result = await cachedJson("/api/parks", "str-parks-v1");
+    window.__dataOffline ||= result.offline;
+    return result.data;
   } catch (error) {
     return { parks: [], error: error.message };
   }
 }
 
 function applySettings(s) {
-  $("display").dataset.theme = s.theme || "galactic";
+  currentSettings = s;
+  const previewTheme = new URLSearchParams(location.search).get("previewTheme");
+  const activeTheme = previewTheme || s.theme || "galactic";
+  $("display").dataset.theme = activeTheme;
+  $("display").dataset.motion = s.motionIntensity;
+  const themedTransition = /star-wars|iron-man/.test(activeTheme) ? "wipe" : /harry|wizard|princess/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora/.test(activeTheme) ? "curtain" : "cinematic";
+  $("display").dataset.transition = s.transitionStyle === "auto" ? themedTransition : s.transitionStyle;
+  $("display").style.setProperty("--art-opacity", String((Number(s.artworkIntensity) || 80) / 100));
   const legacyWelcome = "Welcome to Your Orlando Vacation!";
-  $("guestName").textContent = !s.guestName || s.guestName === legacyWelcome ? "Welcome!" : s.guestName;
+  const guest = !s.guestName || s.guestName === legacyWelcome ? "Welcome!" : s.guestName;
+  $("guestName").textContent = guest;
+  $("arrivalGuest").textContent = guest;
   $("occasion").textContent = s.occasion || "";
   $("occasion").hidden = !s.occasion;
   $("welcomeMessage").textContent = s.welcomeMessage || "";
   $("stayDates").textContent = formatDateRange(s.checkIn, s.checkOut);
   $("wifiName").textContent = s.wifiName || "Guest Wi-Fi";
   $("wifiPassword").textContent = s.wifiPassword ? `Password: ${s.wifiPassword}` : "";
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const checkIn = calendarDate(s.checkIn), checkOut = calendarDate(s.checkOut), todayValue = calendarDate(today);
+  let dayline = "Your Orlando adventure awaits";
+  if (checkIn && checkOut && todayValue >= checkIn && todayValue <= checkOut) {
+    const day = Math.floor((todayValue - checkIn) / 86400000) + 1;
+    const remaining = Math.max(0, Math.ceil((checkOut - todayValue) / 86400000));
+    dayline = todayValue === checkIn ? "Your adventure begins today" : todayValue === checkOut ? "Safe travels home" : `Day ${day} of your vacation · ${remaining} day${remaining === 1 ? "" : "s"} remaining`;
+  } else if (checkIn && todayValue < checkIn) {
+    const until = Math.ceil((checkIn - todayValue) / 86400000);
+    dayline = `${until} day${until === 1 ? "" : "s"} until your vacation`;
+  }
+  $("vacationDayline").textContent = dayline;
+  $("arrivalMessage").textContent = s.occasion || "The adventure is waiting.";
+  $("arrivalGuest").textContent = guest;
+  document.querySelector(".arrival-slide").hidden = !(s.showArrival && s.checkIn === today);
+  document.querySelector(".welcome-slide").hidden = !s.showWelcome;
+  document.querySelector(".parks-slide").hidden = !s.showEvents;
+  document.querySelector(".forecast-slide").hidden = !s.showForecast;
+  $("currentTime").parentElement.hidden = !s.showClock;
   applyStaySummary(s.checkIn, s.checkOut);
 }
 
@@ -207,12 +283,15 @@ function renderParks(data) {
     return;
   }
 
-  hoursGrid.innerHTML = data.parks.map(park => `<article class="hours-card">
+  const orderedParks = [...data.parks].sort((a, b) => currentSettings.parkOrder === "universal-first"
+    ? Number(!/^Universal/i.test(a.name)) - Number(!/^Universal/i.test(b.name))
+    : Number(/^Universal/i.test(a.name)) - Number(/^Universal/i.test(b.name)));
+  hoursGrid.innerHTML = orderedParks.map(park => `<article class="hours-card">
     <div class="park-mark">${parkMark(park.name)}</div>
     <strong>${escapeHtml(park.hours || "Hours unavailable")}</strong>
   </article>`).join("");
 
-  const eventCards = data.parks.map(park => {
+  const eventCards = orderedParks.map(park => {
     const events = (park.events || []).slice(0, 3)
       .map(event => `<li><span>${escapeHtml(event.name)}</span><strong>${escapeHtml(event.time)}</strong></li>`)
       .join("");
@@ -238,11 +317,30 @@ function renderParks(data) {
     <article><span>Open latest</span><strong>${insights.latestClosing ? `${escapeHtml(insights.latestClosing.park)} · ${escapeHtml(insights.latestClosing.time)}` : "Schedule updating"}</strong></article>
     <article><span>Low waits right now</span><strong>${bestBets || "Live waits updating"}</strong></article>
     <article><span>${unavailableAttractions.length ? `Unavailable now · ${unavailableAttractions.length}` : "Good to know"}</span><strong class="disruption-list">${disruptions}</strong></article>`;
+  renderRecommendation(data, currentWeather);
 
   const updated = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString("en-US", {
     hour: "numeric", minute: "2-digit", timeZone: "America/New_York"
   }) : "";
   $("parksUpdated").textContent = updated ? `Updated at ${updated} Eastern` : "";
+}
+
+function renderRecommendation(data, weather) {
+  const insights = data.insights || {};
+  const today = weather?.daily?.[0];
+  let title = "Best opportunity right now";
+  let message = insights.bestBets?.length ? `${insights.bestBets[0].name} is reporting about a ${insights.bestBets[0].wait}-minute wait.` : "Live recommendations are updating.";
+  if (today?.rainChance >= 65) {
+    title = "Rain-smart plan";
+    message = "Start with indoor attractions and keep ponchos ready for the highest rain window.";
+  } else if (insights.eveningPick) {
+    title = "Evening highlight";
+    message = `${insights.eveningPick.name} at ${insights.eveningPick.park} · ${insights.eveningPick.time}.`;
+  } else if (insights.latestClosing) {
+    title = "Best for a late night";
+    message = `${insights.latestClosing.park} has the latest posted closing time at ${insights.latestClosing.time}.`;
+  }
+  $("smartRecommendation").innerHTML = `<span>✦ ${escapeHtml(title)}</span><strong>${escapeHtml(message)}</strong>`;
 }
 
 let slideTimer;
@@ -266,8 +364,11 @@ function updatePageTitle(slide) {
 }
 
 function startSlides(seconds) {
-  const visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden);
-  if (!visibleSlides.length) return;
+  let visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden);
+  if (!visibleSlides.length) {
+    document.querySelector(".welcome-slide").hidden = false;
+    visibleSlides = [document.querySelector(".welcome-slide")];
+  }
   visibleSlides.forEach(s => s.classList.remove("active"));
   let index = 0;
   visibleSlides[0].classList.add("active");
@@ -292,14 +393,25 @@ function startSlides(seconds) {
 }
 
 async function refreshAll() {
+  window.__dataOffline = !navigator.onLine;
   const [settings, parks, weather] = await Promise.all([loadSettings(), loadParks(), loadWeather()]);
+  currentWeather = weather;
   applySettings(settings);
   renderParks(parks);
   renderForecast(weather, settings);
   startSlides(settings.slideSeconds);
+  setOffline(Boolean(window.__dataOffline));
 }
 
 updateClock();
 setInterval(updateClock, 30 * 1000);
 refreshAll();
 setInterval(refreshAll, 5 * 60 * 1000);
+window.addEventListener("online", refreshAll);
+window.addEventListener("offline", () => setOffline(true));
+setInterval(() => {
+  const x = Math.round(Math.random() * 4 - 2);
+  const y = Math.round(Math.random() * 4 - 2);
+  $("display").style.setProperty("--burn-x", `${x}px`);
+  $("display").style.setProperty("--burn-y", `${y}px`);
+}, 4 * 60 * 1000);

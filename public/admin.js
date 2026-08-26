@@ -1,6 +1,8 @@
 const FIELDS = [
   "guestName", "occasion", "welcomeMessage", "checkIn", "checkOut", "theme",
-  "wifiName", "wifiPassword", "slideSeconds"
+  "wifiName", "wifiPassword", "slideSeconds", "showWelcome", "showEvents",
+  "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
+  "artworkIntensity", "transitionStyle"
 ];
 const $ = id => document.getElementById(id);
 
@@ -24,6 +26,7 @@ function apply(settings) {
   if (settings.guestName === "Welcome to Your Orlando Vacation!") {
     $("guestName").value = "Welcome!";
   }
+  updateThemeGallery();
 }
 
 function collect() {
@@ -34,6 +37,21 @@ function collect() {
       el.type === "number" ? Number(el.value) : el.value.trim();
   }
   return result;
+}
+
+function renderThemeGallery() {
+  const select = $("theme");
+  $("themeGallery").innerHTML = [...select.options].map(option =>
+    `<button type="button" class="theme-preview" data-theme-value="${option.value}" data-preview-theme="${option.value}"><i></i><span>${option.textContent}</span></button>`
+  ).join("");
+  updateThemeGallery();
+}
+
+function updateThemeGallery() {
+  document.querySelectorAll(".theme-preview").forEach(button =>
+    button.classList.toggle("selected", button.dataset.themeValue === $("theme").value)
+  );
+  $("previewLink").href = `/?previewTheme=${encodeURIComponent($("theme").value)}`;
 }
 
 async function loadSettings() {
@@ -79,3 +97,11 @@ $("publishButton").addEventListener("click", publish);
 $("adminToken").addEventListener("keydown", event => {
   if (event.key === "Enter") loadSettings();
 });
+$("theme").addEventListener("change", updateThemeGallery);
+$("themeGallery").addEventListener("click", event => {
+  const button = event.target.closest(".theme-preview");
+  if (!button) return;
+  $("theme").value = button.dataset.themeValue;
+  updateThemeGallery();
+});
+renderThemeGallery();

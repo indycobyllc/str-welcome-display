@@ -187,26 +187,12 @@ function startSlides(seconds) {
   visibleSlides[0].classList.add("active");
   const duration = Math.max(8, Number(seconds) || 18) * 1000;
 
-  const animateProgress = () => {
-    const bar = $("progressBar");
-    bar.style.transition = "none";
-    bar.style.width = "0";
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        bar.style.transition = `width ${duration}ms linear`;
-        bar.style.width = "100%";
-      });
-    });
-  };
-  animateProgress();
-
   clearInterval(slideTimer);
   if (visibleSlides.length > 1) {
     slideTimer = setInterval(() => {
       visibleSlides[index].classList.remove("active");
       index = (index + 1) % visibleSlides.length;
       visibleSlides[index].classList.add("active");
-      animateProgress();
     }, duration);
   }
 }

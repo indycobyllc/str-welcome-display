@@ -128,7 +128,7 @@ function sanitize(input) {
     parkOrder: ["disney-first", "universal-first"].includes(input.parkOrder) ? input.parkOrder : "disney-first",
     motionIntensity: ["full", "reduced", "still"].includes(input.motionIntensity) ? input.motionIntensity : "full",
     artworkIntensity: Math.min(100, Math.max(20, Number(input.artworkIntensity) || 80)),
-    transitionStyle: ["auto", "fade", "cinematic"].includes(input.transitionStyle) ? input.transitionStyle : "auto"
+    transitionStyle: ["auto", "fade", "cinematic", "quick-wipe"].includes(input.transitionStyle) ? input.transitionStyle : "auto"
   };
 }
 

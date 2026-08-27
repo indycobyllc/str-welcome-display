@@ -7,6 +7,7 @@ const FIELDS = [
   "localFavorites", "reviewUrl", "reviewMessage"
 ];
 const $ = id => document.getElementById(id);
+const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites"];
 
 function setStatus(message, type = "") {
   const node = $("status");
@@ -25,6 +26,13 @@ function apply(settings) {
     if (el.type === "checkbox") el.checked = Boolean(settings[id]);
     else if (settings[id] !== undefined && settings[id] !== null) el.value = settings[id];
   }
+  for (const page of SCHEDULE_PAGES) {
+    const rule = settings.pageSchedule?.[page] || {};
+    $(`schedule-${page}`).value = rule.mode || "always";
+    $(`schedule-${page}-start`).value = rule.startDay || 1;
+    $(`schedule-${page}-end`).value = rule.endDay || 60;
+    updateScheduleRow(page);
+  }
   if (settings.guestName === "Welcome to Your Orlando Vacation!") {
     $("guestName").value = "Welcome!";
   }
@@ -38,7 +46,17 @@ function collect() {
     result[id] = el.type === "checkbox" ? el.checked :
       el.type === "number" ? Number(el.value) : el.value.trim();
   }
+  result.pageSchedule = Object.fromEntries(SCHEDULE_PAGES.map(page => [page, {
+    mode: $(`schedule-${page}`).value,
+    startDay: Number($(`schedule-${page}-start`).value) || 1,
+    endDay: Number($(`schedule-${page}-end`).value) || 60
+  }]));
   return result;
+}
+
+function updateScheduleRow(page) {
+  const custom = $(`schedule-${page}`).value === "custom";
+  document.querySelector(`[data-schedule-days="${page}"]`).hidden = !custom;
 }
 
 function renderThemeGallery() {
@@ -99,6 +117,7 @@ $("publishButton").addEventListener("click", publish);
 $("adminToken").addEventListener("keydown", event => {
   if (event.key === "Enter") loadSettings();
 });
+document.querySelectorAll("[data-schedule-page]").forEach(select => select.addEventListener("change", () => updateScheduleRow(select.dataset.schedulePage)));
 $("theme").addEventListener("change", updateThemeGallery);
 $("themeGallery").addEventListener("click", event => {
   const button = event.target.closest(".theme-preview");

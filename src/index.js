@@ -18,6 +18,7 @@ const DEFAULTS = {
   showNearbyMap: true,
   showLocalFavorites: false,
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
+  pageSchedule: {},
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
   reviewUrl: "",
@@ -66,6 +67,16 @@ function sanitize(input) {
     "tropical-christmas", "beach-day", "pirate-adventure", "luxury-resort", "florida-storm",
     "classic-theme-park", "orange-grove"
   ]);
+  const schedulePages = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites"];
+  const scheduleModes = new Set(["always", "stay", "arrival", "first-two", "final-two", "custom"]);
+  const pageSchedule = Object.fromEntries(schedulePages.map(page => {
+    const entry = input.pageSchedule?.[page] || {};
+    return [page, {
+      mode: scheduleModes.has(entry.mode) ? entry.mode : "always",
+      startDay: Math.min(60, Math.max(1, Number(entry.startDay) || 1)),
+      endDay: Math.min(60, Math.max(1, Number(entry.endDay) || 60))
+    }];
+  }));
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,
     occasion: text(input.occasion, 100),
@@ -86,6 +97,7 @@ function sanitize(input) {
     showNearbyMap: bool(input.showNearbyMap),
     showLocalFavorites: bool(input.showLocalFavorites, false),
     propertyAddress: text(input.propertyAddress, 160) || DEFAULTS.propertyAddress,
+    pageSchedule,
     homeInfo: text(input.homeInfo, 3000),
     localFavorites: text(input.localFavorites, 4000),
     reviewUrl: text(input.reviewUrl, 500),

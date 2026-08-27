@@ -18,6 +18,7 @@ const DEFAULTS = {
   showNearbyMap: true,
   showLocalFavorites: false,
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
+  pageSchedule: {},
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
   reviewUrl: "",
@@ -81,6 +82,25 @@ function calendarDate(value) {
   if (!value) return null;
   const [year, month, day] = value.split("-").map(Number);
   return Date.UTC(year, month - 1, day);
+}
+
+function scheduledPageVisible(enabled, key, settings, todayValue, checkIn, checkOut) {
+  if (!enabled) return false;
+  const rule = settings.pageSchedule?.[key] || { mode: "always" };
+  if (rule.mode === "always") return true;
+  if (!checkIn || !checkOut || todayValue < checkIn || todayValue > checkOut) return false;
+  const stayDay = Math.floor((todayValue - checkIn) / 86400000) + 1;
+  const daysUntilCheckout = Math.ceil((checkOut - todayValue) / 86400000);
+  if (rule.mode === "stay") return true;
+  if (rule.mode === "arrival") return stayDay === 1;
+  if (rule.mode === "first-two") return stayDay <= 2;
+  if (rule.mode === "final-two") return daysUntilCheckout <= 1;
+  if (rule.mode === "custom") {
+    const start = Math.max(1, Number(rule.startDay) || 1);
+    const end = Math.max(start, Number(rule.endDay) || start);
+    return stayDay >= start && stayDay <= end;
+  }
+  return true;
 }
 
 function parseRows(value, columns) {
@@ -374,13 +394,13 @@ function applySettings(s) {
   $("arrivalMessage").textContent = s.occasion || "The adventure is waiting.";
   $("arrivalGuest").textContent = guest;
   document.querySelector(".arrival-slide").hidden = !(s.showArrival && s.checkIn === today);
-  document.querySelector(".welcome-slide").hidden = !s.showWelcome;
-  document.querySelector(".parks-slide").hidden = !s.showEvents;
-  document.querySelector(".forecast-slide").hidden = !s.showForecast;
-  document.querySelector(".home-info-slide").hidden = !s.showHomeInfo;
-  document.querySelector(".storey-lake-slide").hidden = !s.showStoreyLake;
-  document.querySelector(".nearby-map-slide").hidden = !s.showNearbyMap;
-  document.querySelector(".favorites-slide").hidden = !s.showLocalFavorites;
+  document.querySelector(".welcome-slide").hidden = !scheduledPageVisible(s.showWelcome, "welcome", s, todayValue, checkIn, checkOut);
+  document.querySelector(".parks-slide").hidden = !scheduledPageVisible(s.showEvents, "events", s, todayValue, checkIn, checkOut);
+  document.querySelector(".forecast-slide").hidden = !scheduledPageVisible(s.showForecast, "forecast", s, todayValue, checkIn, checkOut);
+  document.querySelector(".home-info-slide").hidden = !scheduledPageVisible(s.showHomeInfo, "homeInfo", s, todayValue, checkIn, checkOut);
+  document.querySelector(".storey-lake-slide").hidden = !scheduledPageVisible(s.showStoreyLake, "storeyLake", s, todayValue, checkIn, checkOut);
+  document.querySelector(".nearby-map-slide").hidden = !scheduledPageVisible(s.showNearbyMap, "nearbyMap", s, todayValue, checkIn, checkOut);
+  document.querySelector(".favorites-slide").hidden = !scheduledPageVisible(s.showLocalFavorites, "localFavorites", s, todayValue, checkIn, checkOut);
   $("mapPropertyAddress").textContent = s.propertyAddress || DEFAULTS.propertyAddress;
   renderGuestPages(s);
   applyReviewMoment(s, todayValue, checkOut);

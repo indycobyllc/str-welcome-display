@@ -16,6 +16,8 @@
 
     <div id="status" class="status" aria-live="polite"></div>
 
+    <nav class="admin-tabs" aria-label="Admin sections"><button type="button" class="active" data-admin-tab="guest">Guest setup</button><button type="button" data-admin-tab="content">Content</button><button type="button" data-admin-tab="appearance">Appearance</button><button type="button" data-admin-tab="scheduling">Scheduling</button><button type="button" data-admin-tab="diagnostics">Diagnostics</button></nav>
+
     <section class="admin-card">
       <h2>Admin access</h2>
       <label>
@@ -26,7 +28,7 @@
       <button id="loadButton" type="button" class="secondary">Load current settings</button>
     </section>
 
-    <section class="admin-card">
+    <section class="admin-card" data-admin-tabs="guest">
       <h2>Page 1 · Guest welcome</h2>
       <p class="admin-section-intro">Controls the large welcome area on the left side of the first screen.</p>
       <div class="form-grid">
@@ -69,7 +71,7 @@
       <div id="themeGallery" class="theme-gallery" aria-label="Theme previews"></div>
     </section>
 
-    <section class="admin-card">
+    <section class="admin-card" data-admin-tabs="guest">
       <h2>Birthday & anniversary moment</h2>
       <p class="admin-section-intro">Adds a full-screen animated celebration on the selected date. You can preview it before publishing.</p>
       <div class="admin-toggles"><label><input id="showCelebration" type="checkbox"> Enable celebration moment</label></div>
@@ -82,7 +84,7 @@
       <button type="button" class="secondary preview-page-button" data-preview-page="celebration">Preview celebration</button>
     </section>
 
-    <section class="admin-card">
+    <section class="admin-card" data-admin-tabs="guest">
       <h2>Page 1 · Stay details</h2>
       <p class="admin-section-intro">Shown in the small information row along the bottom of the welcome screen.</p>
       <div class="form-grid">
@@ -97,7 +99,7 @@
       </div>
     </section>
 
-    <section class="admin-card">
+    <section class="admin-card" data-admin-tabs="appearance scheduling">
       <h2>Display controls</h2>
       <p class="admin-section-intro">Choose pages, motion, content order, and TV behavior.</p>
       <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showHomeInfo" type="checkbox"> Home information</label><label><input id="showStoreyLake" type="checkbox" checked> Storey Lake amenities</label><label><input id="showNearbyMap" type="checkbox" checked> Nearby attractions map</label><label><input id="showLocalFavorites" type="checkbox"> Local favorites</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
@@ -116,7 +118,7 @@
       <div class="page-order-panel"><div><h3>Page order</h3><p>Move pages into the sequence guests should see. Hidden or out-of-schedule pages are skipped automatically.</p></div><ol id="pageOrderList" class="page-order-list"></ol></div>
     </section>
 
-    <section class="admin-card">
+    <section class="admin-card" data-admin-tabs="content">
       <h2>Guest guide pages</h2>
       <p class="admin-section-intro">Use one line per card and separate each part with a vertical bar.</p>
       <div class="form-grid">
@@ -126,7 +128,7 @@
       </div>
     </section>
 
-    <section class="admin-card">
+    <section class="admin-card" data-admin-tabs="content">
       <h2>Checkout review moment</h2>
       <p class="admin-section-intro">Appears automatically during the final two days of the stay. Leave the URL empty to disable it.</p>
       <div class="form-grid">
@@ -135,7 +137,7 @@
       </div>
     </section>
 
-    <section class="admin-card automatic-card">
+    <section class="admin-card automatic-card" data-admin-tabs="diagnostics">
       <h2>Automatic information</h2>
       <p>Orlando weather, hourly rain timing, sunset, the stay forecast, current time, Disney and Universal park hours, entertainment schedules, and smart park recommendations update automatically. The TV retains the last successful data if its connection drops.</p>
     </section>

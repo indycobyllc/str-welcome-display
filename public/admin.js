@@ -35,6 +35,11 @@ function setStatus(message, type = "") {
   node.className = `status ${type}`;
 }
 
+function selectAdminTab(tab) {
+  document.querySelectorAll("[data-admin-tab]").forEach(button => button.classList.toggle("active", button.dataset.adminTab === tab));
+  document.querySelectorAll("[data-admin-tabs]").forEach(section => { section.hidden = !section.dataset.adminTabs.split(" ").includes(tab); });
+}
+
 function token() {
   return $("adminToken").value.trim();
 }
@@ -143,6 +148,7 @@ async function publish() {
 
 renderScheduleRows();
 renderPageOrder();
+selectAdminTab("guest");
 $("loadButton").addEventListener("click", loadSettings);
 $("publishButton").addEventListener("click", publish);
 $("adminToken").addEventListener("keydown", event => {
@@ -163,6 +169,10 @@ $("pageOrderList").addEventListener("click", event => {
   if (from < 0 || to < 0 || to >= pageOrder.length) return;
   [pageOrder[from], pageOrder[to]] = [pageOrder[to], pageOrder[from]];
   renderPageOrder();
+});
+document.querySelector(".admin-tabs").addEventListener("click", event => {
+  const button = event.target.closest("[data-admin-tab]");
+  if (button) selectAdminTab(button.dataset.adminTab);
 });
 $("theme").addEventListener("change", updateThemeGallery);
 $("themeGallery").addEventListener("click", event => {

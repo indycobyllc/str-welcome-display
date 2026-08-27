@@ -15,7 +15,9 @@ const DEFAULTS = {
   showArrival: true,
   showHomeInfo: false,
   showStoreyLake: true,
+  showNearbyMap: true,
   showLocalFavorites: false,
+  propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
   reviewUrl: "",
@@ -377,7 +379,9 @@ function applySettings(s) {
   document.querySelector(".forecast-slide").hidden = !s.showForecast;
   document.querySelector(".home-info-slide").hidden = !s.showHomeInfo;
   document.querySelector(".storey-lake-slide").hidden = !s.showStoreyLake;
+  document.querySelector(".nearby-map-slide").hidden = !s.showNearbyMap;
   document.querySelector(".favorites-slide").hidden = !s.showLocalFavorites;
+  $("mapPropertyAddress").textContent = s.propertyAddress || DEFAULTS.propertyAddress;
   renderGuestPages(s);
   applyReviewMoment(s, todayValue, checkOut);
   $("currentTime").parentElement.hidden = !s.showClock;

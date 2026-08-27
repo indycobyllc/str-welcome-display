@@ -83,7 +83,7 @@
     <section class="admin-card">
       <h2>Display controls</h2>
       <p class="admin-section-intro">Choose pages, motion, content order, and TV behavior.</p>
-      <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showHomeInfo" type="checkbox"> Home information</label><label><input id="showStoreyLake" type="checkbox" checked> Storey Lake amenities</label><label><input id="showLocalFavorites" type="checkbox"> Local favorites</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
+      <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showHomeInfo" type="checkbox"> Home information</label><label><input id="showStoreyLake" type="checkbox" checked> Storey Lake amenities</label><label><input id="showNearbyMap" type="checkbox" checked> Nearby attractions map</label><label><input id="showLocalFavorites" type="checkbox"> Local favorites</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
       <div class="form-grid control-grid">
         <label>Seconds per page<input id="slideSeconds" type="number" min="8" max="120" value="18"></label>
         <label>Park order<select id="parkOrder"><option value="disney-first">Disney first</option><option value="universal-first">Universal first</option></select></label>
@@ -97,6 +97,7 @@
       <h2>Guest guide pages</h2>
       <p class="admin-section-intro">Use one line per card and separate each part with a vertical bar.</p>
       <div class="form-grid">
+        <label class="wide">Property address <small>Shown as “Your stay” on the nearby-attractions map</small><input id="propertyAddress" maxlength="160" placeholder="4290 Paragraph Drive, Kissimmee, FL 34746"></label>
         <label class="wide">Home information <small>Heading | details</small><textarea id="homeInfo" rows="8" placeholder="Parking | Park only in the driveway"></textarea></label>
         <label class="wide">Local favorites <small>Category | name | personal note | optional link</small><textarea id="localFavorites" rows="8" placeholder="Dinner | Restaurant name | What we love about it | https://..."></textarea></label>
       </div>

@@ -11,6 +11,9 @@ const $ = id => document.getElementById(id);
 const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites"];
 const DURATION_PAGES = [...SCHEDULE_PAGES, "celebration", "review"];
 const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", localFavorites:"Local favorites" };
+const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, celebration:"Celebration moment", review:"Checkout review" };
+const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
+let pageOrder = [...DEFAULT_PAGE_ORDER];
 
 function renderScheduleRows() {
   $("scheduleRows").innerHTML = SCHEDULE_PAGES.map(page => `<div class="schedule-row">
@@ -20,6 +23,10 @@ function renderScheduleRows() {
     <label>Seconds<input id="duration-${page}" type="number" min="8" max="120" value="18"></label>
     <button type="button" class="secondary" data-preview-page="${page}">Preview</button>
   </div>`).join("");
+}
+
+function renderPageOrder() {
+  $("pageOrderList").innerHTML = pageOrder.map((page, index) => `<li data-order-page="${page}"><span><b>${index + 1}</b>${ORDER_LABELS[page]}</span><div><button type="button" class="order-button" data-order-direction="up" aria-label="Move ${ORDER_LABELS[page]} up" ${index === 0 ? "disabled" : ""}>↑</button><button type="button" class="order-button" data-order-direction="down" aria-label="Move ${ORDER_LABELS[page]} down" ${index === pageOrder.length - 1 ? "disabled" : ""}>↓</button></div></li>`).join("");
 }
 
 function setStatus(message, type = "") {
@@ -50,6 +57,9 @@ function apply(settings) {
     const input = $(`duration-${page}`);
     if (input) input.value = settings.pageDurations?.[page] || settings.slideSeconds || 18;
   }
+  const savedOrder = Array.isArray(settings.pageOrder) ? settings.pageOrder.filter(page => DEFAULT_PAGE_ORDER.includes(page)) : [];
+  pageOrder = [...new Set([...savedOrder, ...DEFAULT_PAGE_ORDER])];
+  renderPageOrder();
   if (settings.guestName === "Welcome to Your Orlando Vacation!") {
     $("guestName").value = "Welcome!";
   }
@@ -69,6 +79,7 @@ function collect() {
     endDay: Number($(`schedule-${page}-end`).value) || 60
   }]));
   result.pageDurations = Object.fromEntries(DURATION_PAGES.map(page => [page, Number($(`duration-${page}`)?.value) || Number(result.slideSeconds) || 18]));
+  result.pageOrder = [...pageOrder];
   return result;
 }
 
@@ -131,6 +142,7 @@ async function publish() {
 }
 
 renderScheduleRows();
+renderPageOrder();
 $("loadButton").addEventListener("click", loadSettings);
 $("publishButton").addEventListener("click", publish);
 $("adminToken").addEventListener("keydown", event => {
@@ -142,6 +154,16 @@ document.querySelectorAll("[data-preview-page]").forEach(button => button.addEve
   const params = new URLSearchParams({ previewPage: button.dataset.previewPage, previewTheme: $("theme").value });
   window.open(`/?${params}`, "_blank", "noopener");
 }));
+$("pageOrderList").addEventListener("click", event => {
+  const button = event.target.closest("[data-order-direction]");
+  const row = event.target.closest("[data-order-page]");
+  if (!button || !row) return;
+  const from = pageOrder.indexOf(row.dataset.orderPage);
+  const to = button.dataset.orderDirection === "up" ? from - 1 : from + 1;
+  if (from < 0 || to < 0 || to >= pageOrder.length) return;
+  [pageOrder[from], pageOrder[to]] = [pageOrder[to], pageOrder[from]];
+  renderPageOrder();
+});
 $("theme").addEventListener("change", updateThemeGallery);
 $("themeGallery").addEventListener("click", event => {
   const button = event.target.closest(".theme-preview");

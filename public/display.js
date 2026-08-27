@@ -20,6 +20,7 @@ const DEFAULTS = {
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
   pageDurations: {},
+  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites", "celebration", "review"],
   language: "en",
   showCelebration: false,
   celebrationType: "birthday",
@@ -539,7 +540,10 @@ function updatePageTitle(slide) {
 }
 
 function startSlides(seconds) {
-  let visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden);
+  const pageOrder = Array.isArray(currentSettings.pageOrder) ? currentSettings.pageOrder : DEFAULTS.pageOrder;
+  const orderIndex = page => { const index = pageOrder.indexOf(page); return index < 0 ? pageOrder.length : index; };
+  let visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden)
+    .sort((a, b) => orderIndex(a.dataset.pageKey) - orderIndex(b.dataset.pageKey));
   const previewPage = new URLSearchParams(location.search).get("previewPage");
   if (previewPage) {
     const previewSlide = document.querySelector(`[data-page-key="${CSS.escape(previewPage)}"]`);

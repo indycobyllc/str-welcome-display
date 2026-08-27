@@ -20,6 +20,7 @@ const DEFAULTS = {
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
   pageDurations: {},
+  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites", "celebration", "review"],
   language: "en",
   showCelebration: false,
   celebrationType: "birthday",
@@ -88,6 +89,9 @@ function sanitize(input) {
   const pageDurations = Object.fromEntries(durationPages.map(page => [page,
     Math.min(120, Math.max(8, Number(input.pageDurations?.[page]) || Number(input.slideSeconds) || 18))
   ]));
+  const defaultPageOrder = DEFAULTS.pageOrder;
+  const requestedOrder = Array.isArray(input.pageOrder) ? input.pageOrder.filter(page => defaultPageOrder.includes(page)) : [];
+  const pageOrder = [...new Set([...requestedOrder, ...defaultPageOrder])];
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,
     occasion: text(input.occasion, 100),
@@ -110,6 +114,7 @@ function sanitize(input) {
     propertyAddress: text(input.propertyAddress, 160) || DEFAULTS.propertyAddress,
     pageSchedule,
     pageDurations,
+    pageOrder,
     language: ["en", "es", "fr", "pt", "de"].includes(input.language) ? input.language : "en",
     showCelebration: bool(input.showCelebration, false),
     celebrationType: ["birthday", "anniversary"].includes(input.celebrationType) ? input.celebrationType : "birthday",

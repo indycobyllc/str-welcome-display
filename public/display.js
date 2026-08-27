@@ -540,20 +540,25 @@ function updatePageTitle(slide) {
 }
 
 function startSlides(seconds) {
+  const allSlides = [...document.querySelectorAll(".slide")];
+  allSlides.forEach(slide => slide.classList.remove("active"));
   const pageOrder = Array.isArray(currentSettings.pageOrder) ? currentSettings.pageOrder : DEFAULTS.pageOrder;
   const orderIndex = page => { const index = pageOrder.indexOf(page); return index < 0 ? pageOrder.length : index; };
-  let visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden)
+  let visibleSlides = allSlides.filter(s => !s.hidden)
     .sort((a, b) => orderIndex(a.dataset.pageKey) - orderIndex(b.dataset.pageKey));
   const previewPage = new URLSearchParams(location.search).get("previewPage");
   if (previewPage) {
     const previewSlide = document.querySelector(`[data-page-key="${CSS.escape(previewPage)}"]`);
-    if (previewSlide) { previewSlide.hidden = false; visibleSlides = [previewSlide]; }
+    if (previewSlide) {
+      allSlides.forEach(slide => { slide.hidden = slide !== previewSlide; });
+      previewSlide.hidden = false;
+      visibleSlides = [previewSlide];
+    }
   }
   if (!visibleSlides.length) {
     document.querySelector(".welcome-slide").hidden = false;
     visibleSlides = [document.querySelector(".welcome-slide")];
   }
-  visibleSlides.forEach(s => s.classList.remove("active"));
   let index = 0;
   visibleSlides[0].classList.add("active");
   updatePageTitle(visibleSlides[0]);

@@ -132,6 +132,26 @@ function sanitize(input) {
   };
 }
 
+function sanitizeStay(input, existingId = "") {
+  const clean = sanitize({ ...DEFAULTS, ...input });
+  const id = String(existingId || input.id || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 80) || crypto.randomUUID();
+  return {
+    id,
+    guestName: clean.guestName,
+    checkIn: clean.checkIn,
+    checkOut: clean.checkOut,
+    welcomeMessage: clean.welcomeMessage,
+    occasion: clean.occasion,
+    theme: clean.theme,
+    language: clean.language,
+    showCelebration: Boolean(input.showCelebration),
+    celebrationType: clean.celebrationType,
+    celebrationDate: clean.celebrationDate,
+    celebrationName: clean.celebrationName,
+    celebrationMessage: clean.celebrationMessage
+  };
+}
+
 function easternDate(iso = new Date().toISOString()) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/New_York",
@@ -284,11 +304,14 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/settings" && request.method === "GET") {
-      let stored = null;
-      if (env.STR_SETTINGS) {
-        stored = await env.STR_SETTINGS.get("current-display", "json");
-      }
-      return json({ ...DEFAULTS, ...(stored || {}) });
+      const [stored, stays] = env.STR_SETTINGS
+        ? await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json")])
+        : [null, []];
+      const today = easternDate();
+      const activeStay = (Array.isArray(stays) ? stays : [])
+        .filter(stay => stay.checkIn && stay.checkOut && stay.checkIn <= today && stay.checkOut >= today)
+        .sort((a, b) => b.checkIn.localeCompare(a.checkIn))[0];
+      return json({ ...DEFAULTS, ...(stored || {}), ...(activeStay || {}), activeStayId: activeStay?.id || "" });
     }
 
     if (url.pathname === "/api/admin/status" && request.method === "GET") {
@@ -316,6 +339,30 @@ export default {
         const clean = sanitize(body);
         await env.STR_SETTINGS.put("current-display", JSON.stringify(clean));
         return json({ success: true, settings: clean });
+      }
+    }
+
+    if (url.pathname === "/api/admin/stays") {
+      if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
+      if (!env.STR_SETTINGS) return json({ error: "KV binding STR_SETTINGS is missing." }, 500);
+      const stays = await env.STR_SETTINGS.get("planned-stays", "json");
+      const current = Array.isArray(stays) ? stays : [];
+      if (request.method === "GET") return json({ stays: current.sort((a, b) => a.checkIn.localeCompare(b.checkIn)) });
+      if (request.method === "POST") {
+        let body;
+        try { body = await request.json(); }
+        catch { return json({ error: "Invalid JSON" }, 400); }
+        if (body.action === "delete") {
+          const next = current.filter(stay => stay.id !== body.id);
+          await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
+          return json({ success: true, stays: next });
+        }
+        const clean = sanitizeStay(body.stay || {}, body.stay?.id);
+        if (!clean.checkIn || !clean.checkOut || clean.checkOut < clean.checkIn) return json({ error: "Enter a valid check-in and checkout date." }, 400);
+        const next = [...current.filter(stay => stay.id !== clean.id), clean].sort((a, b) => a.checkIn.localeCompare(b.checkIn));
+        await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
+        const overlaps = next.filter(stay => stay.id !== clean.id && stay.checkIn < clean.checkOut && stay.checkOut > clean.checkIn).map(stay => stay.guestName);
+        return json({ success: true, stay: clean, stays: next, overlaps });
       }
     }
 

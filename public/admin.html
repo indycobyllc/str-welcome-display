@@ -16,8 +16,6 @@
 
     <div id="status" class="status" aria-live="polite"></div>
 
-    <nav class="admin-tabs" aria-label="Admin sections"><button type="button" class="active" data-admin-tab="guest">Guest setup</button><button type="button" data-admin-tab="content">Content</button><button type="button" data-admin-tab="appearance">Appearance</button><button type="button" data-admin-tab="scheduling">Scheduling</button><button type="button" data-admin-tab="diagnostics">Diagnostics</button></nav>
-
     <section class="admin-card">
       <h2>Admin access</h2>
       <label>
@@ -28,7 +26,29 @@
       <button id="loadButton" type="button" class="secondary">Load current settings</button>
     </section>
 
-    <section class="admin-card" data-admin-tabs="guest">
+    <section class="admin-card stay-planner-card">
+      <div class="planner-heading"><div><h2>Upcoming stays</h2><p class="admin-section-intro">Plan future guests now. The matching stay activates automatically on its check-in date.</p></div><button id="newStayButton" type="button" class="secondary">Add guest</button></div>
+      <div id="stayPlannerEmpty" class="planner-empty">Enter your admin password and load settings to view upcoming stays.</div>
+      <div id="stayPlannerList" class="stay-planner-list"></div>
+      <div id="stayEditor" class="stay-editor" hidden>
+        <input id="stayId" type="hidden">
+        <div class="form-grid">
+          <label>Guest name<input id="stayGuestName" maxlength="80" placeholder="The Thompson Family"></label>
+          <label>Language<select id="stayLanguage"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="de">Deutsch</option></select></label>
+          <label>Check-in<input id="stayCheckIn" type="date"></label><label>Checkout<input id="stayCheckOut" type="date"></label>
+          <label class="wide">Welcome message<input id="stayWelcomeMessage" maxlength="160" placeholder="Your adventure begins here!"></label>
+          <label class="wide">Special occasion<input id="stayOccasion" maxlength="100" placeholder="Celebrating Emma's 8th Birthday"></label>
+          <label>Theme<select id="stayTheme"></select></label>
+          <label>Celebration<select id="stayCelebrationType"><option value="none">None</option><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option></select></label>
+          <label>Celebration date<input id="stayCelebrationDate" type="date"></label>
+          <label>Celebration name(s)<input id="stayCelebrationName" maxlength="100"></label>
+          <label class="wide">Celebration message<textarea id="stayCelebrationMessage" rows="2" maxlength="300"></textarea></label>
+        </div>
+        <div class="planner-actions"><button id="saveStayButton" type="button">Save stay</button><button id="cancelStayButton" type="button" class="secondary">Cancel</button><button id="deleteStayButton" type="button" class="danger" hidden>Delete stay</button></div>
+      </div>
+    </section>
+
+    <section class="admin-card">
       <h2>Page 1 · Guest welcome</h2>
       <p class="admin-section-intro">Controls the large welcome area on the left side of the first screen.</p>
       <div class="form-grid">
@@ -71,7 +91,7 @@
       <div id="themeGallery" class="theme-gallery" aria-label="Theme previews"></div>
     </section>
 
-    <section class="admin-card" data-admin-tabs="guest">
+    <section class="admin-card">
       <h2>Birthday & anniversary moment</h2>
       <p class="admin-section-intro">Adds a full-screen animated celebration on the selected date. You can preview it before publishing.</p>
       <div class="admin-toggles"><label><input id="showCelebration" type="checkbox"> Enable celebration moment</label></div>
@@ -84,7 +104,7 @@
       <button type="button" class="secondary preview-page-button" data-preview-page="celebration">Preview celebration</button>
     </section>
 
-    <section class="admin-card" data-admin-tabs="guest">
+    <section class="admin-card">
       <h2>Page 1 · Stay details</h2>
       <p class="admin-section-intro">Shown in the small information row along the bottom of the welcome screen.</p>
       <div class="form-grid">
@@ -99,7 +119,7 @@
       </div>
     </section>
 
-    <section class="admin-card" data-admin-tabs="appearance scheduling">
+    <section class="admin-card">
       <h2>Display controls</h2>
       <p class="admin-section-intro">Choose pages, motion, content order, and TV behavior.</p>
       <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showHomeInfo" type="checkbox"> Home information</label><label><input id="showStoreyLake" type="checkbox" checked> Storey Lake amenities</label><label><input id="showNearbyMap" type="checkbox" checked> Nearby attractions map</label><label><input id="showLocalFavorites" type="checkbox"> Local favorites</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
@@ -118,7 +138,7 @@
       <div class="page-order-panel"><div><h3>Page order</h3><p>Move pages into the sequence guests should see. Hidden or out-of-schedule pages are skipped automatically.</p></div><ol id="pageOrderList" class="page-order-list"></ol></div>
     </section>
 
-    <section class="admin-card" data-admin-tabs="content">
+    <section class="admin-card">
       <h2>Guest guide pages</h2>
       <p class="admin-section-intro">Use one line per card and separate each part with a vertical bar.</p>
       <div class="form-grid">
@@ -128,7 +148,7 @@
       </div>
     </section>
 
-    <section class="admin-card" data-admin-tabs="content">
+    <section class="admin-card">
       <h2>Checkout review moment</h2>
       <p class="admin-section-intro">Appears automatically during the final two days of the stay. Leave the URL empty to disable it.</p>
       <div class="form-grid">
@@ -137,7 +157,7 @@
       </div>
     </section>
 
-    <section class="admin-card automatic-card" data-admin-tabs="diagnostics">
+    <section class="admin-card automatic-card">
       <h2>Automatic information</h2>
       <p>Orlando weather, hourly rain timing, sunset, the stay forecast, current time, Disney and Universal park hours, entertainment schedules, and smart park recommendations update automatically. The TV retains the last successful data if its connection drops.</p>
     </section>

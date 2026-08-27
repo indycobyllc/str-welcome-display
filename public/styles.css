@@ -549,7 +549,6 @@ h2 { font-size: clamp(42px, 5vw, 86px); line-height: 1; margin: 0 0 34px; }
 .admin-shell .eyebrow { color:#315b87; }
 .admin-shell h1 { font-size:clamp(38px,6vw,65px); line-height:1; }
 .admin-shell header p { color:#52606d; }
-.admin-tabs{position:sticky;z-index:20;top:8px;display:flex;gap:7px;margin:12px 0 20px;padding:7px;border:1px solid #d9e1e8;border-radius:14px;background:rgba(244,246,248,.94);box-shadow:0 8px 24px rgba(25,42,58,.08);backdrop-filter:blur(12px)}.admin-tabs button{flex:1;padding:10px 8px;background:transparent;color:#52606d;font-size:12px}.admin-tabs button.active{background:#1c69a7;color:#fff;box-shadow:0 4px 12px rgba(28,105,167,.25)}
 .admin-card { background:#fff; border:1px solid #d9e1e8; border-radius:16px; padding:22px; margin:16px 0; }
 .admin-card h2 { font-size:22px; margin:0 0 18px; }
 .admin-section-intro { margin:-8px 0 20px; color:#647383; }
@@ -579,6 +578,7 @@ button.secondary { background:#4e5d6c; }
 .help { color:#647383; font-size:14px; }
 .page-schedule{margin:22px 0;padding:18px;border:1px solid #d7e0e7;border-radius:16px;background:#f7fafc}.page-schedule-heading h3{margin:0;color:#172b3a;font-size:18px}.page-schedule-heading p{margin:4px 0 14px;color:#647383;font-size:12px}.schedule-row{display:grid;grid-template-columns:minmax(145px,1fr) 140px minmax(145px,.8fr) 72px 76px;align-items:center;gap:9px;min-height:48px;padding:7px 0;border-top:1px solid #e1e8ed}.schedule-row strong{color:#263b49;font-size:13px}.schedule-row select{margin:0;padding:9px 8px}.schedule-row>label{gap:2px;color:#647383;font-size:10px}.schedule-row>label input{padding:8px}.schedule-row button{padding:9px 8px;font-size:11px}.schedule-days{display:flex;align-items:center;gap:4px;color:#647383;font-size:11px}.schedule-days input{width:51px;margin:0;padding:8px;text-align:center}.schedule-days[hidden]{display:block;visibility:hidden}.compact-durations{margin-top:14px}.duration-only{grid-template-columns:minmax(145px,1fr) 140px minmax(145px,.8fr) 72px 76px}.preview-page-button{margin-top:14px}
 .page-order-panel{margin-top:22px;padding:18px;border:1px solid #d7e0e7;border-radius:16px;background:#f7fafc}.page-order-panel h3{margin:0;font-size:18px}.page-order-panel p{margin:4px 0 14px;color:#647383;font-size:12px}.page-order-list{margin:0;padding:0;list-style:none}.page-order-list li{display:flex;align-items:center;justify-content:space-between;min-height:46px;padding:7px 8px;border-top:1px solid #e1e8ed}.page-order-list span{display:flex;align-items:center;gap:12px;font-weight:700}.page-order-list b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#dcebf6;color:#185b8e;font-size:12px}.page-order-list li>div{display:flex;gap:6px}.page-order-list .order-button{width:36px;height:34px;padding:0;background:#4e5d6c}.page-order-list .order-button:disabled{opacity:.3;cursor:not-allowed}
+.planner-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.planner-heading .admin-section-intro{margin:-8px 0 10px}.planner-empty{padding:18px;border:1px dashed #b8c3ce;border-radius:12px;color:#647383;text-align:center}.stay-planner-list{display:grid;gap:9px}.planned-stay{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid #d9e1e8;border-radius:13px;background:#f8fafb}.planned-stay.active{border-color:#2e8b57;background:#f0fbf5;box-shadow:inset 4px 0 #2e8b57}.planned-stay small{color:#27704b;font-size:10px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.planned-stay h3{margin:3px 0;font-size:17px}.planned-stay p{margin:0;color:#647383;font-size:12px}.planned-stay button{padding:9px 14px}.stay-editor{margin-top:16px;padding:18px;border:1px solid #c9d8e4;border-radius:14px;background:#f7fafc}.planner-actions{display:flex;gap:10px;align-items:center;margin-top:16px}.planner-actions .danger{margin-left:auto;background:#a62c2c}
 
 @media (max-width: 720px) {
   .park-hours-grid, .event-page, .event-page[data-event-page="1"], .insights-grid, .forecast-grid, .form-grid { grid-template-columns:1fr; }
@@ -586,7 +586,7 @@ button.secondary { background:#4e5d6c; }
   .events-grid { min-height:920px; }
   .theme-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-toggles{grid-template-columns:1fr}.hourly-timeline{grid-template-columns:repeat(3,1fr)}.weather-snapshot,.guide-grid,.favorites-grid,.resort-details{grid-template-columns:1fr}.amenity-strip{grid-template-columns:repeat(2,1fr)}.review-content{grid-template-columns:1fr}.review-code{width:230px}.resort-hero-copy{width:80%}
   .schedule-row{grid-template-columns:1fr}.schedule-days[hidden]{display:none}
-  .admin-tabs{overflow-x:auto;justify-content:flex-start}.admin-tabs button{flex:0 0 auto;white-space:nowrap}
+  .planner-heading,.planned-stay{align-items:stretch;flex-direction:column}.planner-actions{flex-wrap:wrap}.planner-actions .danger{margin-left:0}
 }
 
 @media (min-width:721px) and (max-width:1050px) {

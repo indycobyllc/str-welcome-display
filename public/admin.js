@@ -14,6 +14,7 @@ const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights"
 const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, celebration:"Celebration moment", review:"Checkout review" };
 const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
 let pageOrder = [...DEFAULT_PAGE_ORDER];
+let plannedStays = [];
 
 function renderScheduleRows() {
   $("scheduleRows").innerHTML = SCHEDULE_PAGES.map(page => `<div class="schedule-row">
@@ -35,13 +36,81 @@ function setStatus(message, type = "") {
   node.className = `status ${type}`;
 }
 
-function selectAdminTab(tab) {
-  document.querySelectorAll("[data-admin-tab]").forEach(button => button.classList.toggle("active", button.dataset.adminTab === tab));
-  document.querySelectorAll("[data-admin-tabs]").forEach(section => { section.hidden = !section.dataset.adminTabs.split(" ").includes(tab); });
-}
-
 function token() {
   return $("adminToken").value.trim();
+}
+
+function escapeAdmin(value = "") {
+  return String(value).replace(/[&<>"']/g, character => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[character]));
+}
+
+function easternToday() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone:"America/New_York", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date());
+}
+
+function renderStays() {
+  const today = easternToday();
+  $("stayPlannerEmpty").hidden = plannedStays.length > 0;
+  $("stayPlannerList").innerHTML = plannedStays.map(stay => {
+    const state = stay.checkIn <= today && stay.checkOut >= today ? "Active now" : stay.checkIn > today ? "Upcoming" : "Completed";
+    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.theme)}</p></div><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></article>`;
+  }).join("");
+}
+
+function editStay(stay = {}) {
+  $("stayId").value = stay.id || "";
+  $("stayGuestName").value = stay.guestName || "";
+  $("stayCheckIn").value = stay.checkIn || "";
+  $("stayCheckOut").value = stay.checkOut || "";
+  $("stayWelcomeMessage").value = stay.welcomeMessage || "Your adventure begins here!";
+  $("stayOccasion").value = stay.occasion || "";
+  $("stayTheme").value = stay.theme || $("theme").value || "galactic";
+  $("stayLanguage").value = stay.language || "en";
+  $("stayCelebrationType").value = stay.showCelebration ? (stay.celebrationType || "birthday") : "none";
+  $("stayCelebrationDate").value = stay.celebrationDate || "";
+  $("stayCelebrationName").value = stay.celebrationName || "";
+  $("stayCelebrationMessage").value = stay.celebrationMessage || "Wishing you an unforgettable day filled with magic and memories!";
+  $("deleteStayButton").hidden = !stay.id;
+  $("stayEditor").hidden = false;
+  $("stayEditor").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+function collectStay() {
+  const celebrationType = $("stayCelebrationType").value;
+  return { id:$("stayId").value, guestName:$("stayGuestName").value.trim(), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
+}
+
+async function loadStays() {
+  const response = await fetch("/api/admin/stays", { headers:{ Authorization:`Bearer ${token()}` }, cache:"no-store" });
+  if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load upcoming stays.");
+  plannedStays = (await response.json()).stays || [];
+  renderStays();
+}
+
+async function saveStay() {
+  if (!token()) return setStatus("Enter the admin password first.", "error");
+  setStatus("Saving stay…");
+  try {
+    const response = await fetch("/api/admin/stays", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ action:"save", stay:collectStay() }) });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Unable to save stay.");
+    plannedStays = body.stays || [];
+    renderStays();
+    $("stayEditor").hidden = true;
+    setStatus(body.overlaps?.length ? `Stay saved. Check overlapping dates with: ${body.overlaps.join(", ")}.` : "Upcoming stay saved.", body.overlaps?.length ? "error" : "success");
+  } catch (error) { setStatus(error.message, "error"); }
+}
+
+async function deleteStay() {
+  const id = $("stayId").value;
+  if (!id || !confirm("Delete this planned stay?")) return;
+  const response = await fetch("/api/admin/stays", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ action:"delete", id }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) return setStatus(body.error || "Unable to delete stay.", "error");
+  plannedStays = body.stays || [];
+  renderStays();
+  $("stayEditor").hidden = true;
+  setStatus("Planned stay deleted.", "success");
 }
 
 function apply(settings) {
@@ -118,6 +187,7 @@ async function loadSettings() {
     });
     if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load settings.");
     apply(await response.json());
+    await loadStays();
     setStatus("Current settings loaded.", "success");
   } catch (error) {
     setStatus(error.message, "error");
@@ -148,7 +218,7 @@ async function publish() {
 
 renderScheduleRows();
 renderPageOrder();
-selectAdminTab("guest");
+$("stayTheme").innerHTML = $("theme").innerHTML;
 $("loadButton").addEventListener("click", loadSettings);
 $("publishButton").addEventListener("click", publish);
 $("adminToken").addEventListener("keydown", event => {
@@ -170,10 +240,11 @@ $("pageOrderList").addEventListener("click", event => {
   [pageOrder[from], pageOrder[to]] = [pageOrder[to], pageOrder[from]];
   renderPageOrder();
 });
-document.querySelector(".admin-tabs").addEventListener("click", event => {
-  const button = event.target.closest("[data-admin-tab]");
-  if (button) selectAdminTab(button.dataset.adminTab);
-});
+$("newStayButton").addEventListener("click", () => editStay());
+$("cancelStayButton").addEventListener("click", () => { $("stayEditor").hidden = true; });
+$("saveStayButton").addEventListener("click", saveStay);
+$("deleteStayButton").addEventListener("click", deleteStay);
+$("stayPlannerList").addEventListener("click", event => { const button = event.target.closest("[data-edit-stay]"); if (button) editStay(plannedStays.find(stay => stay.id === button.dataset.editStay)); });
 $("theme").addEventListener("change", updateThemeGallery);
 $("themeGallery").addEventListener("click", event => {
   const button = event.target.closest(".theme-preview");

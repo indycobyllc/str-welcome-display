@@ -19,6 +19,13 @@ const DEFAULTS = {
   showLocalFavorites: false,
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
+  pageDurations: {},
+  language: "en",
+  showCelebration: false,
+  celebrationType: "birthday",
+  celebrationDate: "",
+  celebrationName: "",
+  celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
   reviewUrl: "",
@@ -77,6 +84,10 @@ function sanitize(input) {
       endDay: Math.min(60, Math.max(1, Number(entry.endDay) || 60))
     }];
   }));
+  const durationPages = [...schedulePages, "celebration", "review"];
+  const pageDurations = Object.fromEntries(durationPages.map(page => [page,
+    Math.min(120, Math.max(8, Number(input.pageDurations?.[page]) || Number(input.slideSeconds) || 18))
+  ]));
   return {
     guestName: text(input.guestName, 80) || DEFAULTS.guestName,
     occasion: text(input.occasion, 100),
@@ -98,6 +109,13 @@ function sanitize(input) {
     showLocalFavorites: bool(input.showLocalFavorites, false),
     propertyAddress: text(input.propertyAddress, 160) || DEFAULTS.propertyAddress,
     pageSchedule,
+    pageDurations,
+    language: ["en", "es", "fr", "pt", "de"].includes(input.language) ? input.language : "en",
+    showCelebration: bool(input.showCelebration, false),
+    celebrationType: ["birthday", "anniversary"].includes(input.celebrationType) ? input.celebrationType : "birthday",
+    celebrationDate: text(input.celebrationDate, 10),
+    celebrationName: text(input.celebrationName, 100),
+    celebrationMessage: text(input.celebrationMessage, 300),
     homeInfo: text(input.homeInfo, 3000),
     localFavorites: text(input.localFavorites, 4000),
     reviewUrl: text(input.reviewUrl, 500),

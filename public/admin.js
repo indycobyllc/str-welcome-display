@@ -5,9 +5,22 @@ const FIELDS = [
   "artworkIntensity", "transitionStyle"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "localFavorites", "reviewUrl", "reviewMessage"
+  , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationName", "celebrationMessage"
 ];
 const $ = id => document.getElementById(id);
 const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites"];
+const DURATION_PAGES = [...SCHEDULE_PAGES, "celebration", "review"];
+const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", localFavorites:"Local favorites" };
+
+function renderScheduleRows() {
+  $("scheduleRows").innerHTML = SCHEDULE_PAGES.map(page => `<div class="schedule-row">
+    <strong>${PAGE_LABELS[page]}</strong>
+    <select id="schedule-${page}" data-schedule-page="${page}"><option value="always">Always</option><option value="stay">During stay</option><option value="arrival">Arrival day</option><option value="first-two">First 2 days</option><option value="final-two">Final 2 days</option><option value="custom">Custom days</option></select>
+    <span class="schedule-days" data-schedule-days="${page}" hidden>Days <input id="schedule-${page}-start" type="number" min="1" max="60" value="1">–<input id="schedule-${page}-end" type="number" min="1" max="60" value="60"></span>
+    <label>Seconds<input id="duration-${page}" type="number" min="8" max="120" value="18"></label>
+    <button type="button" class="secondary" data-preview-page="${page}">Preview</button>
+  </div>`).join("");
+}
 
 function setStatus(message, type = "") {
   const node = $("status");
@@ -33,6 +46,10 @@ function apply(settings) {
     $(`schedule-${page}-end`).value = rule.endDay || 60;
     updateScheduleRow(page);
   }
+  for (const page of DURATION_PAGES) {
+    const input = $(`duration-${page}`);
+    if (input) input.value = settings.pageDurations?.[page] || settings.slideSeconds || 18;
+  }
   if (settings.guestName === "Welcome to Your Orlando Vacation!") {
     $("guestName").value = "Welcome!";
   }
@@ -51,6 +68,7 @@ function collect() {
     startDay: Number($(`schedule-${page}-start`).value) || 1,
     endDay: Number($(`schedule-${page}-end`).value) || 60
   }]));
+  result.pageDurations = Object.fromEntries(DURATION_PAGES.map(page => [page, Number($(`duration-${page}`)?.value) || Number(result.slideSeconds) || 18]));
   return result;
 }
 
@@ -112,12 +130,18 @@ async function publish() {
   }
 }
 
+renderScheduleRows();
 $("loadButton").addEventListener("click", loadSettings);
 $("publishButton").addEventListener("click", publish);
 $("adminToken").addEventListener("keydown", event => {
   if (event.key === "Enter") loadSettings();
 });
 document.querySelectorAll("[data-schedule-page]").forEach(select => select.addEventListener("change", () => updateScheduleRow(select.dataset.schedulePage)));
+document.querySelectorAll("[data-preview-page]").forEach(button => button.addEventListener("click", () => {
+  try { localStorage.setItem("str-preview-draft", JSON.stringify({ savedAt: Date.now(), settings: collect() })); } catch {}
+  const params = new URLSearchParams({ previewPage: button.dataset.previewPage, previewTheme: $("theme").value });
+  window.open(`/?${params}`, "_blank", "noopener");
+}));
 $("theme").addEventListener("change", updateThemeGallery);
 $("themeGallery").addEventListener("click", event => {
   const button = event.target.closest(".theme-preview");

@@ -19,6 +19,13 @@ const DEFAULTS = {
   showLocalFavorites: false,
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
+  pageDurations: {},
+  language: "en",
+  showCelebration: false,
+  celebrationType: "birthday",
+  celebrationDate: "",
+  celebrationName: "",
+  celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
   reviewUrl: "",
@@ -32,6 +39,20 @@ const DEFAULTS = {
 const $ = (id) => document.getElementById(id);
 let currentWeather = null;
 let currentSettings = DEFAULTS;
+const TRANSLATIONS = {
+  en: { stay:"Your Orlando stay", hours:"Today’s Orlando park hours", changes:"Times may change", wifi:"Wi-Fi", events:"Entertainment & Events", plan:"Plan your day", today:"Today", forecast:"Weather for Your Stay", vacationForecast:"Your vacation forecast", home:"Your Home Guide", settle:"Settle in and feel at home", good:"Good to know", resort:"Storey Lake Resort", noPlans:"No plans today? Enjoy your included resort amenities", map:"Around Orlando", closer:"You’re closer than you think", favorites:"Local Favorites", places:"A few places we genuinely love", thankYou:"Thank You", birthdayKicker:"A birthday wish just for you", anniversaryKicker:"Celebrating your anniversary", birthday:"Happy Birthday", anniversary:"Happy Anniversary" },
+  es: { stay:"Tu estadía en Orlando", hours:"Horarios de los parques hoy", changes:"Los horarios pueden cambiar", wifi:"Wi-Fi", events:"Eventos y entretenimiento", plan:"Planifica tu día", today:"Hoy", forecast:"Clima durante tu estadía", vacationForecast:"Pronóstico de tus vacaciones", home:"Guía de la casa", settle:"Instálate y siéntete como en casa", good:"Información útil", resort:"Resort Storey Lake", noPlans:"¿Sin planes hoy? Disfruta de las amenidades incluidas", map:"Alrededor de Orlando", closer:"Estás más cerca de lo que imaginas", favorites:"Favoritos locales", places:"Algunos lugares que nos encantan", thankYou:"Gracias", birthdayKicker:"Un deseo de cumpleaños solo para ti", anniversaryKicker:"Celebrando su aniversario", birthday:"Feliz cumpleaños", anniversary:"Feliz aniversario" },
+  fr: { stay:"Votre séjour à Orlando", hours:"Horaires des parcs aujourd’hui", changes:"Les horaires peuvent changer", wifi:"Wi-Fi", events:"Spectacles et événements", plan:"Planifiez votre journée", today:"Aujourd’hui", forecast:"Météo de votre séjour", vacationForecast:"Prévisions de vos vacances", home:"Guide de la maison", settle:"Installez-vous comme chez vous", good:"Bon à savoir", resort:"Resort Storey Lake", noPlans:"Rien de prévu? Profitez des équipements inclus", map:"Autour d’Orlando", closer:"Vous êtes plus près que vous ne le pensez", favorites:"Nos adresses préférées", places:"Quelques endroits que nous aimons", thankYou:"Merci", birthdayKicker:"Un vœu d’anniversaire rien que pour vous", anniversaryKicker:"Célébrons votre anniversaire", birthday:"Joyeux anniversaire", anniversary:"Joyeux anniversaire de mariage" },
+  pt: { stay:"Sua estadia em Orlando", hours:"Horários dos parques hoje", changes:"Os horários podem mudar", wifi:"Wi-Fi", events:"Eventos e entretenimento", plan:"Planeje seu dia", today:"Hoje", forecast:"Clima durante sua estadia", vacationForecast:"Previsão das suas férias", home:"Guia da casa", settle:"Sinta-se em casa", good:"Informações úteis", resort:"Resort Storey Lake", noPlans:"Sem planos hoje? Aproveite as comodidades incluídas", map:"Perto de Orlando", closer:"Você está mais perto do que imagina", favorites:"Favoritos locais", places:"Alguns lugares que adoramos", thankYou:"Obrigado", birthdayKicker:"Um desejo de aniversário só para você", anniversaryKicker:"Celebrando seu aniversário", birthday:"Feliz aniversário", anniversary:"Feliz aniversário de casamento" },
+  de: { stay:"Ihr Aufenthalt in Orlando", hours:"Heutige Parköffnungszeiten", changes:"Zeiten können sich ändern", wifi:"WLAN", events:"Shows und Veranstaltungen", plan:"Planen Sie Ihren Tag", today:"Heute", forecast:"Wetter für Ihren Aufenthalt", vacationForecast:"Ihre Urlaubsvorhersage", home:"Hausinformationen", settle:"Fühlen Sie sich wie zu Hause", good:"Gut zu wissen", resort:"Storey Lake Resort", noPlans:"Heute noch nichts vor? Genießen Sie die enthaltenen Annehmlichkeiten", map:"Orlando entdecken", closer:"Alles ist näher als Sie denken", favorites:"Lokale Favoriten", places:"Einige Orte, die wir lieben", thankYou:"Vielen Dank", birthdayKicker:"Ein Geburtstagswunsch nur für Sie", anniversaryKicker:"Wir feiern Ihren Jahrestag", birthday:"Alles Gute zum Geburtstag", anniversary:"Alles Gute zum Hochzeitstag" }
+};
+
+function applyLanguage(language) {
+  const words = TRANSLATIONS[language] || TRANSLATIONS.en;
+  document.documentElement.lang = language || "en";
+  document.querySelectorAll("[data-i18n]").forEach(node => { if (words[node.dataset.i18n]) node.textContent = words[node.dataset.i18n]; });
+  document.querySelectorAll("[data-page-key]").forEach(slide => { const key = slide.dataset.titleKey; if (key && words[key]) slide.dataset.pageTitle = words[key]; });
+}
 
 async function cachedJson(url, key) {
   try {
@@ -337,6 +358,13 @@ function eventBadge(event) {
 }
 
 async function loadSettings() {
+  if (new URLSearchParams(location.search).get("previewPage")) {
+    try {
+      const draft = JSON.parse(localStorage.getItem("str-preview-draft") || "null");
+      localStorage.removeItem("str-preview-draft");
+      if (draft?.settings && Date.now() - draft.savedAt < 60000) return { ...DEFAULTS, ...draft.settings };
+    } catch {}
+  }
   try {
     const result = await cachedJson("/api/settings", "str-settings-v1");
     window.__dataOffline ||= result.offline;
@@ -365,6 +393,7 @@ function applySettings(s) {
   const themedTransition = /star-wars|iron-man|space-coast/.test(activeTheme) ? "wipe" : /harry|wizard|princess|classic-theme-park/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora|florida-storm|everglades/.test(activeTheme) ? "curtain" : "cinematic";
   $("display").dataset.transition = s.transitionStyle === "auto" ? themedTransition : s.transitionStyle;
   $("display").style.setProperty("--art-opacity", String((Number(s.artworkIntensity) || 80) / 100));
+  applyLanguage(s.language);
   const legacyWelcome = "Welcome to Your Orlando Vacation!";
   const guest = !s.guestName || s.guestName === legacyWelcome ? "Welcome!" : s.guestName;
   $("guestName").textContent = guest;
@@ -401,6 +430,14 @@ function applySettings(s) {
   document.querySelector(".storey-lake-slide").hidden = !scheduledPageVisible(s.showStoreyLake, "storeyLake", s, todayValue, checkIn, checkOut);
   document.querySelector(".nearby-map-slide").hidden = !scheduledPageVisible(s.showNearbyMap, "nearbyMap", s, todayValue, checkIn, checkOut);
   document.querySelector(".favorites-slide").hidden = !scheduledPageVisible(s.showLocalFavorites, "localFavorites", s, todayValue, checkIn, checkOut);
+  const celebrationPreview = new URLSearchParams(location.search).get("previewPage") === "celebration";
+  const celebrationToday = Boolean(s.celebrationDate) && s.celebrationDate === today;
+  document.querySelector(".celebration-slide").hidden = !(celebrationPreview || (s.showCelebration && celebrationToday));
+  const celebrationWords = TRANSLATIONS[s.language] || TRANSLATIONS.en;
+  $("celebrationKicker").textContent = s.celebrationType === "anniversary" ? (celebrationWords.anniversaryKicker || TRANSLATIONS.en.anniversaryKicker) : (celebrationWords.birthdayKicker || TRANSLATIONS.en.birthdayKicker);
+  const celebrationHeading = s.celebrationType === "anniversary" ? (celebrationWords.anniversary || TRANSLATIONS.en.anniversary) : (celebrationWords.birthday || TRANSLATIONS.en.birthday);
+  $("celebrationTitle").textContent = `${celebrationHeading}${s.celebrationName ? `, ${s.celebrationName}` : ""}!`;
+  $("celebrationMessage").textContent = s.celebrationMessage || DEFAULTS.celebrationMessage;
   $("mapPropertyAddress").textContent = s.propertyAddress || DEFAULTS.propertyAddress;
   renderGuestPages(s);
   applyReviewMoment(s, todayValue, checkOut);
@@ -503,6 +540,11 @@ function updatePageTitle(slide) {
 
 function startSlides(seconds) {
   let visibleSlides = [...document.querySelectorAll(".slide")].filter(s => !s.hidden);
+  const previewPage = new URLSearchParams(location.search).get("previewPage");
+  if (previewPage) {
+    const previewSlide = document.querySelector(`[data-page-key="${CSS.escape(previewPage)}"]`);
+    if (previewSlide) { previewSlide.hidden = false; visibleSlides = [previewSlide]; }
+  }
   if (!visibleSlides.length) {
     document.querySelector(".welcome-slide").hidden = false;
     visibleSlides = [document.querySelector(".welcome-slide")];
@@ -511,22 +553,26 @@ function startSlides(seconds) {
   let index = 0;
   visibleSlides[0].classList.add("active");
   updatePageTitle(visibleSlides[0]);
-  const duration = Math.max(8, Number(seconds) || 18) * 1000;
+  const getDuration = slide => Math.max(8, Number(currentSettings.pageDurations?.[slide.dataset.pageKey]) || Number(seconds) || 18) * 1000;
+  let duration = getDuration(visibleSlides[0]);
   if (visibleSlides[0].classList.contains("parks-slide")) resetEventPages(duration);
 
-  clearInterval(slideTimer);
+  clearTimeout(slideTimer);
   if (visibleSlides.length > 1) {
-    slideTimer = setInterval(() => {
+    const advance = () => {
       visibleSlides[index].classList.remove("active");
       index = (index + 1) % visibleSlides.length;
       visibleSlides[index].classList.add("active");
       updatePageTitle(visibleSlides[index]);
+      duration = getDuration(visibleSlides[index]);
       if (visibleSlides[index].classList.contains("parks-slide")) {
         resetEventPages(duration);
       } else {
         clearTimeout(eventPageTimer);
       }
-    }, duration);
+      slideTimer = setTimeout(advance, duration);
+    };
+    slideTimer = setTimeout(advance, duration);
   }
 }
 

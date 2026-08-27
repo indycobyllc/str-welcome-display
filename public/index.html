@@ -111,11 +111,11 @@
       </div>
     </header>
 
-    <section class="slide arrival-slide" hidden data-page-title="Welcome to Orlando">
+    <section class="slide arrival-slide" hidden data-page-key="arrival" data-page-title="Welcome to Orlando">
       <div class="arrival-content"><div class="arrival-mark">✦</div><p>Your stay begins today</p><h2 id="arrivalGuest">Welcome!</h2><strong id="arrivalMessage">The adventure is waiting.</strong></div>
     </section>
 
-    <section class="slide active welcome-slide">
+    <section class="slide active welcome-slide" data-page-key="welcome" data-title-key="stay" data-page-title="Your Orlando stay">
       <div class="welcome-copy">
         <div class="eyebrow"><span class="eyebrow-star">✦</span> <span id="welcomeEyebrowText">Your Orlando stay</span></div>
         <h1 id="guestName">Welcome!</h1>
@@ -128,20 +128,20 @@
         <div id="hourlyTimeline" class="hourly-timeline" aria-label="Today's hourly weather"></div>
       </div>
 
-      <div class="section-label"><span>Today’s Orlando park hours</span><small>Times may change</small></div>
+      <div class="section-label"><span data-i18n="hours">Today’s Orlando park hours</span><small data-i18n="changes">Times may change</small></div>
       <div id="parkHoursGrid" class="park-hours-grid">
         <div class="loading">Loading today’s hours…</div>
       </div>
 
       <div class="stay-strip">
-        <div><span>Wi-Fi</span><strong id="wifiName">Guest Wi-Fi</strong><small id="wifiPassword"></small></div>
+        <div><span data-i18n="wifi">Wi-Fi</span><strong id="wifiName">Guest Wi-Fi</strong><small id="wifiPassword"></small></div>
         <div id="staySummary" hidden><span>Your stay</span><strong id="stayLength"></strong><small id="daysRemaining"></small></div>
       </div>
     </section>
 
-    <section class="slide parks-slide" data-page-title="Entertainment & Events">
-      <div class="eyebrow"><span class="eyebrow-star">✦</span> Plan your day</div>
-      <div class="parks-heading"><div class="event-legend" aria-label="Entertainment types"><span class="nighttime">✦ Nighttime</span><span class="parade">⚑ Parade</span><span class="show">◉ Show</span></div><div class="today-pill">Today</div></div>
+    <section class="slide parks-slide" data-page-key="events" data-title-key="events" data-page-title="Entertainment & Events">
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> <span data-i18n="plan">Plan your day</span></div>
+      <div class="parks-heading"><div class="event-legend" aria-label="Entertainment types"><span class="nighttime">✦ Nighttime</span><span class="parade">⚑ Parade</span><span class="show">◉ Show</span></div><div class="today-pill" data-i18n="today">Today</div></div>
       <div id="smartRecommendation" class="smart-recommendation"></div>
       <div id="insightsGrid" class="insights-grid" aria-label="Park insights"></div>
       <div id="eventsGrid" class="events-grid">
@@ -151,8 +151,8 @@
       <p class="disclaimer">Park hours and entertainment are unofficial and subject to change. Confirm in the official park apps.</p>
     </section>
 
-    <section class="slide forecast-slide" data-page-title="Weather for Your Stay">
-      <div class="eyebrow"><span class="eyebrow-star">✦</span> Your vacation forecast</div>
+    <section class="slide forecast-slide" data-page-key="forecast" data-title-key="forecast" data-page-title="Weather for Your Stay">
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> <span data-i18n="vacationForecast">Your vacation forecast</span></div>
       <div class="forecast-heading">
         <p id="forecastRange"></p>
       </div>
@@ -163,15 +163,15 @@
       <p id="forecastNote" class="forecast-note"></p>
     </section>
 
-    <section class="slide guide-slide home-info-slide" data-page-title="Your Home Guide" hidden>
-      <div class="eyebrow"><span class="eyebrow-star">✦</span> Settle in and feel at home</div>
-      <div class="guide-heading"><div><p>Everything you need for an easy stay</p><h2>Good to know</h2></div><span class="guide-mark">⌂</span></div>
+    <section class="slide guide-slide home-info-slide" data-page-key="homeInfo" data-title-key="home" data-page-title="Your Home Guide" hidden>
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> <span data-i18n="settle">Settle in and feel at home</span></div>
+      <div class="guide-heading"><div><p>Everything you need for an easy stay</p><h2 data-i18n="good">Good to know</h2></div><span class="guide-mark">⌂</span></div>
       <div id="homeInfoGrid" class="guide-grid"></div>
       <p class="guide-footnote">Questions during your stay? Please contact your host through your booking message thread.</p>
     </section>
 
-    <section class="slide guide-slide storey-lake-slide" data-page-title="Storey Lake Resort">
-      <div class="eyebrow"><span class="eyebrow-star">✦</span> No plans today? Enjoy your included resort amenities</div>
+    <section class="slide guide-slide storey-lake-slide" data-page-key="storeyLake" data-title-key="resort" data-page-title="Storey Lake Resort">
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> <span data-i18n="noPlans">No plans today? Enjoy your included resort amenities</span></div>
       <div class="resort-hero">
         <div class="resort-gallery"><img src="/assets/storey-lake/hideaway-aerial.png" alt="Aerial view of Storey Lake resort amenities"><img src="/assets/storey-lake/amenities.jpg" alt="Storey Lake lazy river and pool complex"></div>
         <div class="resort-hero-copy resort-hero-copy-compact"><small>The Hideaway Club</small><p>Pool time, a lazy river, waterslides and plenty of ways to play—right here in the community.</p><strong>Open daily · 9 AM–9 PM</strong></div>
@@ -187,8 +187,8 @@
       <p class="guide-footnote">Amenity availability, policies and hours can change. Confirm current details with The Hideaway Club at (407) 787-8700.</p>
     </section>
 
-    <section class="slide nearby-map-slide" data-page-title="Around Orlando">
-      <div class="eyebrow"><span class="eyebrow-star">✦</span> You’re closer than you think</div>
+    <section class="slide nearby-map-slide" data-page-key="nearbyMap" data-title-key="map" data-page-title="Around Orlando">
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> <span data-i18n="closer">You’re closer than you think</span></div>
       <div class="map-heading"><div><p>Your launch point for the best of Orlando</p><h2>Adventure is just around the corner</h2></div><div class="map-home-label"><span>⌂</span><div><small>Your stay</small><strong id="mapPropertyAddress">4290 Paragraph Drive, Kissimmee, FL 34746</strong></div></div></div>
       <div class="orlando-map" aria-label="Stylized animated map showing approximate drive times from the vacation home to nearby Orlando attractions">
         <div class="map-basemap" aria-hidden="true">
@@ -219,14 +219,19 @@
       <p class="map-note">Drive times are approximate and vary with traffic. Check live navigation before heading out.</p>
     </section>
 
-    <section class="slide guide-slide favorites-slide" data-page-title="Local Favorites" hidden>
-      <div class="eyebrow"><span class="eyebrow-star">✦</span> A few places we genuinely love</div>
+    <section class="slide guide-slide favorites-slide" data-page-key="localFavorites" data-title-key="favorites" data-page-title="Local Favorites" hidden>
+      <div class="eyebrow"><span class="eyebrow-star">✦</span> <span data-i18n="places">A few places we genuinely love</span></div>
       <div class="guide-heading"><div><p>Beyond the theme parks</p><h2>Local favorites</h2></div><span class="guide-mark">♡</span></div>
       <div id="favoritesGrid" class="favorites-grid"></div>
       <p class="guide-footnote">Travel times and availability vary. Check current hours before heading out.</p>
     </section>
 
-    <section class="slide review-slide" data-page-title="Thank You" hidden>
+    <section class="slide celebration-slide" data-page-key="celebration" data-page-title="A Special Celebration" hidden>
+      <div class="celebration-confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="celebration-content"><div class="celebration-icon">✦</div><p id="celebrationKicker">A birthday wish just for you</p><h2 id="celebrationTitle">Happy Birthday!</h2><strong id="celebrationMessage">Wishing you an unforgettable day filled with magic and memories!</strong></div>
+    </section>
+
+    <section class="slide review-slide" data-page-key="review" data-title-key="thankYou" data-page-title="Thank You" hidden>
       <div class="review-content">
         <div><div class="eyebrow"><span class="eyebrow-star">✦</span> <span id="reviewTiming">As your stay winds down</span></div><h2>Thank you for making memories with us</h2><p id="reviewMessage"></p><strong>Scan with your phone to share your experience on Airbnb.</strong></div>
         <div class="review-code"><img id="reviewQr" alt=""><span>Scan to leave a review</span></div>

@@ -32,7 +32,7 @@ American|Miller's Ale House|An easy group choice for burgers, wings, seafood and
 Asian|Zuru Ramen & Hibachi|A convenient choice when the group wants ramen, hibachi or something warm delivered.|https://www.google.com/maps/search/?api=1&query=Zuru+Ramen+Hibachi+Kissimmee|Very close|Delivery friendly
 Quick Eats|Taco Bell|A familiar, fast stop for tacos, burritos and late-night cravings after a long park day.|https://www.google.com/maps/search/?api=1&query=Taco+Bell+4951+W+Irlo+Bronson+Memorial+Hwy+Kissimmee+FL|Very close|Drive-thru & delivery
 Breakfast|Cracker Barrel|A family-friendly choice for all-day breakfast, Southern comfort food and a relaxed sit-down meal.|https://www.google.com/maps/search/?api=1&query=Cracker+Barrel+5400+W+Irlo+Bronson+Memorial+Hwy+Kissimmee+FL|Very close|Dine-in & pickup
-Essentials|Wawa|A Florida fan-favorite convenience stop for made-to-order hoagies, coffee, fuel, snacks and last-minute supplies.|https://www.google.com/maps/search/?api=1&query=Wawa+near+4290+Paragraph+Drive+Kissimmee+FL|Close by|Food, fuel & essentials
+Essentials|Wawa|A Florida fan favorite for hoagies, coffee, fuel, snacks and vacation essentials.|https://www.google.com/maps/search/?api=1&query=Wawa+near+4290+Paragraph+Drive+Kissimmee+FL|Close by|Food, fuel & essentials
 American|Applebee's|An easy group-friendly option for burgers, ribs, appetizers and a casual meal close to the home.|https://www.google.com/maps/search/?api=1&query=Applebees+4759+Irlo+Bronson+Memorial+Pkwy+Kissimmee+FL|Very close|Dine-in & delivery`,
   language: "en",
   showCelebration: false,
@@ -194,6 +194,10 @@ function settingsWithDefaults(stored) {
   const merged = { ...DEFAULTS, ...(stored || {}) };
   if (!stored?.nearbyFavorites) merged.nearbyFavorites = DEFAULTS.nearbyFavorites;
   else {
+    merged.nearbyFavorites = String(merged.nearbyFavorites).replace(
+      "A Florida fan-favorite convenience stop for made-to-order hoagies, coffee, fuel, snacks and last-minute supplies.",
+      "A Florida fan favorite for hoagies, coffee, fuel, snacks and vacation essentials."
+    );
     const defaultNearbyRows = DEFAULTS.nearbyFavorites.split("\n").slice(-4);
     const savedNearbyNames = new Set(String(merged.nearbyFavorites).split("\n").map(row => row.split("|")[1]?.trim()));
     const missingNearbyRows = defaultNearbyRows.filter(row => !savedNearbyNames.has(row.split("|")[1]?.trim()));

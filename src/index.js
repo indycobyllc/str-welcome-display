@@ -258,6 +258,8 @@ function settingsWithDefaults(stored) {
     if (missingNearbyRows.length) merged.nearbyFavorites = `${String(merged.nearbyFavorites).trim()}\n${missingNearbyRows.join("\n")}`;
   }
   if (!stored?.localFavorites || /Add a favorite (breakfast|dinner|dessert) spot/i.test(stored.localFavorites)) merged.localFavorites = DEFAULTS.localFavorites;
+  merged.nearbyFavorites = verifiedPlaceRows(merged.nearbyFavorites);
+  merged.localFavorites = verifiedPlaceRows(merged.localFavorites);
   if (!Array.isArray(stored?.pageOrder)) merged.pageOrder = [...DEFAULTS.pageOrder];
   else if (!stored.pageOrder.includes("nearbyEasy")) {
     merged.pageOrder = [...stored.pageOrder];
@@ -265,6 +267,24 @@ function settingsWithDefaults(stored) {
     merged.pageOrder.splice(beforeFavorites < 0 ? merged.pageOrder.length : beforeFavorites, 0, "nearbyEasy");
   }
   return merged;
+}
+
+const VERIFIED_PLACE_NAMES = new Set([
+  "Walmart Supercenter", "King O Falafel", "Sabor Brasil", "Zuru Ramen & Hibachi", "Taco Bell", "Applebee's",
+  "Se7en Bites", "Beefy King", "Lazy Moon Pizza", "Andretti Indoor Karting", "Orlando Science Center", "Bok Tower Gardens",
+  "King's Landing · Emerald Cut", "Devil's Den Spring", "Kennedy Space Center", "Blowing Rocks Preserve"
+]);
+const UNVERIFIED_DEFAULT_PLACE_NAMES = new Set([
+  "Publix · Sunrise City Plaza", "Super Target", "Miller's Ale House", "Wawa", "Tropico Mofongo", "Cracker Barrel",
+  "Teak Neighborhood Grill", "Willie's Pinchos", "The Edison", "Gideon's Bakehouse", "The Dolly Llama",
+  "The Glass Knife", "Better Than Sex", "Salt & Straw", "SAK Comedy Lab", "Orlando Cat Café",
+  "Titanic: The Artifact Exhibition", "Kelly Park · Rock Springs", "Brevard Zoo Kayaking", "Mead Botanical Garden"
+]);
+function verifiedPlaceRows(value) {
+  return String(value || "").split("\n").filter(row => {
+    const name = row.split("|")[1]?.trim();
+    return !UNVERIFIED_DEFAULT_PLACE_NAMES.has(name) || VERIFIED_PLACE_NAMES.has(name);
+  }).join("\n");
 }
 
 function easternDate(iso = new Date().toISOString()) {

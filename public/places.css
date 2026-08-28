@@ -1,0 +1,13 @@
+.place-directory > a {
+  grid-template-columns: 86px 1fr;
+  padding: 10px;
+}
+
+.place-photo {
+  width: 86px;
+  height: 100%;
+  min-height: 94px;
+  object-fit: cover;
+  border-radius: 11px;
+  background: rgba(112, 220, 255, .1);
+}

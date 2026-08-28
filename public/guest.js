@@ -78,11 +78,21 @@ function renderHome(settings) {
 function renderDirectory() {
   const query = ($("placeSearch")?.value || "").toLowerCase();
   const filtered = allPlaces.filter(place => (placeSource === "all" || place.source === placeSource) && (placeCategory === "all" || place.category === placeCategory) && place.search.includes(query));
-  $("placeDirectory").innerHTML = filtered.map(place => `<a href="${esc(safe(place.url))}"><div class="place-icon">${place.source === "nearby" ? "⌖" : "✦"}</div><div><small>${esc(place.category)} · ${place.source === "nearby" ? "NEARBY & EASY" : "LOCAL FAVORITE"}</small><strong>${esc(place.name)}</strong><p>${esc(place.note)}</p><span>${esc(place.badge)} · Open directions ↗</span></div></a>`).join("") || `<p class="empty-state">No recommendations match those filters.</p>`;
+  $("placeDirectory").innerHTML = filtered.map(place => `<a href="${esc(safe(place.url))}"><img class="place-photo" src="${esc(placeAsset(place.name))}" alt="${esc(place.name)}"><div><small>${esc(place.category)} · ${place.source === "nearby" ? "NEARBY & EASY" : "LOCAL FAVORITE"}</small><strong>${esc(place.name)}</strong><p>${esc(place.note)}</p><span>${esc(place.badge)} · Open directions ↗</span></div></a>`).join("") || `<p class="empty-state">No recommendations match those filters.</p>`;
 }
 
+const PLACE_ASSETS = {
+  "Walmart Supercenter":"walmart-supercenter.jpg", "King O Falafel":"king-o-falafel.jpg", "Sabor Brasil":"sabor-brasil.jpg",
+  "Zuru Ramen & Hibachi":"zuru-ramen.jpg", "Taco Bell":"taco-bell.jpg", "Applebee's":"applebees.jpg", "Se7en Bites":"se7en-bites.jpg",
+  "Beefy King":"beefy-king.jpg", "Lazy Moon Pizza":"lazy-moon.jpg", "Andretti Indoor Karting":"andretti.jpg",
+  "Orlando Science Center":"orlando-science-center.jpg", "Bok Tower Gardens":"bok-tower-gardens.jpg",
+  "King's Landing · Emerald Cut":"kings-landing.jpg",
+  "Devil's Den Spring":"devils-den.jpg", "Kennedy Space Center":"kennedy-space-center.jpg", "Blowing Rocks Preserve":"blowing-rocks.jpg"
+};
+function placeAsset(name = "") { return `/assets/places/${PLACE_ASSETS[name] || ""}`; }
+
 function renderExplore(settings) {
-  allPlaces = [...rows(settings.nearbyFavorites).map(row => ({ source:"nearby", category:row[0], name:row[1], note:row[2], url:row[3], badge:row[4], search:row.join(" ").toLowerCase() })), ...rows(settings.localFavorites).map(row => ({ source:"favorites", category:row[0], name:row[1], note:row[2], url:row[3], badge:row[4], search:row.join(" ").toLowerCase() }))];
+  allPlaces = [...rows(settings.nearbyFavorites).filter(row => PLACE_ASSETS[row[1]]).map(row => ({ source:"nearby", category:row[0], name:row[1], note:row[2], url:row[3], badge:row[4], search:row.join(" ").toLowerCase() })), ...rows(settings.localFavorites).filter(row => PLACE_ASSETS[row[1]]).map(row => ({ source:"favorites", category:row[0], name:row[1], note:row[2], url:row[3], badge:row[4], search:row.join(" ").toLowerCase() }))];
   const categories = [...new Set(allPlaces.map(place => place.category))];
   $("categoryFilters").innerHTML = `<button class="active" data-place-category="all">All types</button>${categories.map(category => `<button data-place-category="${esc(category)}">${esc(category)}</button>`).join("")}`;
   renderDirectory();

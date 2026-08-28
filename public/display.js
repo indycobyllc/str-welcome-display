@@ -151,9 +151,9 @@ function renderGuestPages(s) {
     for (const row of sorted) { if (!selected.includes(row)) selected.push(row); if (selected.length === limit) break; }
     return selected;
   };
-  const nearbyCards = rotateDaily(parseRows(s.nearbyFavorites, 6), 12).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = categoryAsset(category, name); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${image}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; });
+  const nearbyCards = rotateDaily(parseRows(s.nearbyFavorites, 6).filter(row => PLACE_ASSETS[row[1]]), 12).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = placeAsset(name); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}"><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; });
   $("nearbyFavoritesGrid").innerHTML = pagedCards(nearbyCards, 6);
-  const favoriteCards = rotateDaily(parseRows(s.localFavorites, 6), 12).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl) || categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? qrMarkup(link, `Scan to plan ${name}`) : ""}</div></article>`; });
+  const favoriteCards = rotateDaily(parseRows(s.localFavorites, 6).filter(row => PLACE_ASSETS[row[1]]), 12).map(([category, name, note, url, distance]) => { const link = safeUrl(url), image = placeAsset(name); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}"><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? qrMarkup(link, `Scan to plan ${name}`) : ""}</div></article>`; });
   $("favoritesGrid").innerHTML = pagedCards(favoriteCards, 6);
 }
 
@@ -163,18 +163,16 @@ function pagedCards(cards, perPage) {
   return pages.join("");
 }
 
-function categoryAsset(category = "", name = "") {
-  if (/taco/i.test(`${category} ${name}`)) return "/assets/favorites/tacos.jpg";
-  if (/breakfast|cracker barrel/i.test(`${category} ${name}`)) return "/assets/favorites/breakfast.jpg";
-  if (/essentials|wawa|convenience/i.test(`${category} ${name}`)) return "/assets/favorites/convenience.jpg";
-  if (/ramen|hibachi|zuru/i.test(`${category} ${name}`)) return "/assets/favorites/ramen.jpg";
-  if (/mediterranean|brazilian|caribbean|falafel|mofongo/i.test(`${category} ${name}`)) return "/assets/favorites/international.jpg";
-  if (/grocer/i.test(category)) return "/assets/favorites/groceries.jpg";
-  if (/treat/i.test(category)) return "/assets/favorites/treats.jpg";
-  if (/entertain/i.test(category)) return "/assets/favorites/entertainment.jpg";
-  if (/nature|trip/i.test(category)) return "/assets/favorites/nature.jpg";
-  return "/assets/favorites/dining.jpg";
-}
+const PLACE_ASSETS = {
+  "Walmart Supercenter":"walmart-supercenter.jpg", "King O Falafel":"king-o-falafel.jpg", "Sabor Brasil":"sabor-brasil.jpg",
+  "Zuru Ramen & Hibachi":"zuru-ramen.jpg", "Taco Bell":"taco-bell.jpg", "Applebee's":"applebees.jpg", "Se7en Bites":"se7en-bites.jpg",
+  "Beefy King":"beefy-king.jpg", "Lazy Moon Pizza":"lazy-moon.jpg", "Andretti Indoor Karting":"andretti.jpg",
+  "Orlando Science Center":"orlando-science-center.jpg", "Bok Tower Gardens":"bok-tower-gardens.jpg",
+  "King's Landing · Emerald Cut":"kings-landing.jpg",
+  "Devil's Den Spring":"devils-den.jpg", "Kennedy Space Center":"kennedy-space-center.jpg", "Blowing Rocks Preserve":"blowing-rocks.jpg"
+};
+
+function placeAsset(name = "") { return `/assets/places/${PLACE_ASSETS[name] || ""}`; }
 
 function qrMarkup(url, label) {
   const qrUrl = `https://quickchart.io/qr?size=150&margin=1&text=${encodeURIComponent(url)}`;

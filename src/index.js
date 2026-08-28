@@ -270,7 +270,8 @@ function settingsWithDefaults(stored) {
 }
 
 const VERIFIED_PLACE_NAMES = new Set([
-  "Walmart Supercenter", "King O Falafel", "Sabor Brasil", "Zuru Ramen & Hibachi", "Taco Bell", "Applebee's",
+  "Walmart Supercenter", "Publix · Sunrise City Plaza", "Super Target", "King O Falafel", "Sabor Brasil", "Tropico Mofongo",
+  "Miller's Ale House", "Zuru Ramen & Hibachi", "Taco Bell", "Cracker Barrel", "Wawa", "Applebee's",
   "Se7en Bites", "Beefy King", "Lazy Moon Pizza", "Andretti Indoor Karting", "Orlando Science Center", "Bok Tower Gardens",
   "King's Landing · Emerald Cut", "Devil's Den Spring", "Kennedy Space Center", "Blowing Rocks Preserve"
 ]);

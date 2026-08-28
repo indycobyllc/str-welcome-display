@@ -82,8 +82,9 @@ function renderDirectory() {
 }
 
 const PLACE_ASSETS = {
-  "Walmart Supercenter":"walmart-supercenter.jpg", "King O Falafel":"king-o-falafel.jpg", "Sabor Brasil":"sabor-brasil.jpg",
-  "Zuru Ramen & Hibachi":"zuru-ramen.jpg", "Taco Bell":"taco-bell.jpg", "Applebee's":"applebees.jpg", "Se7en Bites":"se7en-bites.jpg",
+  "Walmart Supercenter":"walmart-supercenter.jpg", "Publix · Sunrise City Plaza":"publix.jpg", "Super Target":"target.jpg",
+  "King O Falafel":"king-o-falafel.jpg", "Sabor Brasil":"sabor-brasil.jpg", "Tropico Mofongo":"tropico-mofongo.jpg", "Miller's Ale House":"millers-ale-house.jpg",
+  "Zuru Ramen & Hibachi":"zuru-ramen.jpg", "Taco Bell":"taco-bell.jpg", "Cracker Barrel":"cracker-barrel.jpg", "Wawa":"wawa.jpg", "Applebee's":"applebees.jpg", "Se7en Bites":"se7en-bites.jpg",
   "Beefy King":"beefy-king.jpg", "Lazy Moon Pizza":"lazy-moon.jpg", "Andretti Indoor Karting":"andretti.jpg",
   "Orlando Science Center":"orlando-science-center.jpg", "Bok Tower Gardens":"bok-tower-gardens.jpg",
   "King's Landing · Emerald Cut":"kings-landing.jpg",

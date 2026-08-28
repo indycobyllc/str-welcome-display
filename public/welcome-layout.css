@@ -1,13 +1,11 @@
 /* Keep the mobile-guide QR out of the Wi-Fi/stay flex row. */
 .welcome-slide .guest-hub-link {
-  position: absolute;
-  grid-column: 2 / 3;
-  grid-row: 2 / 3;
+  position: fixed;
+  grid-column: auto;
+  grid-row: auto;
   left: auto;
-  right: 0;
-  bottom: 0;
-  justify-self: end;
-  align-self: end;
+  right: clamp(28px, 5vw, 90px);
+  bottom: clamp(12px, 3vh, 32px);
   z-index: 4;
   margin-left: 0;
   transform: none;
@@ -23,15 +21,15 @@
 @media (max-width: 1050px) and (min-aspect-ratio: 3/2) {
   .welcome-slide .guest-hub-link {
     left: auto;
-    right: 0;
-    bottom: 0;
+    right: 34px;
+    bottom: 14px;
   }
 }
 
 @media (max-width: 720px) and (min-aspect-ratio: 3/2) {
   .welcome-slide .guest-hub-link {
     left: auto;
-    right: 0;
-    bottom: 0;
+    right: 22px;
+    bottom: 9px;
   }
 }

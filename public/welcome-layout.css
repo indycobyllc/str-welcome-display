@@ -1,0 +1,22 @@
+/* Keep the mobile-guide QR out of the Wi-Fi/stay flex row. */
+.welcome-slide .guest-hub-link {
+  position: absolute;
+  right: clamp(36px, 6vw, 110px);
+  bottom: clamp(30px, 5vh, 70px);
+  z-index: 4;
+  margin-left: 0;
+}
+
+@media (max-width: 1050px) and (min-aspect-ratio: 3/2) {
+  .welcome-slide .guest-hub-link {
+    right: 34px;
+    bottom: 20px;
+  }
+}
+
+@media (max-width: 720px) and (min-aspect-ratio: 3/2) {
+  .welcome-slide .guest-hub-link {
+    right: 22px;
+    bottom: 12px;
+  }
+}

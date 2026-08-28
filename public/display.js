@@ -149,9 +149,22 @@ function renderGuestPages(s) {
     return selected;
   };
   const nearby = parseRows(s.nearbyFavorites, 6);
-  $("nearbyFavoritesGrid").innerHTML = rotateDaily(nearby, 6).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? `<a href="${escapeHtml(link)}">Directions or order ↗</a>` : ""}</div></article>`; }).join("");
+  $("nearbyFavoritesGrid").innerHTML = rotateDaily(nearby, 6).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${image}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; }).join("");
   const favorites = parseRows(s.localFavorites, 6);
-  $("favoritesGrid").innerHTML = rotateDaily(favorites, 6).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual">${image ? `<img src="${escapeHtml(image)}" alt="">` : ""}<span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? `<a href="${escapeHtml(link)}">Plan this stop ↗</a>` : ""}</div></article>`; }).join("");
+  $("favoritesGrid").innerHTML = rotateDaily(favorites, 6).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl) || categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? qrMarkup(link, `Scan to plan ${name}`) : ""}</div></article>`; }).join("");
+}
+
+function categoryAsset(category = "") {
+  if (/grocer/i.test(category)) return "/assets/favorites/groceries.jpg";
+  if (/treat/i.test(category)) return "/assets/favorites/treats.jpg";
+  if (/entertain/i.test(category)) return "/assets/favorites/entertainment.jpg";
+  if (/nature|trip/i.test(category)) return "/assets/favorites/nature.jpg";
+  return "/assets/favorites/dining.jpg";
+}
+
+function qrMarkup(url, label) {
+  const qrUrl = `https://quickchart.io/qr?size=150&margin=1&text=${encodeURIComponent(url)}`;
+  return `<div class="favorite-qr"><img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(label)}"><b>Scan</b></div>`;
 }
 
 function categoryIcon(category = "") {

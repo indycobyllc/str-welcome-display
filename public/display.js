@@ -16,11 +16,13 @@ const DEFAULTS = {
   showHomeInfo: false,
   showStoreyLake: true,
   showNearbyMap: true,
+  showNearbyEasy: true,
   showLocalFavorites: false,
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
   pageDurations: {},
-  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites", "celebration", "review"],
+  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
+  nearbyFavorites: "",
   language: "en",
   showCelebration: false,
   celebrationType: "birthday",
@@ -132,8 +134,34 @@ function parseRows(value, columns) {
 function renderGuestPages(s) {
   const homeRows = parseRows(s.homeInfo, 2);
   $("homeInfoGrid").innerHTML = homeRows.map(([title, detail], index) => `<article><span>${["⌂", "◌", "◇", "♻", "✓", "? "][index % 6]}</span><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(detail)}</p></div></article>`).join("");
-  const favorites = parseRows(s.localFavorites, 4);
-  $("favoritesGrid").innerHTML = favorites.map(([category, name, note, url]) => { const link = safeUrl(url); return `<article><small>${escapeHtml(category)}</small><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? `<a href="${escapeHtml(link)}">View details ↗</a>` : ""}</article>`; }).join("");
+  const todaySeed = Number(new Intl.DateTimeFormat("en-CA", { timeZone:"America/New_York", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date()).replaceAll("-", ""));
+  const rotateDaily = (rows, limit) => {
+    const score = row => [...row.join("")].reduce((total, character) => ((total * 31) + character.charCodeAt(0) + todaySeed) % 2147483647, 7);
+    const sorted = [...rows].sort((a, b) => score(a) - score(b));
+    if (sorted.length <= limit) return sorted;
+    const selected = [], categories = new Set();
+    for (const row of sorted) {
+      const category = row[0].toLowerCase();
+      if (!categories.has(category)) { selected.push(row); categories.add(category); }
+      if (selected.length === limit) return selected;
+    }
+    for (const row of sorted) { if (!selected.includes(row)) selected.push(row); if (selected.length === limit) break; }
+    return selected;
+  };
+  const nearby = parseRows(s.nearbyFavorites, 6);
+  $("nearbyFavoritesGrid").innerHTML = rotateDaily(nearby, 6).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? `<a href="${escapeHtml(link)}">Directions or order ↗</a>` : ""}</div></article>`; }).join("");
+  const favorites = parseRows(s.localFavorites, 6);
+  $("favoritesGrid").innerHTML = rotateDaily(favorites, 6).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual">${image ? `<img src="${escapeHtml(image)}" alt="">` : ""}<span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? `<a href="${escapeHtml(link)}">Plan this stop ↗</a>` : ""}</div></article>`; }).join("");
+}
+
+function categoryIcon(category = "") {
+  if (/grocer/i.test(category)) return "▣";
+  if (/food|american|asian|brazil|caribbean|mediterranean/i.test(category)) return "●";
+  if (/treat/i.test(category)) return "✦";
+  if (/entertain/i.test(category)) return "▶";
+  if (/nature/i.test(category)) return "♧";
+  if (/trip/i.test(category)) return "↗";
+  return "◇";
 }
 
 function applyReviewMoment(s, todayValue, checkOut) {
@@ -431,6 +459,7 @@ function applySettings(s) {
   document.querySelector(".home-info-slide").hidden = !scheduledPageVisible(s.showHomeInfo, "homeInfo", s, todayValue, checkIn, checkOut);
   document.querySelector(".storey-lake-slide").hidden = !scheduledPageVisible(s.showStoreyLake, "storeyLake", s, todayValue, checkIn, checkOut);
   document.querySelector(".nearby-map-slide").hidden = !scheduledPageVisible(s.showNearbyMap, "nearbyMap", s, todayValue, checkIn, checkOut);
+  document.querySelector(".nearby-easy-slide").hidden = !scheduledPageVisible(s.showNearbyEasy, "nearbyEasy", s, todayValue, checkIn, checkOut);
   document.querySelector(".favorites-slide").hidden = !scheduledPageVisible(s.showLocalFavorites, "localFavorites", s, todayValue, checkIn, checkOut);
   const celebrationPreview = new URLSearchParams(location.search).get("previewPage") === "celebration";
   const celebrationToday = Boolean(s.celebrationDate) && s.celebrationDate === today;

@@ -4,13 +4,13 @@ const FIELDS = [
   "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
   "artworkIntensity", "transitionStyle"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
-  "localFavorites", "reviewUrl", "reviewMessage"
+  "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "reviewMessage"
   , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationName", "celebrationMessage"
 ];
 const $ = id => document.getElementById(id);
-const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites"];
+const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites"];
 const DURATION_PAGES = [...SCHEDULE_PAGES, "celebration", "review"];
-const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", localFavorites:"Local favorites" };
+const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", nearbyEasy:"Nearby & easy", localFavorites:"Local favorites" };
 const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, celebration:"Celebration moment", review:"Checkout review" };
 const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
 let pageOrder = [...DEFAULT_PAGE_ORDER];

@@ -16,11 +16,20 @@ const DEFAULTS = {
   showHomeInfo: false,
   showStoreyLake: true,
   showNearbyMap: true,
+  showNearbyEasy: true,
   showLocalFavorites: false,
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
   pageDurations: {},
-  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites", "celebration", "review"],
+  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
+  nearbyFavorites: `Groceries|Walmart Supercenter|A practical one-stop for groceries, vacation supplies, pickup and delivery.|https://www.walmart.com/store/817-kissimmee-fl/shopping-services|Close by|Delivery & pickup
+Groceries|Publix · Sunrise City Plaza|An easy grocery run with Instacart delivery when you would rather stay by the pool.|https://www.publix.com/|Close by|Delivery available
+Groceries|Super Target|Great for groceries, sunscreen, forgotten chargers and everything the family left at home.|https://www.target.com/sl/kissimmee/1918|Close by|Pickup & delivery
+Mediterranean|King O Falafel|One of the closest highly rated local choices for falafel, shawarma and hummus.|https://www.google.com/maps/search/?api=1&query=King+O+Falafel+Kissimmee|Very close|Delivery friendly
+Brazilian|Sabor Brasil|Casual Brazilian comfort food with generous portions close to the resort area.|https://www.google.com/maps/search/?api=1&query=Sabor+Brasil+Kissimmee|Very close|Delivery friendly
+Caribbean|Tropico Mofongo|A nearby option for mofongo and hearty Puerto Rican and Caribbean flavors.|https://www.google.com/maps/search/?api=1&query=Tropico+Mofongo+Kissimmee|Very close|Delivery friendly
+American|Miller's Ale House|An easy group choice for burgers, wings, seafood and sports after a park day.|https://millersalehouse.com/|Very close|Pickup & delivery
+Asian|Zuru Ramen & Hibachi|A convenient choice when the group wants ramen, hibachi or something warm delivered.|https://www.google.com/maps/search/?api=1&query=Zuru+Ramen+Hibachi+Kissimmee|Very close|Delivery friendly`,
   language: "en",
   showCelebration: false,
   celebrationType: "birthday",
@@ -28,7 +37,30 @@ const DEFAULTS = {
   celebrationName: "",
   celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
-  localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
+  localFavorites: `Food|Se7en Bites|Southern comfort brunch and bakery favorites—go hungry and share something sweet.|https://www.se7enbites.com/|Worth the drive|
+Food|Beefy King|An old-school Orlando landmark for hot steamed roast-beef sandwiches.|https://beefykingorlando.com/|Worth the drive|
+Food|Lazy Moon Pizza|The giant slices and laid-back local-art atmosphere make this more memorable than ordinary pizza.|https://www.lazymoonpizza.com/|Worth the drive|
+Food|Teak Neighborhood Grill|Come for the handcrafted burgers—and ask your server for the Underground secret menu.|https://www.teakorlando.com/|Worth the drive|
+Food|Willie's Pinchos|Puerto Rican pinchos, mofongo, loaded fries and bold comfort food.|https://williespinchos.com/|Worth the drive|
+Food|The Edison|A Roaring '20s power-plant atmosphere that is best for a themed night out at Disney Springs.|https://www.theedisonfla.com/|Close by|
+Treats|Gideon's Bakehouse|Nearly half-pound cookies and rotating cake slices; expect a queue at Disney Springs.|https://gideonsbakehouse.com/locations/|Close by|
+Treats|The Dolly Llama|Build an over-the-top combination of waffles, ice cream, sauces and toppings.|https://www.thedollyllamaflorida.com/|Worth the drive|
+Treats|The Glass Knife|Beautiful cakes, pastries, donuts and brunch in Winter Park.|https://theglassknife.com/|Worth the drive|
+Treats|Better Than Sex|An adults-only dessert experience made for date night or an anniversary.|https://www.betterthansexdesserts.com/|Worth the drive|
+Treats|Salt & Straw|Creative small-batch flavors make this a fun Disney Springs finale.|https://saltandstraw.com/pages/disney-springs|Close by|
+Entertainment|Andretti Indoor Karting|Electric karting, bowling, laser tag, VR and arcade games under one roof.|https://andrettikarting.com/orlando/attractions|Worth the drive|
+Entertainment|SAK Comedy Lab|Audience-driven live improv with the spontaneous energy of Whose Line Is It Anyway?|https://www.sakcomedylab.com/|Worth the drive|
+Entertainment|Orlando Science Center|A strong rainy-day choice for hands-on science, dinosaurs and family discovery.|https://www.osc.org/|Worth the drive|
+Entertainment|Orlando Cat Café|Reserve time for coffee and a room full of adoptable cats.|https://www.orlandocatcafe.com/|Worth the drive|
+Entertainment|Titanic: The Artifact Exhibition|Artifacts, recreated rooms and costumed storytelling create an immersive indoor outing.|https://titanicorlando.com/|Worth the drive|
+Nature|Bok Tower Gardens|A peaceful garden escape centered on the historic Singing Tower and carillon.|https://boktowergardens.org/|Half-day trip|
+Nature|King's Landing · Emerald Cut|Paddle through one of Central Florida's clearest and most beautiful spring runs.|https://www.kingslandingfl.com/|Half-day trip|
+Nature|Kelly Park · Rock Springs|A classic Florida spring day with tubing and cool clear water.|https://www.ocfl.net/cultureparks/parks.aspx?m=dtlvw&d=22|Half-day trip|
+Nature|Brevard Zoo Kayaking|A rare chance to kayak around animal habitats; kayaking is separate from admission.|https://brevardzoo.getanchor.io/adventures/kayaking/index.html|Day trip|
+Nature|Mead Botanical Garden|A free, relaxed garden walk in Winter Park with trails, wetlands and birdlife.|https://meadgarden.org/|Worth the drive|
+Day Trip|Devil's Den Spring|Snorkel inside a prehistoric underground spring; reservations are required.|https://devilsden.com/|Full-day trip|
+Day Trip|Kennedy Space Center|Real spacecraft, astronaut history and an unforgettable Space Coast day.|https://www.kennedyspacecenter.com/|Full-day trip|
+Day Trip|Blowing Rocks Preserve|At rough high tide, Atlantic waves burst dramatically through the limestone shoreline.|https://www.nature.org/en-us/get-involved/how-to-help/places-we-protect/blowing-rocks-preserve/|Full-day trip|`,
   reviewUrl: "",
   reviewMessage: "Thank you for staying with us. If you enjoyed your visit, we would be grateful if you shared your experience.",
   parkOrder: "disney-first",
@@ -75,7 +107,7 @@ function sanitize(input) {
     "tropical-christmas", "beach-day", "pirate-adventure", "luxury-resort", "florida-storm",
     "classic-theme-park", "orange-grove"
   ]);
-  const schedulePages = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "localFavorites"];
+  const schedulePages = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites"];
   const scheduleModes = new Set(["always", "stay", "arrival", "first-two", "final-two", "custom"]);
   const pageSchedule = Object.fromEntries(schedulePages.map(page => {
     const entry = input.pageSchedule?.[page] || {};
@@ -110,6 +142,7 @@ function sanitize(input) {
     showHomeInfo: bool(input.showHomeInfo, false),
     showStoreyLake: bool(input.showStoreyLake),
     showNearbyMap: bool(input.showNearbyMap),
+    showNearbyEasy: bool(input.showNearbyEasy),
     showLocalFavorites: bool(input.showLocalFavorites, false),
     propertyAddress: text(input.propertyAddress, 160) || DEFAULTS.propertyAddress,
     pageSchedule,
@@ -122,7 +155,8 @@ function sanitize(input) {
     celebrationName: text(input.celebrationName, 100),
     celebrationMessage: text(input.celebrationMessage, 300),
     homeInfo: text(input.homeInfo, 3000),
-    localFavorites: text(input.localFavorites, 4000),
+    nearbyFavorites: text(input.nearbyFavorites, 8000),
+    localFavorites: text(input.localFavorites, 16000),
     reviewUrl: text(input.reviewUrl, 500),
     reviewMessage: text(input.reviewMessage, 500),
     parkOrder: ["disney-first", "universal-first"].includes(input.parkOrder) ? input.parkOrder : "disney-first",
@@ -150,6 +184,19 @@ function sanitizeStay(input, existingId = "") {
     celebrationName: clean.celebrationName,
     celebrationMessage: clean.celebrationMessage
   };
+}
+
+function settingsWithDefaults(stored) {
+  const merged = { ...DEFAULTS, ...(stored || {}) };
+  if (!stored?.nearbyFavorites) merged.nearbyFavorites = DEFAULTS.nearbyFavorites;
+  if (!stored?.localFavorites || /Add a favorite (breakfast|dinner|dessert) spot/i.test(stored.localFavorites)) merged.localFavorites = DEFAULTS.localFavorites;
+  if (!Array.isArray(stored?.pageOrder)) merged.pageOrder = [...DEFAULTS.pageOrder];
+  else if (!stored.pageOrder.includes("nearbyEasy")) {
+    merged.pageOrder = [...stored.pageOrder];
+    const beforeFavorites = merged.pageOrder.indexOf("localFavorites");
+    merged.pageOrder.splice(beforeFavorites < 0 ? merged.pageOrder.length : beforeFavorites, 0, "nearbyEasy");
+  }
+  return merged;
 }
 
 function easternDate(iso = new Date().toISOString()) {
@@ -311,7 +358,7 @@ export default {
       const activeStay = (Array.isArray(stays) ? stays : [])
         .filter(stay => stay.checkIn && stay.checkOut && stay.checkIn <= today && stay.checkOut >= today)
         .sort((a, b) => b.checkIn.localeCompare(a.checkIn))[0];
-      return json({ ...DEFAULTS, ...(stored || {}), ...(activeStay || {}), activeStayId: activeStay?.id || "" });
+      return json({ ...settingsWithDefaults(stored), ...(activeStay || {}), activeStayId: activeStay?.id || "" });
     }
 
     if (url.pathname === "/api/admin/status" && request.method === "GET") {
@@ -328,7 +375,7 @@ export default {
         const stored = env.STR_SETTINGS
           ? await env.STR_SETTINGS.get("current-display", "json")
           : null;
-        return json({ ...DEFAULTS, ...(stored || {}) });
+        return json(settingsWithDefaults(stored));
       }
 
       if (request.method === "POST") {

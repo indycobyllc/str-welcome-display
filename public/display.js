@@ -148,10 +148,16 @@ function renderGuestPages(s) {
     for (const row of sorted) { if (!selected.includes(row)) selected.push(row); if (selected.length === limit) break; }
     return selected;
   };
-  const nearby = parseRows(s.nearbyFavorites, 6);
-  $("nearbyFavoritesGrid").innerHTML = rotateDaily(nearby, 6).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${image}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; }).join("");
-  const favorites = parseRows(s.localFavorites, 6);
-  $("favoritesGrid").innerHTML = rotateDaily(favorites, 6).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl) || categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? qrMarkup(link, `Scan to plan ${name}`) : ""}</div></article>`; }).join("");
+  const nearbyCards = rotateDaily(parseRows(s.nearbyFavorites, 6), 8).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${image}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; });
+  $("nearbyFavoritesGrid").innerHTML = pagedCards(nearbyCards, 4);
+  const favoriteCards = rotateDaily(parseRows(s.localFavorites, 6), 12).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl) || categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? qrMarkup(link, `Scan to plan ${name}`) : ""}</div></article>`; });
+  $("favoritesGrid").innerHTML = pagedCards(favoriteCards, 6);
+}
+
+function pagedCards(cards, perPage) {
+  const pages = [];
+  for (let index = 0; index < cards.length; index += perPage) pages.push(`<div class="favorite-page rotating-page ${index === 0 ? "active" : ""}">${cards.slice(index, index + perPage).join("")}</div>`);
+  return pages.join("");
 }
 
 function categoryAsset(category = "") {
@@ -564,6 +570,7 @@ function renderRecommendation(data, weather) {
 
 let slideTimer;
 let eventPageTimer;
+let favoritePageTimer;
 
 function showEventPage(index) {
   const pages = [...document.querySelectorAll(".event-page")];
@@ -576,6 +583,13 @@ function resetEventPages(duration) {
   if (document.querySelectorAll(".event-page").length > 1) {
     eventPageTimer = setTimeout(() => showEventPage(1), duration / 2);
   }
+}
+
+function resetFavoritePages(slide, duration) {
+  clearTimeout(favoritePageTimer);
+  const pages = [...slide.querySelectorAll(".rotating-page")];
+  pages.forEach((page, index) => page.classList.toggle("active", index === 0));
+  if (pages.length > 1) favoritePageTimer = setTimeout(() => pages.forEach((page, index) => page.classList.toggle("active", index === 1)), duration / 2);
 }
 
 function updatePageTitle(slide) {
@@ -608,6 +622,7 @@ function startSlides(seconds) {
   const getDuration = slide => Math.max(8, Number(currentSettings.pageDurations?.[slide.dataset.pageKey]) || Number(seconds) || 18) * 1000;
   let duration = getDuration(visibleSlides[0]);
   if (visibleSlides[0].classList.contains("parks-slide")) resetEventPages(duration);
+  if (visibleSlides[0].querySelector(".rotating-page")) resetFavoritePages(visibleSlides[0], duration);
 
   clearTimeout(slideTimer);
   if (visibleSlides.length > 1) {
@@ -622,6 +637,8 @@ function startSlides(seconds) {
       } else {
         clearTimeout(eventPageTimer);
       }
+      if (visibleSlides[index].querySelector(".rotating-page")) resetFavoritePages(visibleSlides[index], duration);
+      else clearTimeout(favoritePageTimer);
       slideTimer = setTimeout(advance, duration);
     };
     slideTimer = setTimeout(advance, duration);

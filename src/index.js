@@ -29,7 +29,11 @@ Mediterranean|King O Falafel|One of the closest highly rated local choices for f
 Brazilian|Sabor Brasil|Casual Brazilian comfort food with generous portions close to the resort area.|https://www.google.com/maps/search/?api=1&query=Sabor+Brasil+Kissimmee|Very close|Delivery friendly
 Caribbean|Tropico Mofongo|A nearby option for mofongo and hearty Puerto Rican and Caribbean flavors.|https://www.google.com/maps/search/?api=1&query=Tropico+Mofongo+Kissimmee|Very close|Delivery friendly
 American|Miller's Ale House|An easy group choice for burgers, wings, seafood and sports after a park day.|https://millersalehouse.com/|Very close|Pickup & delivery
-Asian|Zuru Ramen & Hibachi|A convenient choice when the group wants ramen, hibachi or something warm delivered.|https://www.google.com/maps/search/?api=1&query=Zuru+Ramen+Hibachi+Kissimmee|Very close|Delivery friendly`,
+Asian|Zuru Ramen & Hibachi|A convenient choice when the group wants ramen, hibachi or something warm delivered.|https://www.google.com/maps/search/?api=1&query=Zuru+Ramen+Hibachi+Kissimmee|Very close|Delivery friendly
+Quick Eats|Taco Bell|A familiar, fast stop for tacos, burritos and late-night cravings after a long park day.|https://www.google.com/maps/search/?api=1&query=Taco+Bell+4951+W+Irlo+Bronson+Memorial+Hwy+Kissimmee+FL|Very close|Drive-thru & delivery
+Breakfast|Cracker Barrel|A family-friendly choice for all-day breakfast, Southern comfort food and a relaxed sit-down meal.|https://www.google.com/maps/search/?api=1&query=Cracker+Barrel+5400+W+Irlo+Bronson+Memorial+Hwy+Kissimmee+FL|Very close|Dine-in & pickup
+Essentials|Wawa|A Florida fan-favorite convenience stop for made-to-order hoagies, coffee, fuel, snacks and last-minute supplies.|https://www.google.com/maps/search/?api=1&query=Wawa+near+4290+Paragraph+Drive+Kissimmee+FL|Close by|Food, fuel & essentials
+American|Applebee's|An easy group-friendly option for burgers, ribs, appetizers and a casual meal close to the home.|https://www.google.com/maps/search/?api=1&query=Applebees+4759+Irlo+Bronson+Memorial+Pkwy+Kissimmee+FL|Very close|Dine-in & delivery`,
   language: "en",
   showCelebration: false,
   celebrationType: "birthday",
@@ -189,6 +193,12 @@ function sanitizeStay(input, existingId = "") {
 function settingsWithDefaults(stored) {
   const merged = { ...DEFAULTS, ...(stored || {}) };
   if (!stored?.nearbyFavorites) merged.nearbyFavorites = DEFAULTS.nearbyFavorites;
+  else {
+    const defaultNearbyRows = DEFAULTS.nearbyFavorites.split("\n").slice(-4);
+    const savedNearbyNames = new Set(String(merged.nearbyFavorites).split("\n").map(row => row.split("|")[1]?.trim()));
+    const missingNearbyRows = defaultNearbyRows.filter(row => !savedNearbyNames.has(row.split("|")[1]?.trim()));
+    if (missingNearbyRows.length) merged.nearbyFavorites = `${String(merged.nearbyFavorites).trim()}\n${missingNearbyRows.join("\n")}`;
+  }
   if (!stored?.localFavorites || /Add a favorite (breakfast|dinner|dessert) spot/i.test(stored.localFavorites)) merged.localFavorites = DEFAULTS.localFavorites;
   if (!Array.isArray(stored?.pageOrder)) merged.pageOrder = [...DEFAULTS.pageOrder];
   else if (!stored.pageOrder.includes("nearbyEasy")) {

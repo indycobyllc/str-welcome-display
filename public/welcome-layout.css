@@ -7,6 +7,13 @@
   margin-left: 0;
 }
 
+.welcome-slide #staySummary,
+.welcome-slide #staySummary > * {
+  flex: 0 0 auto;
+  min-width: max-content;
+  white-space: nowrap;
+}
+
 @media (max-width: 1050px) and (min-aspect-ratio: 3/2) {
   .welcome-slide .guest-hub-link {
     right: 34px;

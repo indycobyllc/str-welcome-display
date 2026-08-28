@@ -21,6 +21,8 @@ const DEFAULTS = {
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
   pageDurations: {},
+  smartRotation: true,
+  maxRotationPages: 6,
   pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
   nearbyFavorites: `Groceries|Walmart Supercenter|A practical one-stop for groceries, vacation supplies, pickup and delivery.|https://www.walmart.com/store/817-kissimmee-fl/shopping-services|Close by|Delivery & pickup
 Groceries|Publix · Sunrise City Plaza|An easy grocery run with Instacart delivery when you would rather stay by the pool.|https://www.publix.com/|Close by|Delivery available
@@ -152,6 +154,8 @@ function sanitize(input) {
     pageSchedule,
     pageDurations,
     pageOrder,
+    smartRotation: bool(input.smartRotation),
+    maxRotationPages: Math.min(8, Math.max(3, Number(input.maxRotationPages) || 6)),
     language: ["en", "es", "fr", "pt", "de"].includes(input.language) ? input.language : "en",
     showCelebration: bool(input.showCelebration, false),
     celebrationType: ["birthday", "anniversary"].includes(input.celebrationType) ? input.celebrationType : "birthday",

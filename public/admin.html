@@ -128,6 +128,8 @@
         <div id="scheduleRows"></div>
       </div>
       <div class="form-grid control-grid">
+        <label class="toggle-field">Smart daily rotation <small>Automatically favors the most useful pages for each day</small><input id="smartRotation" type="checkbox" checked></label>
+        <label>Maximum regular pages <small>Celebrations and checkout moments are added when relevant</small><input id="maxRotationPages" type="number" min="3" max="8" value="6"></label>
         <label>Default seconds per page <small>Used as the initial duration for each page</small><input id="slideSeconds" type="number" min="8" max="120" value="18"></label>
         <label>Park order<select id="parkOrder"><option value="disney-first">Disney first</option><option value="universal-first">Universal first</option></select></label>
         <label>Motion<select id="motionIntensity"><option value="full">Full cinematic</option><option value="reduced">Reduced</option><option value="still">Still artwork</option></select></label>
@@ -136,6 +138,7 @@
       </div>
       <div class="page-schedule compact-durations"><div class="schedule-row duration-only"><strong>Celebration moment</strong><span></span><span></span><label>Seconds<input id="duration-celebration" type="number" min="8" max="120" value="18"></label><button type="button" class="secondary" data-preview-page="celebration">Preview</button></div><div class="schedule-row duration-only"><strong>Checkout review</strong><span></span><span></span><label>Seconds<input id="duration-review" type="number" min="8" max="120" value="18"></label><button type="button" class="secondary" data-preview-page="review">Preview</button></div></div>
       <div class="page-order-panel"><div><h3>Page order</h3><p>Move pages into the sequence guests should see. Hidden or out-of-schedule pages are skipped automatically.</p></div><ol id="pageOrderList" class="page-order-list"></ol></div>
+      <div class="rotation-preview-panel"><div><h3>Active rotation preview</h3><p>See the exact guest journey for any date before it goes live.</p></div><div class="rotation-preview-controls"><label>Guest<select id="rotationGuest"></select></label><label>Date<input id="rotationDate" type="date"></label><button id="refreshRotationButton" type="button" class="secondary">Refresh</button><button id="openRotationButton" type="button">Open full preview</button></div><div id="rotationPreview" class="rotation-preview"></div></div>
     </section>
 
     <section class="admin-card">
@@ -144,8 +147,10 @@
       <div class="form-grid">
         <label class="wide">Property address <small>Shown as “Your stay” on the nearby-attractions map</small><input id="propertyAddress" maxlength="160" placeholder="4290 Paragraph Drive, Kissimmee, FL 34746"></label>
         <label class="wide">Home information <small>Heading | details</small><textarea id="homeInfo" rows="8" placeholder="Parking | Park only in the driveway"></textarea></label>
-        <label class="wide">Nearby & easy <small>Category | name | personal note | link | distance badge | service badge</small><textarea id="nearbyFavorites" rows="10" placeholder="Groceries | Store name | Why it is useful | https://... | Close by | Delivery"></textarea></label>
-        <label class="wide">Local favorites <small>Category | name | personal note | link | trip badge | optional licensed image URL</small><textarea id="localFavorites" rows="14" placeholder="Food | Restaurant name | What we love about it | https://... | Worth the drive |"></textarea></label>
+        <label class="wide structured-source" hidden>Nearby & easy source<textarea id="nearbyFavorites" rows="10"></textarea></label>
+        <div class="wide place-editor"><div class="place-editor-heading"><div><h3>Nearby & easy</h3><small>Six recommendations appear on each of two screens.</small></div><button type="button" class="secondary" data-add-place="nearby">Add place</button></div><div id="nearbyPlacesEditor" class="place-editor-list"></div></div>
+        <label class="wide structured-source" hidden>Local favorites source<textarea id="localFavorites" rows="14"></textarea></label>
+        <div class="wide place-editor"><div class="place-editor-heading"><div><h3>Local favorites</h3><small>The display selects and rotates up to twelve each day.</small></div><button type="button" class="secondary" data-add-place="local">Add favorite</button></div><div id="localPlacesEditor" class="place-editor-list"></div></div>
       </div>
     </section>
 

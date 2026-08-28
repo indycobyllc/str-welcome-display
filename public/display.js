@@ -21,6 +21,8 @@ const DEFAULTS = {
   propertyAddress: "4290 Paragraph Drive, Kissimmee, FL 34746",
   pageSchedule: {},
   pageDurations: {},
+  smartRotation: true,
+  maxRotationPages: 6,
   pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
   nearbyFavorites: "",
   language: "en",
@@ -41,6 +43,7 @@ const DEFAULTS = {
 
 const $ = (id) => document.getElementById(id);
 let currentWeather = null;
+let currentParks = null;
 let currentSettings = DEFAULTS;
 const TRANSLATIONS = {
   en: { stay:"Your Orlando stay", hours:"Today’s Orlando park hours", changes:"Times may change", wifi:"Wi-Fi", events:"Entertainment & Events", plan:"Plan your day", today:"Today", forecast:"Weather for Your Stay", vacationForecast:"Your vacation forecast", home:"Your Home Guide", settle:"Settle in and feel at home", good:"Good to know", resort:"Storey Lake Resort", noPlans:"No plans today? Enjoy your included resort amenities", map:"Around Orlando", closer:"You’re closer than you think", favorites:"Local Favorites", places:"A few places we genuinely love", thankYou:"Thank You", birthdayKicker:"A birthday wish just for you", anniversaryKicker:"Celebrating your anniversary", birthday:"Happy Birthday", anniversary:"Happy Anniversary" },
@@ -406,11 +409,10 @@ function eventBadge(event) {
 }
 
 async function loadSettings() {
-  if (new URLSearchParams(location.search).get("previewPage")) {
+  if (new URLSearchParams(location.search).get("previewPage") || new URLSearchParams(location.search).get("previewDate")) {
     try {
       const draft = JSON.parse(localStorage.getItem("str-preview-draft") || "null");
-      localStorage.removeItem("str-preview-draft");
-      if (draft?.settings && Date.now() - draft.savedAt < 60000) return { ...DEFAULTS, ...draft.settings };
+      if (draft?.settings && Date.now() - draft.savedAt < 3600000) return { ...DEFAULTS, ...draft.settings };
     } catch {}
   }
   try {
@@ -453,7 +455,11 @@ function applySettings(s) {
   $("stayDates").textContent = formatDateRange(s.checkIn, s.checkOut);
   $("wifiName").textContent = s.wifiName || "Guest Wi-Fi";
   $("wifiPassword").textContent = s.wifiPassword ? `Password: ${s.wifiPassword}` : "";
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const guestHubUrl = `${location.origin}/guest.html`;
+  $("guestHubLink").href = guestHubUrl;
+  $("guestHubQr").src = `https://quickchart.io/qr?size=150&margin=1&text=${encodeURIComponent(guestHubUrl)}`;
+  const previewDate = new URLSearchParams(location.search).get("previewDate");
+  const today = /^\d{4}-\d{2}-\d{2}$/.test(previewDate || "") ? previewDate : new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const checkIn = calendarDate(s.checkIn), checkOut = calendarDate(s.checkOut), todayValue = calendarDate(today);
   let dayline = "Your Orlando adventure awaits";
   let eyebrow = "Your Orlando stay";
@@ -480,6 +486,7 @@ function applySettings(s) {
   document.querySelector(".nearby-map-slide").hidden = !scheduledPageVisible(s.showNearbyMap, "nearbyMap", s, todayValue, checkIn, checkOut);
   document.querySelector(".nearby-easy-slide").hidden = !scheduledPageVisible(s.showNearbyEasy, "nearbyEasy", s, todayValue, checkIn, checkOut);
   document.querySelector(".favorites-slide").hidden = !scheduledPageVisible(s.showLocalFavorites, "localFavorites", s, todayValue, checkIn, checkOut);
+  applySmartRotation(s, todayValue, checkIn, checkOut);
   const celebrationPreview = new URLSearchParams(location.search).get("previewPage") === "celebration";
   const celebrationToday = Boolean(s.celebrationDate) && s.celebrationDate === today;
   document.querySelector(".celebration-slide").hidden = !(celebrationPreview || (s.showCelebration && celebrationToday));
@@ -493,6 +500,31 @@ function applySettings(s) {
   applyReviewMoment(s, todayValue, checkOut);
   $("currentTime").parentElement.hidden = !s.showClock;
   applyStaySummary(s.checkIn, s.checkOut);
+}
+
+function applySmartRotation(s, today, checkIn, checkOut) {
+  if (!s.smartRotation || new URLSearchParams(location.search).get("previewPage")) return;
+  const enabled = key => !document.querySelector(`[data-page-key="${key}"]`)?.hidden;
+  const day = checkIn && today >= checkIn ? Math.floor((today - checkIn) / 86400000) + 1 : 0;
+  const remaining = checkOut && today <= checkOut ? Math.max(0, Math.ceil((checkOut - today) / 86400000)) : 99;
+  const rain = Number(currentWeather?.daily?.find(item => item.date === new URLSearchParams(location.search).get("previewDate"))?.rainChance ?? currentWeather?.daily?.[0]?.rainChance ?? 0);
+  const high = Number(currentWeather?.daily?.find(item => item.date === new URLSearchParams(location.search).get("previewDate"))?.high ?? currentWeather?.daily?.[0]?.high ?? 0);
+  const hasLiveParkOpportunity = Boolean(currentParks?.insights?.bestBets?.length || currentParks?.insights?.eveningPick);
+  let preferred = day === 1
+    ? ["welcome", "homeInfo", "nearbyEasy", "storeyLake", "forecast", "events", "nearbyMap", "localFavorites"]
+    : day === 2
+      ? ["welcome", "events", "forecast", "nearbyEasy", "nearbyMap", "storeyLake", "localFavorites", "homeInfo"]
+      : remaining <= 2
+        ? ["welcome", "events", "forecast", "localFavorites", "nearbyEasy", "homeInfo", "nearbyMap", "storeyLake"]
+        : ["welcome", "events", "forecast", "localFavorites", "storeyLake", "nearbyMap", "nearbyEasy", "homeInfo"];
+  if (rain >= 65) preferred = ["welcome", "forecast", "events", "nearbyEasy", "localFavorites", "homeInfo", "nearbyMap", "storeyLake"];
+  else if (high >= 92) preferred = ["welcome", "forecast", "events", "storeyLake", "nearbyEasy", "localFavorites", "nearbyMap", "homeInfo"];
+  else if (hasLiveParkOpportunity) preferred = ["welcome", "events", ...preferred.filter(page => !["welcome", "events"].includes(page))];
+  const selected = new Set(preferred.filter(enabled).slice(0, Number(s.maxRotationPages) || 6));
+  document.querySelectorAll("[data-page-key]").forEach(slide => {
+    if (["arrival", "celebration", "review"].includes(slide.dataset.pageKey)) return;
+    if (!slide.hidden && !selected.has(slide.dataset.pageKey)) slide.hidden = true;
+  });
 }
 
 function renderParks(data) {
@@ -649,6 +681,7 @@ async function refreshAll() {
   window.__dataOffline = !navigator.onLine;
   const [settings, parks, weather] = await Promise.all([loadSettings(), loadParks(), loadWeather()]);
   currentWeather = weather;
+  currentParks = parks;
   applySettings(settings);
   renderParks(parks);
   renderForecast(weather, settings);

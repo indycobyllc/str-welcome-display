@@ -3,6 +3,7 @@ const FIELDS = [
   "wifiName", "wifiPassword", "slideSeconds", "showWelcome", "showEvents",
   "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
   "artworkIntensity", "transitionStyle"
+  , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "reviewMessage"
   , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationName", "celebrationMessage"
@@ -15,6 +16,7 @@ const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, celebration:
 const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
 let pageOrder = [...DEFAULT_PAGE_ORDER];
 let plannedStays = [];
+let placeCollections = { nearby:[], local:[] };
 
 function renderScheduleRows() {
   $("scheduleRows").innerHTML = SCHEDULE_PAGES.map(page => `<div class="schedule-row">
@@ -55,6 +57,36 @@ function renderStays() {
     const state = stay.checkIn <= today && stay.checkOut >= today ? "Active now" : stay.checkIn > today ? "Upcoming" : "Completed";
     return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.theme)}</p></div><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></article>`;
   }).join("");
+  const selected = $("rotationGuest")?.value || "base";
+  if ($("rotationGuest")) {
+    $("rotationGuest").innerHTML = `<option value="base">Current display guest</option>${plannedStays.map(stay => `<option value="${escapeAdmin(stay.id)}">${escapeAdmin(stay.guestName)} · ${escapeAdmin(stay.checkIn)}</option>`).join("")}`;
+    $("rotationGuest").value = plannedStays.some(stay => stay.id === selected) ? selected : "base";
+  }
+}
+
+function parsePlaces(value) {
+  return String(value || "").split("\n").map(row => row.split("|").map(item => item.trim()).slice(0, 6)).filter(row => row.some(Boolean));
+}
+
+function serializePlaces(rows) {
+  return rows.map(row => row.map(value => String(value || "").replaceAll("|", "—").replaceAll("\n", " ").trim()).join("|")).join("\n");
+}
+
+function renderPlaceEditor(kind) {
+  const nearby = kind === "nearby";
+  const labels = nearby ? ["Category", "Place name", "Guest note", "Directions or website", "Distance", "Service"] : ["Category", "Place name", "Personal note", "Directions or website", "Trip badge", "Optional image URL"];
+  $(`${kind}PlacesEditor`).innerHTML = placeCollections[kind].map((row, index) => `<article class="place-editor-row" data-place-kind="${kind}" data-place-index="${index}"><div class="place-editor-fields">${labels.map((label, column) => `<label class="${column === 2 || column === 3 ? "place-wide" : ""}">${label}<input data-place-column="${column}" value="${escapeAdmin(row[column] || "")}" maxlength="${column === 2 ? 240 : 500}">${column === 2 ? `<small class="place-copy-count ${String(row[column] || "").length > 115 ? "warning" : ""}">${String(row[column] || "").length}/115 recommended</small>` : ""}</label>`).join("")}</div><div class="place-editor-actions"><button type="button" class="order-button" data-place-action="up" ${index === 0 ? "disabled" : ""}>↑</button><button type="button" class="order-button" data-place-action="down" ${index === placeCollections[kind].length - 1 ? "disabled" : ""}>↓</button><button type="button" class="danger compact" data-place-action="remove">Remove</button></div></article>`).join("");
+}
+
+function loadPlaceEditors() {
+  placeCollections.nearby = parsePlaces($("nearbyFavorites").value);
+  placeCollections.local = parsePlaces($("localFavorites").value);
+  renderPlaceEditor("nearby"); renderPlaceEditor("local");
+}
+
+function syncPlaceEditors() {
+  $("nearbyFavorites").value = serializePlaces(placeCollections.nearby);
+  $("localFavorites").value = serializePlaces(placeCollections.local);
 }
 
 function editStay(stay = {}) {
@@ -138,9 +170,12 @@ function apply(settings) {
     $("guestName").value = "Welcome!";
   }
   updateThemeGallery();
+  loadPlaceEditors();
+  renderRotationPreview();
 }
 
 function collect() {
+  syncPlaceEditors();
   const result = {};
   for (const id of FIELDS) {
     const el = $(id);
@@ -155,6 +190,47 @@ function collect() {
   result.pageDurations = Object.fromEntries(DURATION_PAGES.map(page => [page, Number($(`duration-${page}`)?.value) || Number(result.slideSeconds) || 18]));
   result.pageOrder = [...pageOrder];
   return result;
+}
+
+function dateValue(value) { return /^\d{4}-\d{2}-\d{2}$/.test(value || "") ? new Date(`${value}T12:00:00Z`) : null; }
+function scheduledForDate(page, settings, date, checkIn, checkOut) {
+  const rule = settings.pageSchedule?.[page] || { mode:"always" };
+  if (rule.mode === "always") return true;
+  if (!date || !checkIn || !checkOut || date < checkIn || date > checkOut) return false;
+  const day = Math.floor((date - checkIn) / 86400000) + 1;
+  const remaining = Math.ceil((checkOut - date) / 86400000);
+  return rule.mode === "stay" || (rule.mode === "arrival" && day === 1) || (rule.mode === "first-two" && day <= 2) || (rule.mode === "final-two" && remaining <= 1) || (rule.mode === "custom" && day >= rule.startDay && day <= rule.endDay);
+}
+
+async function rotationForDate(settings, dateText) {
+  const date = dateValue(dateText), checkIn = dateValue(settings.checkIn), checkOut = dateValue(settings.checkOut);
+  const flags = { welcome:"showWelcome", events:"showEvents", forecast:"showForecast", homeInfo:"showHomeInfo", storeyLake:"showStoreyLake", nearbyMap:"showNearbyMap", nearbyEasy:"showNearbyEasy", localFavorites:"showLocalFavorites" };
+  const enabled = Object.keys(flags).filter(page => settings[flags[page]] && scheduledForDate(page, settings, date, checkIn, checkOut));
+  const day = date && checkIn && date >= checkIn ? Math.floor((date - checkIn) / 86400000) + 1 : 0;
+  const remaining = date && checkOut && date <= checkOut ? Math.max(0, Math.ceil((checkOut - date) / 86400000)) : 99;
+  let weather = {};
+  try { const response = await fetch("/api/weather"); const data = await response.json(); weather = data.daily?.find(item => item.date === dateText) || {}; } catch {}
+  let preferred = day === 1 ? ["welcome","homeInfo","nearbyEasy","storeyLake","forecast","events","nearbyMap","localFavorites"] : day === 2 ? ["welcome","events","forecast","nearbyEasy","nearbyMap","storeyLake","localFavorites","homeInfo"] : remaining <= 2 ? ["welcome","events","forecast","localFavorites","nearbyEasy","homeInfo","nearbyMap","storeyLake"] : ["welcome","events","forecast","localFavorites","storeyLake","nearbyMap","nearbyEasy","homeInfo"];
+  let reason = day === 1 ? "Arrival essentials prioritized" : remaining <= 2 ? "Departure-ready information prioritized" : "Balanced vacation-day rotation";
+  if (Number(weather.rainChance) >= 65) { preferred = ["welcome","forecast","events","nearbyEasy","localFavorites","homeInfo","nearbyMap","storeyLake"]; reason = `Rain-smart rotation · ${weather.rainChance}% chance`; }
+  else if (Number(weather.high) >= 92) { preferred = ["welcome","forecast","events","storeyLake","nearbyEasy","localFavorites","nearbyMap","homeInfo"]; reason = `Heat-smart rotation · high near ${Math.round(weather.high)}°`; }
+  let regular = settings.smartRotation ? preferred.filter(page => enabled.includes(page)).slice(0, settings.maxRotationPages || 6) : enabled;
+  const special = [];
+  if (settings.showArrival && settings.checkIn === dateText) special.push("arrival");
+  if (settings.showCelebration && settings.celebrationDate === dateText) special.push("celebration");
+  if (settings.reviewUrl && remaining <= 1 && remaining >= 0) special.push("review");
+  return { pages:[...special, ...regular].sort((a,b) => settings.pageOrder.indexOf(a) - settings.pageOrder.indexOf(b)), reason, weather };
+}
+
+async function renderRotationPreview() {
+  if (!$("rotationPreview")) return;
+  const stay = plannedStays.find(item => item.id === $("rotationGuest").value);
+  const settings = { ...collect(), ...(stay || {}) };
+  const date = $("rotationDate").value || stay?.checkIn || settings.checkIn || easternToday();
+  $("rotationDate").value = date;
+  $("rotationPreview").innerHTML = `<p>Calculating this guest’s rotation…</p>`;
+  const result = await rotationForDate(settings, date);
+  $("rotationPreview").innerHTML = `<div class="rotation-summary"><strong>${escapeAdmin(result.reason)}</strong><span>${result.pages.length} pages · ${result.pages.reduce((sum, page) => sum + Number(settings.pageDurations?.[page] || settings.slideSeconds || 18), 0)} seconds per loop</span></div><ol>${result.pages.map((page, index) => `<li><b>${index + 1}</b><span>${escapeAdmin(ORDER_LABELS[page])}</span><small>${settings.pageDurations?.[page] || settings.slideSeconds || 18}s</small></li>`).join("") || "<li>No pages are enabled for this date.</li>"}</ol>`;
 }
 
 function updateScheduleRow(page) {
@@ -245,6 +321,37 @@ $("cancelStayButton").addEventListener("click", () => { $("stayEditor").hidden =
 $("saveStayButton").addEventListener("click", saveStay);
 $("deleteStayButton").addEventListener("click", deleteStay);
 $("stayPlannerList").addEventListener("click", event => { const button = event.target.closest("[data-edit-stay]"); if (button) editStay(plannedStays.find(stay => stay.id === button.dataset.editStay)); });
+document.querySelectorAll("[data-add-place]").forEach(button => button.addEventListener("click", () => {
+  const kind = button.dataset.addPlace;
+  placeCollections[kind].push([kind === "nearby" ? "Food" : "Favorite", "", "", "", kind === "nearby" ? "Close by" : "Worth the drive", ""]);
+  renderPlaceEditor(kind);
+  $(`${kind}PlacesEditor`).lastElementChild?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}));
+document.querySelectorAll(".place-editor-list").forEach(editor => {
+  editor.addEventListener("input", event => {
+    const row = event.target.closest("[data-place-index]");
+    if (!row || event.target.dataset.placeColumn === undefined) return;
+    placeCollections[row.dataset.placeKind][Number(row.dataset.placeIndex)][Number(event.target.dataset.placeColumn)] = event.target.value;
+    if (event.target.dataset.placeColumn === "2") { const count = event.target.parentElement.querySelector(".place-copy-count"); count.textContent = `${event.target.value.length}/115 recommended`; count.classList.toggle("warning", event.target.value.length > 115); }
+  });
+  editor.addEventListener("click", event => {
+    const button = event.target.closest("[data-place-action]"), row = event.target.closest("[data-place-index]");
+    if (!button || !row) return;
+    const rows = placeCollections[row.dataset.placeKind], index = Number(row.dataset.placeIndex);
+    if (button.dataset.placeAction === "remove") rows.splice(index, 1);
+    else { const to = button.dataset.placeAction === "up" ? index - 1 : index + 1; if (to >= 0 && to < rows.length) [rows[index], rows[to]] = [rows[to], rows[index]]; }
+    renderPlaceEditor(row.dataset.placeKind);
+  });
+});
+$("rotationGuest").addEventListener("change", () => { const stay = plannedStays.find(item => item.id === $("rotationGuest").value); if (stay?.checkIn) $("rotationDate").value = stay.checkIn; renderRotationPreview(); });
+$("rotationDate").addEventListener("change", renderRotationPreview);
+$("refreshRotationButton").addEventListener("click", renderRotationPreview);
+$("openRotationButton").addEventListener("click", () => {
+  const stay = plannedStays.find(item => item.id === $("rotationGuest").value);
+  const settings = { ...collect(), ...(stay || {}) };
+  try { localStorage.setItem("str-preview-draft", JSON.stringify({ savedAt:Date.now(), settings })); } catch {}
+  window.open(`/?previewDate=${encodeURIComponent($("rotationDate").value || easternToday())}&previewTheme=${encodeURIComponent(settings.theme)}`, "_blank", "noopener");
+});
 $("theme").addEventListener("change", updateThemeGallery);
 $("themeGallery").addEventListener("click", event => {
   const button = event.target.closest(".theme-preview");

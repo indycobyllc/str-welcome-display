@@ -452,8 +452,10 @@ async function loadParks() {
 function applySettings(s) {
   currentSettings = s;
   const previewTheme = new URLSearchParams(location.search).get("previewTheme");
-  const activeTheme = previewTheme || s.theme || "galactic";
+  const selectedTheme = previewTheme || s.theme || "galactic";
+  const activeTheme = selectedTheme === "dynamic-atmosphere" ? resolveDynamicTheme() : selectedTheme;
   $("display").dataset.theme = activeTheme;
+  $("display").dataset.themeMode = selectedTheme === "dynamic-atmosphere" ? "dynamic" : "fixed";
   $("display").dataset.celebrationType = s.celebrationType || "birthday";
   $("display").dataset.motion = s.motionIntensity;
   const themedTransition = /star-wars|iron-man|space-coast/.test(activeTheme) ? "wipe" : /harry|wizard|princess|classic-theme-park/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora|florida-storm|everglades/.test(activeTheme) ? "curtain" : "cinematic";
@@ -524,6 +526,17 @@ function applySettings(s) {
   applyReviewMoment(s, todayValue, checkOut);
   $("currentTime").parentElement.hidden = !s.showClock;
   applyStaySummary(s.checkIn, s.checkOut);
+}
+
+function resolveDynamicTheme() {
+  const code = Number(currentWeather?.weatherCode);
+  if ([51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(code)) return "florida-storm";
+  const hour = Number(new Intl.DateTimeFormat("en-US", { hour:"numeric", hour12:false, timeZone:"America/New_York" }).format(new Date())) % 24;
+  if (hour < 6) return "space-station-orlando";
+  if (hour < 10) return "florida-wildlife";
+  if (hour < 16) return "luxury-resort";
+  if (hour < 20) return "safari-sunset";
+  return "enchanted-castle-night";
 }
 
 function applySmartRotation(s, today, checkIn, checkOut) {

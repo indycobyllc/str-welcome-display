@@ -144,7 +144,9 @@ function guestWindowStatus(stay) {
 function safeGuestSettings(settings) {
   return {
     guestName:settings.guestName, checkIn:settings.checkIn, checkOut:settings.checkOut,
+    occasion:settings.occasion, welcomeMessage:settings.welcomeMessage,
     wifiName:settings.wifiName, wifiPassword:settings.wifiPassword, propertyAddress:settings.propertyAddress,
+    homeInfo:settings.homeInfo,
     nearbyFavorites:settings.nearbyFavorites, localFavorites:settings.localFavorites, language:settings.language,
     theme:settings.theme, accessExpires:`${settings.checkOut} at 11:00 AM Eastern`
   };

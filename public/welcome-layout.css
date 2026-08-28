@@ -1,14 +1,16 @@
 /* Keep the mobile-guide QR out of the Wi-Fi/stay flex row. */
 .welcome-slide .guest-hub-link {
   position: absolute;
-  grid-column: 2;
-  grid-row: 2;
-  left: 50%;
-  right: auto;
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  left: auto;
+  right: 0;
   bottom: 0;
+  justify-self: end;
+  align-self: end;
   z-index: 4;
   margin-left: 0;
-  transform: translateX(-50%);
+  transform: none;
 }
 
 .welcome-slide #staySummary,
@@ -20,16 +22,16 @@
 
 @media (max-width: 1050px) and (min-aspect-ratio: 3/2) {
   .welcome-slide .guest-hub-link {
-    left: 50%;
-    right: auto;
+    left: auto;
+    right: 0;
     bottom: 0;
   }
 }
 
 @media (max-width: 720px) and (min-aspect-ratio: 3/2) {
   .welcome-slide .guest-hub-link {
-    left: 50%;
-    right: auto;
+    left: auto;
+    right: 0;
     bottom: 0;
   }
 }

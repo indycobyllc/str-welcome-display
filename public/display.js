@@ -151,7 +151,7 @@ function renderGuestPages(s) {
     for (const row of sorted) { if (!selected.includes(row)) selected.push(row); if (selected.length === limit) break; }
     return selected;
   };
-  const nearbyCards = rotateDaily(parseRows(s.nearbyFavorites, 6), 12).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${image}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; });
+  const nearbyCards = rotateDaily(parseRows(s.nearbyFavorites, 6), 12).map(([category, name, note, url, distance, service]) => { const link = safeUrl(url), image = categoryAsset(category, name); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${image}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p><strong>${escapeHtml(service)}</strong>${link ? qrMarkup(link, `Scan for ${name}`) : ""}</div></article>`; });
   $("nearbyFavoritesGrid").innerHTML = pagedCards(nearbyCards, 6);
   const favoriteCards = rotateDaily(parseRows(s.localFavorites, 6), 12).map(([category, name, note, url, distance, imageUrl]) => { const link = safeUrl(url), image = safeUrl(imageUrl) || categoryAsset(category); return `<article data-category="${escapeHtml(category.toLowerCase())}"><div class="favorite-visual"><img src="${escapeHtml(image)}" alt=""><span>${escapeHtml(categoryIcon(category))}</span><small>${escapeHtml(distance)}</small></div><div><em>${escapeHtml(category)}</em><h3>${escapeHtml(name)}</h3><p>${escapeHtml(note)}</p>${link ? qrMarkup(link, `Scan to plan ${name}`) : ""}</div></article>`; });
   $("favoritesGrid").innerHTML = pagedCards(favoriteCards, 6);
@@ -163,7 +163,12 @@ function pagedCards(cards, perPage) {
   return pages.join("");
 }
 
-function categoryAsset(category = "") {
+function categoryAsset(category = "", name = "") {
+  if (/taco/i.test(`${category} ${name}`)) return "/assets/favorites/tacos.jpg";
+  if (/breakfast|cracker barrel/i.test(`${category} ${name}`)) return "/assets/favorites/breakfast.jpg";
+  if (/essentials|wawa|convenience/i.test(`${category} ${name}`)) return "/assets/favorites/convenience.jpg";
+  if (/ramen|hibachi|zuru/i.test(`${category} ${name}`)) return "/assets/favorites/ramen.jpg";
+  if (/mediterranean|brazilian|caribbean|falafel|mofongo/i.test(`${category} ${name}`)) return "/assets/favorites/international.jpg";
   if (/grocer/i.test(category)) return "/assets/favorites/groceries.jpg";
   if (/treat/i.test(category)) return "/assets/favorites/treats.jpg";
   if (/entertain/i.test(category)) return "/assets/favorites/entertainment.jpg";

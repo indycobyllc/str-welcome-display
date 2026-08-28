@@ -415,12 +415,23 @@ async function loadSettings() {
       if (draft?.settings && Date.now() - draft.savedAt < 3600000) return { ...DEFAULTS, ...draft.settings };
     } catch {}
   }
+  const queryToken = new URLSearchParams(location.search).get("displayToken");
+  if (queryToken) try { localStorage.setItem("str-display-token", queryToken); } catch {}
+  let displayToken = queryToken;
+  if (!displayToken) try { displayToken = localStorage.getItem("str-display-token") || ""; } catch {}
+  if (!displayToken) return { ...DEFAULTS, accessDenied:true };
   try {
-    const result = await cachedJson("/api/settings", "str-settings-v1");
+    const response = await fetch(`/api/settings?displayToken=${encodeURIComponent(displayToken)}`, { cache:"no-store" });
+    if (response.status === 401) { try { localStorage.removeItem("str-settings-v1"); localStorage.removeItem("str-display-token"); } catch {} return { ...DEFAULTS, accessDenied:true }; }
+    if (!response.ok) throw new Error("Settings unavailable");
+    const data = await response.json();
+    try { localStorage.setItem("str-settings-v1", JSON.stringify({ savedAt:Date.now(), data })); } catch {}
+    const result = { data, offline:false };
     window.__dataOffline ||= result.offline;
     return { ...DEFAULTS, ...result.data };
   } catch {
-    return DEFAULTS;
+    try { const saved = JSON.parse(localStorage.getItem("str-settings-v1") || "null"); if (saved?.data) return { ...DEFAULTS, ...saved.data }; } catch {}
+    return { ...DEFAULTS, accessDenied:true };
   }
 }
 
@@ -444,6 +455,12 @@ function applySettings(s) {
   const themedTransition = /star-wars|iron-man|space-coast/.test(activeTheme) ? "wipe" : /harry|wizard|princess|classic-theme-park/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora|florida-storm|everglades/.test(activeTheme) ? "curtain" : "cinematic";
   $("display").dataset.transition = s.transitionStyle === "auto" ? themedTransition : s.transitionStyle;
   $("display").style.setProperty("--art-opacity", String((Number(s.artworkIntensity) || 80) / 100));
+  if (s.accessDenied) {
+    document.querySelectorAll(".slide").forEach(slide => { slide.hidden = !slide.classList.contains("welcome-slide"); });
+    $("guestName").textContent = "Display access required"; $("welcomeMessage").textContent = "Open the admin page to copy the secure OptiSigns display URL.";
+    $("occasion").hidden = true; $("stayDates").textContent = ""; $("hourlyTimeline").innerHTML = ""; $("parkHoursGrid").innerHTML = ""; $("staySummary").hidden = true; $("guestHubLink").hidden = true;
+    return;
+  }
   applyLanguage(s.language);
   const legacyWelcome = "Welcome to Your Orlando Vacation!";
   const guest = !s.guestName || s.guestName === legacyWelcome ? "Welcome!" : s.guestName;
@@ -455,9 +472,12 @@ function applySettings(s) {
   $("stayDates").textContent = formatDateRange(s.checkIn, s.checkOut);
   $("wifiName").textContent = s.wifiName || "Guest Wi-Fi";
   $("wifiPassword").textContent = s.wifiPassword ? `Password: ${s.wifiPassword}` : "";
-  const guestHubUrl = `${location.origin}/guest.html`;
-  $("guestHubLink").href = guestHubUrl;
-  $("guestHubQr").src = `https://quickchart.io/qr?size=150&margin=1&text=${encodeURIComponent(guestHubUrl)}`;
+  const guestHubUrl = s.guestAccessToken ? `${location.origin}/guest?token=${encodeURIComponent(s.guestAccessToken)}` : "";
+  $("guestHubLink").hidden = !guestHubUrl;
+  if (guestHubUrl) {
+    $("guestHubLink").href = guestHubUrl;
+    window.LocalQRCode?.toDataURL(guestHubUrl, { width:150, margin:1, errorCorrectionLevel:"M" }).then(source => { $("guestHubQr").src = source; });
+  }
   const previewDate = new URLSearchParams(location.search).get("previewDate");
   const today = /^\d{4}-\d{2}-\d{2}$/.test(previewDate || "") ? previewDate : new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const checkIn = calendarDate(s.checkIn), checkOut = calendarDate(s.checkOut), todayValue = calendarDate(today);

@@ -2,10 +2,14 @@
   "name": "str-welcome-display",
   "private": true,
   "scripts": {
+    "build:qr": "esbuild src/qr-browser.js --bundle --minify --platform=browser --outfile=public/qrcode-local.js",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
   }
 }

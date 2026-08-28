@@ -5,7 +5,7 @@ const FIELDS = [
   "artworkIntensity", "transitionStyle"
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
-  "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "reviewMessage"
+  "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"
   , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationName", "celebrationMessage"
 ];
 const $ = id => document.getElementById(id);
@@ -17,6 +17,7 @@ const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
 let pageOrder = [...DEFAULT_PAGE_ORDER];
 let plannedStays = [];
 let placeCollections = { nearby:[], local:[] };
+let displayAccessToken = "";
 
 function renderScheduleRows() {
   $("scheduleRows").innerHTML = SCHEDULE_PAGES.map(page => `<div class="schedule-row">
@@ -55,7 +56,7 @@ function renderStays() {
   $("stayPlannerEmpty").hidden = plannedStays.length > 0;
   $("stayPlannerList").innerHTML = plannedStays.map(stay => {
     const state = stay.checkIn <= today && stay.checkOut >= today ? "Active now" : stay.checkIn > today ? "Upcoming" : "Completed";
-    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.theme)}</p></div><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></article>`;
+    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.theme)}</p></div><div class="planned-stay-actions"><button type="button" class="secondary" data-reset-stay-access="${escapeAdmin(stay.id)}">Reset guest link</button><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></div></article>`;
   }).join("");
   const selected = $("rotationGuest")?.value || "base";
   if ($("rotationGuest")) {
@@ -117,6 +118,16 @@ async function loadStays() {
   if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load upcoming stays.");
   plannedStays = (await response.json()).stays || [];
   renderStays();
+}
+
+async function loadDisplayAccess(rotate = false) {
+  const response = await fetch("/api/admin/display-access", { method:rotate ? "POST" : "GET", headers:{ Authorization:`Bearer ${token()}` }, cache:"no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error || "Unable to load secure display access.");
+  displayAccessToken = body.displayToken;
+  $("secureDisplayUrl").value = body.displayUrl;
+  updateThemeGallery();
+  return body;
 }
 
 async function saveStay() {
@@ -250,7 +261,8 @@ function updateThemeGallery() {
   document.querySelectorAll(".theme-preview").forEach(button =>
     button.classList.toggle("selected", button.dataset.themeValue === $("theme").value)
   );
-  $("previewLink").href = `/?previewTheme=${encodeURIComponent($("theme").value)}`;
+  const access = displayAccessToken ? `&displayToken=${encodeURIComponent(displayAccessToken)}` : "";
+  $("previewLink").href = `/?previewTheme=${encodeURIComponent($("theme").value)}${access}`;
 }
 
 async function loadSettings() {
@@ -263,7 +275,7 @@ async function loadSettings() {
     });
     if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load settings.");
     apply(await response.json());
-    await loadStays();
+    await Promise.all([loadStays(), loadDisplayAccess()]);
     setStatus("Current settings loaded.", "success");
   } catch (error) {
     setStatus(error.message, "error");
@@ -321,6 +333,30 @@ $("cancelStayButton").addEventListener("click", () => { $("stayEditor").hidden =
 $("saveStayButton").addEventListener("click", saveStay);
 $("deleteStayButton").addEventListener("click", deleteStay);
 $("stayPlannerList").addEventListener("click", event => { const button = event.target.closest("[data-edit-stay]"); if (button) editStay(plannedStays.find(stay => stay.id === button.dataset.editStay)); });
+$("stayPlannerList").addEventListener("click", async event => {
+  const button = event.target.closest("[data-reset-stay-access]");
+  if (!button || !confirm("Reset this guest link? Any QR code or bookmarked link already issued for this stay will stop working.")) return;
+  const response = await fetch("/api/admin/stays", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ action:"rotate-access", id:button.dataset.resetStayAccess }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) return setStatus(body.error || "Unable to reset guest access.", "error");
+  plannedStays = body.stays || []; renderStays(); setStatus(body.message, "success");
+});
+$("copyDisplayUrlButton").addEventListener("click", async () => {
+  if (!$("secureDisplayUrl").value) return setStatus("Load current settings first.", "error");
+  try { await navigator.clipboard.writeText($("secureDisplayUrl").value); setStatus("Secure OptiSigns URL copied.", "success"); }
+  catch { $("secureDisplayUrl").select(); setStatus("Copy the selected secure URL and paste it into OptiSigns.", "success"); }
+});
+$("rotateDisplayUrlButton").addEventListener("click", async () => {
+  if (!confirm("Rotate TV access? The current OptiSigns URL will stop working immediately and must be replaced with the new URL.")) return;
+  try { await loadDisplayAccess(true); setStatus("TV access rotated. Copy the new URL into OptiSigns now.", "success"); }
+  catch (error) { setStatus(error.message, "error"); }
+});
+$("resetCurrentGuestLinkButton").addEventListener("click", async () => {
+  if (!confirm("Reset the current guest QR? Any mobile guest-guide link already issued from the main display settings will stop working.")) return;
+  const response = await fetch("/api/admin/current-guest-access", { method:"POST", headers:{ Authorization:`Bearer ${token()}` } });
+  const body = await response.json().catch(() => ({}));
+  setStatus(response.ok ? body.message : body.error || "Unable to reset the guest QR.", response.ok ? "success" : "error");
+});
 document.querySelectorAll("[data-add-place]").forEach(button => button.addEventListener("click", () => {
   const kind = button.dataset.addPlace;
   placeCollections[kind].push([kind === "nearby" ? "Food" : "Favorite", "", "", "", kind === "nearby" ? "Close by" : "Worth the drive", ""]);

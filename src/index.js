@@ -68,6 +68,7 @@ Day Trip|Devil's Den Spring|Snorkel inside a prehistoric underground spring; res
 Day Trip|Kennedy Space Center|Real spacecraft, astronaut history and an unforgettable Space Coast day.|https://www.kennedyspacecenter.com/|Full-day trip|
 Day Trip|Blowing Rocks Preserve|At rough high tide, Atlantic waves burst dramatically through the limestone shoreline.|https://www.nature.org/en-us/get-involved/how-to-help/places-we-protect/blowing-rocks-preserve/|Full-day trip|`,
   reviewUrl: "",
+  rebookUrl: "",
   reviewMessage: "Thank you for staying with us. If you enjoyed your visit, we would be grateful if you shared your experience.",
   parkOrder: "disney-first",
   motionIntensity: "full",
@@ -99,6 +100,54 @@ function json(data, status = 200, extra = {}) {
 function authorized(request, env) {
   const supplied = request.headers.get("authorization") || "";
   return Boolean(env.ADMIN_TOKEN) && supplied === `Bearer ${env.ADMIN_TOKEN}`;
+}
+
+const encoder = new TextEncoder();
+const randomNonce = () => `${crypto.randomUUID()}${crypto.randomUUID().replaceAll("-", "")}`;
+const base64Url = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+
+async function hmac(value, env) {
+  const key = await crypto.subtle.importKey("raw", encoder.encode(env.GUEST_TOKEN_SECRET || env.ADMIN_TOKEN), { name:"HMAC", hash:"SHA-256" }, false, ["sign"]);
+  return base64Url(await crypto.subtle.sign("HMAC", key, encoder.encode(value)));
+}
+
+async function displayAccessToken(env, version = "1") {
+  return hmac(`display-access:${version}`, env);
+}
+
+async function guestAccessToken(stay, env) {
+  const payload = `${stay.id || "current"}.${stay.guestAccessNonce}.${stay.checkIn}.${stay.checkOut}`;
+  return `${payload}.${await hmac(payload, env)}`;
+}
+
+async function verifiedGuestToken(token, env) {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 5) return null;
+  const payload = parts.slice(0, 4).join(".");
+  if (await hmac(payload, env) !== parts[4]) return null;
+  return { id:parts[0], nonce:parts[1], checkIn:parts[2], checkOut:parts[3] };
+}
+
+function easternNow() {
+  const entries = new Intl.DateTimeFormat("en-US", { timeZone:"America/New_York", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", hourCycle:"h23" }).formatToParts(new Date());
+  const part = type => entries.find(entry => entry.type === type)?.value || "";
+  return { date:`${part("year")}-${part("month")}-${part("day")}`, hour:Number(part("hour")) };
+}
+
+function guestWindowStatus(stay) {
+  const now = easternNow();
+  if (!stay.checkIn || !stay.checkOut || now.date < stay.checkIn) return "not-started";
+  if (now.date > stay.checkOut || (now.date === stay.checkOut && now.hour >= 11)) return "expired";
+  return "active";
+}
+
+function safeGuestSettings(settings) {
+  return {
+    guestName:settings.guestName, checkIn:settings.checkIn, checkOut:settings.checkOut,
+    wifiName:settings.wifiName, wifiPassword:settings.wifiPassword, propertyAddress:settings.propertyAddress,
+    nearbyFavorites:settings.nearbyFavorites, localFavorites:settings.localFavorites, language:settings.language,
+    theme:settings.theme, accessExpires:`${settings.checkOut} at 11:00 AM Eastern`
+  };
 }
 
 function sanitize(input) {
@@ -166,6 +215,7 @@ function sanitize(input) {
     nearbyFavorites: text(input.nearbyFavorites, 8000),
     localFavorites: text(input.localFavorites, 16000),
     reviewUrl: text(input.reviewUrl, 500),
+    rebookUrl: text(input.rebookUrl, 500),
     reviewMessage: text(input.reviewMessage, 500),
     parkOrder: ["disney-first", "universal-first"].includes(input.parkOrder) ? input.parkOrder : "disney-first",
     motionIntensity: ["full", "reduced", "still"].includes(input.motionIntensity) ? input.motionIntensity : "full",
@@ -174,11 +224,12 @@ function sanitize(input) {
   };
 }
 
-function sanitizeStay(input, existingId = "") {
+function sanitizeStay(input, existing = {}) {
   const clean = sanitize({ ...DEFAULTS, ...input });
-  const id = String(existingId || input.id || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 80) || crypto.randomUUID();
+  const id = String(existing.id || input.id || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 80) || crypto.randomUUID();
   return {
     id,
+    guestAccessNonce: existing.guestAccessNonce || randomNonce(),
     guestName: clean.guestName,
     checkIn: clean.checkIn,
     checkOut: clean.checkOut,
@@ -369,14 +420,41 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/settings" && request.method === "GET") {
+      if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"Display security is not configured." }, 503);
+      const displayVersion = await env.STR_SETTINGS.get("display-token-version") || "1";
+      if (url.searchParams.get("displayToken") !== await displayAccessToken(env, displayVersion)) return json({ error:"Display access denied." }, 401);
       const [stored, stays] = env.STR_SETTINGS
         ? await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json")])
         : [null, []];
-      const today = easternDate();
       const activeStay = (Array.isArray(stays) ? stays : [])
-        .filter(stay => stay.checkIn && stay.checkOut && stay.checkIn <= today && stay.checkOut >= today)
+        .filter(stay => guestWindowStatus(stay) === "active")
         .sort((a, b) => b.checkIn.localeCompare(a.checkIn))[0];
-      return json({ ...settingsWithDefaults(stored), ...(activeStay || {}), activeStayId: activeStay?.id || "" });
+      let tokenSource = activeStay;
+      if (activeStay && !activeStay.guestAccessNonce) {
+        activeStay.guestAccessNonce = randomNonce();
+        await env.STR_SETTINGS.put("planned-stays", JSON.stringify(stays));
+      } else if (!activeStay && stored?.checkIn && stored?.checkOut) {
+        tokenSource = { ...stored, id:"current", guestAccessNonce:stored.guestAccessNonce || randomNonce() };
+        if (!stored.guestAccessNonce) await env.STR_SETTINGS.put("current-display", JSON.stringify({ ...stored, guestAccessNonce:tokenSource.guestAccessNonce }));
+      }
+      const settings = { ...settingsWithDefaults(stored), ...(activeStay || {}), activeStayId:activeStay?.id || "" };
+      delete settings.guestAccessNonce;
+      if (tokenSource && guestWindowStatus(tokenSource) === "active") settings.guestAccessToken = await guestAccessToken(tokenSource, env);
+      return json(settings);
+    }
+
+    if (url.pathname === "/api/guest" && request.method === "GET") {
+      if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"Guest access is unavailable." }, 503);
+      const verified = await verifiedGuestToken(url.searchParams.get("token"), env);
+      if (!verified) return json({ error:"This guest guide link is invalid." }, 401);
+      const [stored, stays] = await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json")]);
+      const record = verified.id === "current" ? stored : (Array.isArray(stays) ? stays : []).find(stay => stay.id === verified.id);
+      if (!record || record.guestAccessNonce !== verified.nonce || record.checkIn !== verified.checkIn || record.checkOut !== verified.checkOut) return json({ error:"This guest guide link has been revoked." }, 401);
+      const access = guestWindowStatus(record);
+      if (access === "not-started") return json({ error:`This guest guide becomes available on ${record.checkIn}.` }, 403);
+      if (access === "expired") return json({ expired:true, message:"Thank you for staying with us. We hope your Orlando memories last long after checkout.", reviewUrl:stored?.reviewUrl || "", rebookUrl:stored?.rebookUrl || "" }, 410, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
+      const settings = verified.id === "current" ? settingsWithDefaults(record) : { ...settingsWithDefaults(stored), ...record };
+      return json(safeGuestSettings(settings), 200, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
     }
 
     if (url.pathname === "/api/admin/status" && request.method === "GET") {
@@ -384,6 +462,27 @@ export default {
         adminConfigured: Boolean(env.ADMIN_TOKEN),
         settingsStorageConfigured: Boolean(env.STR_SETTINGS)
       });
+    }
+
+    if (url.pathname === "/api/admin/display-access") {
+      if (!authorized(request, env)) return json({ error:"Unauthorized" }, 401);
+      if (!env.STR_SETTINGS) return json({ error:"KV binding STR_SETTINGS is missing." }, 500);
+      let version = await env.STR_SETTINGS.get("display-token-version") || "1";
+      if (request.method === "POST") {
+        version = String(Number(version) + 1);
+        await env.STR_SETTINGS.put("display-token-version", version);
+      }
+      const displayToken = await displayAccessToken(env, version);
+      return json({ displayToken, displayUrl:`${url.origin}/?displayToken=${encodeURIComponent(displayToken)}`, rotated:request.method === "POST" });
+    }
+
+    if (url.pathname === "/api/admin/current-guest-access" && request.method === "POST") {
+      if (!authorized(request, env)) return json({ error:"Unauthorized" }, 401);
+      if (!env.STR_SETTINGS) return json({ error:"KV binding STR_SETTINGS is missing." }, 500);
+      const stored = await env.STR_SETTINGS.get("current-display", "json");
+      if (!stored) return json({ error:"Publish current guest settings first." }, 404);
+      await env.STR_SETTINGS.put("current-display", JSON.stringify({ ...stored, guestAccessNonce:randomNonce() }));
+      return json({ success:true, message:"The current guest’s previous guide link has been revoked." });
     }
 
     if (url.pathname === "/api/admin/settings") {
@@ -401,7 +500,8 @@ export default {
         let body;
         try { body = await request.json(); }
         catch { return json({ error: "Invalid JSON" }, 400); }
-        const clean = sanitize(body);
+        const stored = await env.STR_SETTINGS.get("current-display", "json");
+        const clean = { ...sanitize(body), guestAccessNonce:stored?.guestAccessNonce || randomNonce() };
         await env.STR_SETTINGS.put("current-display", JSON.stringify(clean));
         return json({ success: true, settings: clean });
       }
@@ -411,7 +511,8 @@ export default {
       if (!authorized(request, env)) return json({ error: "Unauthorized" }, 401);
       if (!env.STR_SETTINGS) return json({ error: "KV binding STR_SETTINGS is missing." }, 500);
       const stays = await env.STR_SETTINGS.get("planned-stays", "json");
-      const current = Array.isArray(stays) ? stays : [];
+      const current = (Array.isArray(stays) ? stays : []).map(stay => stay.guestAccessNonce ? stay : { ...stay, guestAccessNonce:randomNonce() });
+      if (Array.isArray(stays) && current.some((stay, index) => stay.guestAccessNonce !== stays[index]?.guestAccessNonce)) await env.STR_SETTINGS.put("planned-stays", JSON.stringify(current));
       if (request.method === "GET") return json({ stays: current.sort((a, b) => a.checkIn.localeCompare(b.checkIn)) });
       if (request.method === "POST") {
         let body;
@@ -422,7 +523,14 @@ export default {
           await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
           return json({ success: true, stays: next });
         }
-        const clean = sanitizeStay(body.stay || {}, body.stay?.id);
+        if (body.action === "rotate-access") {
+          const next = current.map(stay => stay.id === body.id ? { ...stay, guestAccessNonce:randomNonce() } : stay);
+          if (!next.some(stay => stay.id === body.id)) return json({ error:"Stay not found." }, 404);
+          await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
+          return json({ success:true, stays:next, message:"The previous guest guide link has been revoked." });
+        }
+        const existing = current.find(stay => stay.id === body.stay?.id) || {};
+        const clean = sanitizeStay(body.stay || {}, existing);
         if (!clean.checkIn || !clean.checkOut || clean.checkOut < clean.checkIn) return json({ error: "Enter a valid check-in and checkout date." }, 400);
         const next = [...current.filter(stay => stay.id !== clean.id), clean].sort((a, b) => a.checkIn.localeCompare(b.checkIn));
         await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));

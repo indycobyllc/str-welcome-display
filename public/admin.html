@@ -26,6 +26,14 @@
       <button id="loadButton" type="button" class="secondary">Load current settings</button>
     </section>
 
+    <section class="admin-card security-card">
+      <h2>Secure TV access</h2>
+      <p class="admin-section-intro">OptiSigns must use this private display URL. Rotating it immediately disables every previously issued TV URL.</p>
+      <label>Secure OptiSigns URL<input id="secureDisplayUrl" readonly placeholder="Load current settings to generate the secure URL"></label>
+      <div class="security-actions"><button id="copyDisplayUrlButton" type="button" class="secondary">Copy secure URL</button><button id="resetCurrentGuestLinkButton" type="button" class="secondary">Reset current guest QR</button><button id="rotateDisplayUrlButton" type="button" class="danger">Rotate TV access</button></div>
+      <p class="help">Do not share this URL with guests. Guest QR codes receive separate links that expire automatically at 11:00 AM Eastern on checkout day.</p>
+    </section>
+
     <section class="admin-card stay-planner-card">
       <div class="planner-heading"><div><h2>Upcoming stays</h2><p class="admin-section-intro">Plan future guests now. The matching stay activates automatically on its check-in date.</p></div><button id="newStayButton" type="button" class="secondary">Add guest</button></div>
       <div id="stayPlannerEmpty" class="planner-empty">Enter your admin password and load settings to view upcoming stays.</div>
@@ -159,6 +167,7 @@
       <p class="admin-section-intro">Appears automatically during the final two days of the stay. Leave the URL empty to disable it.</p>
       <div class="form-grid">
         <label class="wide">Airbnb review URL<input id="reviewUrl" type="url" maxlength="500" placeholder="https://airbnb.com/..."></label>
+        <label class="wide">Rebooking URL <small>Shown on the generic thank-you page after guest access expires</small><input id="rebookUrl" type="url" maxlength="500" placeholder="https://airbnb.com/h/your-listing"></label>
         <label class="wide">Review message<textarea id="reviewMessage" rows="3" maxlength="500"></textarea></label>
       </div>
     </section>

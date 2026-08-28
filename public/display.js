@@ -453,9 +453,10 @@ function applySettings(s) {
   currentSettings = s;
   const previewTheme = new URLSearchParams(location.search).get("previewTheme");
   const selectedTheme = previewTheme || s.theme || "galactic";
-  const activeTheme = selectedTheme === "dynamic-atmosphere" ? resolveDynamicTheme() : selectedTheme;
+  const activeTheme = selectedTheme === "dynamic-atmosphere" ? resolveDynamicTheme() : selectedTheme === "epcot-dynamic" ? "epcot-festival-night" : selectedTheme;
   $("display").dataset.theme = activeTheme;
-  $("display").dataset.themeMode = selectedTheme === "dynamic-atmosphere" ? "dynamic" : "fixed";
+  $("display").dataset.themeMode = selectedTheme === "dynamic-atmosphere" ? "dynamic" : selectedTheme === "epcot-dynamic" ? "epcot-dynamic" : "fixed";
+  $("display").dataset.atmosphere = selectedTheme === "epcot-dynamic" ? resolveEpcotAtmosphere() : "";
   $("display").dataset.celebrationType = s.celebrationType || "birthday";
   $("display").dataset.motion = s.motionIntensity;
   const themedTransition = /star-wars|iron-man|space-coast/.test(activeTheme) ? "wipe" : /harry|wizard|princess|classic-theme-park/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora|florida-storm|everglades/.test(activeTheme) ? "curtain" : "cinematic";
@@ -537,6 +538,18 @@ function resolveDynamicTheme() {
   if (hour < 16) return "luxury-resort";
   if (hour < 20) return "safari-sunset";
   return "enchanted-castle-night";
+}
+
+function resolveEpcotAtmosphere() {
+  const code = Number(currentWeather?.weatherCode);
+  if ([95,96,99].includes(code)) return "storm";
+  if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) return "rain";
+  if ([3,45,48].includes(code)) return "overcast";
+  const hour = Number(new Intl.DateTimeFormat("en-US", { hour:"numeric", hour12:false, timeZone:"America/New_York" }).format(new Date())) % 24;
+  if (hour >= 6 && hour < 10) return "sunrise";
+  if (hour >= 10 && hour < 17) return "day";
+  if (hour >= 17 && hour < 20) return "sunset";
+  return "night";
 }
 
 function applySmartRotation(s, today, checkIn, checkOut) {

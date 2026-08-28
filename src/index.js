@@ -116,16 +116,13 @@ async function displayAccessToken(env, version = "1") {
 }
 
 async function guestAccessToken(stay, env) {
-  const payload = `${stay.id || "current"}.${stay.guestAccessNonce}.${stay.checkIn}.${stay.checkOut}`;
-  return `${payload}.${await hmac(payload, env)}`;
+  return hmac(`guest-access:${stay.id || "current"}:${stay.guestAccessNonce}:${stay.checkIn}:${stay.checkOut}`, env);
 }
 
-async function verifiedGuestToken(token, env) {
-  const parts = String(token || "").split(".");
-  if (parts.length !== 5) return null;
-  const payload = parts.slice(0, 4).join(".");
-  if (await hmac(payload, env) !== parts[4]) return null;
-  return { id:parts[0], nonce:parts[1], checkIn:parts[2], checkOut:parts[3] };
+async function verifiedGuestRecord(token, records, env) {
+  if (!token) return null;
+  for (const record of records) if (record?.guestAccessNonce && await guestAccessToken(record, env) === token) return record;
+  return null;
 }
 
 function easternNow() {
@@ -447,15 +444,14 @@ export default {
 
     if (url.pathname === "/api/guest" && request.method === "GET") {
       if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"Guest access is unavailable." }, 503);
-      const verified = await verifiedGuestToken(url.searchParams.get("token"), env);
-      if (!verified) return json({ error:"This guest guide link is invalid." }, 401);
       const [stored, stays] = await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json")]);
-      const record = verified.id === "current" ? stored : (Array.isArray(stays) ? stays : []).find(stay => stay.id === verified.id);
-      if (!record || record.guestAccessNonce !== verified.nonce || record.checkIn !== verified.checkIn || record.checkOut !== verified.checkOut) return json({ error:"This guest guide link has been revoked." }, 401);
+      const currentRecord = stored ? { ...stored, id:"current" } : null;
+      const record = await verifiedGuestRecord(url.searchParams.get("token"), [currentRecord, ...(Array.isArray(stays) ? stays : [])], env);
+      if (!record) return json({ error:"This guest guide link is invalid or has been revoked." }, 401);
       const access = guestWindowStatus(record);
       if (access === "not-started") return json({ error:`This guest guide becomes available on ${record.checkIn}.` }, 403);
       if (access === "expired") return json({ expired:true, message:"Thank you for staying with us. We hope your Orlando memories last long after checkout.", reviewUrl:stored?.reviewUrl || "", rebookUrl:stored?.rebookUrl || "" }, 410, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
-      const settings = verified.id === "current" ? settingsWithDefaults(record) : { ...settingsWithDefaults(stored), ...record };
+      const settings = record.id === "current" ? settingsWithDefaults(record) : { ...settingsWithDefaults(stored), ...record };
       return json(safeGuestSettings(settings), 200, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
     }
 

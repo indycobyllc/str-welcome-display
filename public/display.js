@@ -476,7 +476,7 @@ function applySettings(s) {
   $("guestHubLink").hidden = !guestHubUrl;
   if (guestHubUrl) {
     $("guestHubLink").href = guestHubUrl;
-    window.LocalQRCode?.toDataURL(guestHubUrl, { width:150, margin:1, errorCorrectionLevel:"M" }).then(source => { $("guestHubQr").src = source; });
+    window.LocalQRCode?.toDataURL(guestHubUrl, { width:240, margin:4, errorCorrectionLevel:"M" }).then(source => { $("guestHubQr").src = source; });
   }
   const previewDate = new URLSearchParams(location.search).get("previewDate");
   const today = /^\d{4}-\d{2}-\d{2}$/.test(previewDate || "") ? previewDate : new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());

@@ -3,6 +3,7 @@ const FIELDS = [
   "wifiName", "wifiPassword", "slideSeconds", "showWelcome", "showEvents",
   "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
   "artworkIntensity", "transitionStyle", "lgSignageOptimized"
+  , "showMorningShow", "morningShowTime", "morningShowDuration"
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"
@@ -318,6 +319,12 @@ document.querySelectorAll("[data-preview-page]").forEach(button => button.addEve
   const params = new URLSearchParams({ previewPage: button.dataset.previewPage, previewTheme: $("theme").value });
   window.open(`/?${params}`, "_blank", "noopener");
 }));
+$("previewMorningShow")?.addEventListener("click", () => {
+  try { localStorage.setItem("str-preview-draft", JSON.stringify({ savedAt: Date.now(), settings: collect() })); } catch {}
+  const params = new URLSearchParams({ previewShow:"morning", previewTheme:$("theme").value });
+  if (displayAccessToken) params.set("displayToken", displayAccessToken);
+  window.open(`/?${params}`, "_blank", "noopener");
+});
 $("pageOrderList").addEventListener("click", event => {
   const button = event.target.closest("[data-order-direction]");
   const row = event.target.closest("[data-order-page]");

@@ -13,6 +13,9 @@ const DEFAULTS = {
   showForecast: true,
   showClock: true,
   showArrival: true,
+  showMorningShow: true,
+  morningShowTime: "08:00",
+  morningShowDuration: 75,
   showHomeInfo: false,
   showStoreyLake: true,
   showNearbyMap: true,
@@ -441,7 +444,7 @@ function eventBadge(event) {
 }
 
 async function loadSettings() {
-  if (new URLSearchParams(location.search).get("previewPage") || new URLSearchParams(location.search).get("previewDate")) {
+  if (new URLSearchParams(location.search).get("previewPage") || new URLSearchParams(location.search).get("previewDate") || new URLSearchParams(location.search).get("previewShow")) {
     try {
       const draft = JSON.parse(localStorage.getItem("str-preview-draft") || "null");
       if (draft?.settings && Date.now() - draft.savedAt < 3600000) return { ...DEFAULTS, ...draft.settings };
@@ -696,6 +699,67 @@ function renderRecommendation(data, weather) {
 let slideTimer;
 let eventPageTimer;
 let favoritePageTimer;
+let morningShowTimers = [];
+
+function orlandoClockParts() {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone:"America/New_York", hour:"2-digit", minute:"2-digit", hourCycle:"h23", year:"numeric", month:"2-digit", day:"2-digit" }).formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+  return { date:`${parts.year}-${parts.month}-${parts.day}`, minutes:Number(parts.hour) * 60 + Number(parts.minute) };
+}
+
+function stopMorningShow() {
+  morningShowTimers.forEach(clearTimeout); morningShowTimers = [];
+  const show = $("morningShow");
+  show.classList.remove("playing"); show.hidden = true;
+}
+
+function playMorningShow(settings, preview = false) {
+  const show = $("morningShow");
+  if (!show || show.classList.contains("playing")) return;
+  const duration = Math.max(45, Number(settings.morningShowDuration) || 75);
+  const ropeSeconds = Math.min(10, duration * .14);
+  const finaleSeconds = Math.min(14, duration * .19);
+  const reelSeconds = duration - ropeSeconds - finaleSeconds;
+  const reelCards = [...show.querySelectorAll("[data-reel]")];
+  show.querySelectorAll("[data-morning-scene]").forEach(scene => scene.classList.remove("active"));
+  show.querySelector('[data-morning-scene="rope"]').classList.add("active");
+  reelCards.forEach(card => card.classList.remove("active"));
+  $("ropeDropCount").textContent = "3";
+  const guest = settings.guestName && settings.guestName !== "Welcome!" ? settings.guestName : "Your day starts now";
+  $("morningGuestName").textContent = guest === "Your day starts now" ? guest : `Let’s go, ${guest}!`;
+  const today = currentWeather?.daily?.[0];
+  $("morningWeatherLine").textContent = currentWeather ? `${Math.round(currentWeather.temperature)}° now · High ${Math.round(today?.high ?? currentWeather.temperature)}° · ${Math.round(today?.rainChance || 0)}% chance of rain` : "Sunshine, thrills and unforgettable moments are waiting.";
+  $("morningTodayLabel").textContent = settings.occasion || "A brand-new Orlando day";
+  show.style.setProperty("--morning-duration", `${duration}s`);
+  show.hidden = false;
+  requestAnimationFrame(() => show.classList.add("playing"));
+  [1, 2].forEach(step => morningShowTimers.push(setTimeout(() => { $("ropeDropCount").textContent = String(3 - step); }, step * 1000)));
+  morningShowTimers.push(setTimeout(() => {
+    show.querySelector('[data-morning-scene="rope"]').classList.remove("active");
+    show.querySelector('[data-morning-scene="reel"]').classList.add("active");
+    const cardTime = reelSeconds * 1000 / reelCards.length;
+    reelCards.forEach((card, index) => morningShowTimers.push(setTimeout(() => {
+      reelCards.forEach(item => item.classList.remove("active")); card.classList.add("active");
+    }, index * cardTime)));
+  }, ropeSeconds * 1000));
+  morningShowTimers.push(setTimeout(() => {
+    show.querySelector('[data-morning-scene="reel"]').classList.remove("active");
+    show.querySelector('[data-morning-scene="finale"]').classList.add("active");
+  }, (duration - finaleSeconds) * 1000));
+  morningShowTimers.push(setTimeout(stopMorningShow, duration * 1000));
+  if (!preview) try { localStorage.setItem(`str-morning-show-${orlandoClockParts().date}`, "played"); } catch {}
+}
+
+function scheduleMorningShow(settings) {
+  const preview = new URLSearchParams(location.search).get("previewShow") === "morning";
+  if (preview) return playMorningShow(settings, true);
+  if (!settings.showMorningShow || settings.accessDenied) return;
+  const now = orlandoClockParts();
+  const [hour, minute] = String(settings.morningShowTime || "08:00").split(":").map(Number);
+  const start = hour * 60 + minute;
+  let alreadyPlayed = false;
+  try { alreadyPlayed = Boolean(localStorage.getItem(`str-morning-show-${now.date}`)); } catch {}
+  if (now.minutes >= start && now.minutes < start + 30 && !alreadyPlayed) playMorningShow(settings);
+}
 
 function showEventPage(index) {
   const pages = [...document.querySelectorAll(".event-page")];
@@ -779,6 +843,7 @@ async function refreshAll() {
   renderParks(parks);
   renderForecast(weather, settings);
   startSlides(settings.slideSeconds);
+  scheduleMorningShow(settings);
   setOffline(Boolean(window.__dataOffline));
 }
 
@@ -788,6 +853,7 @@ refreshAll();
 setInterval(refreshAll, 5 * 60 * 1000);
 window.addEventListener("online", refreshAll);
 window.addEventListener("resize", () => renderDiagnostics(currentSettings));
+$("skipMorningShow")?.addEventListener("click", stopMorningShow);
 window.addEventListener("offline", () => setOffline(true));
 setInterval(() => {
   const x = Math.round(Math.random() * 4 - 2);

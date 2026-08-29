@@ -10,6 +10,27 @@
 <body class="display-body">
   <main id="display" aria-live="polite">
     <aside id="displayDiagnostics" class="display-diagnostics" hidden></aside>
+    <section id="morningShow" class="morning-show" hidden aria-label="Orlando morning show">
+      <div class="morning-sky"></div><div class="morning-rays"></div><div class="morning-fireworks"><i></i><i></i><i></i></div>
+      <div class="rope-drop-stage active" data-morning-scene="rope">
+        <p>Good morning, Orlando</p><strong id="ropeDropCount">3</strong><h1>Ready for rope drop?</h1>
+        <div class="opening-rope"><span></span><i></i><i></i></div>
+      </div>
+      <div class="morning-reel" data-morning-scene="reel">
+        <article data-reel="kingdom"><i>✦</i><small>Wonder awaits</small><h2>Castles. Characters.<br>Core memories.</h2></article>
+        <article data-reel="adventure"><i>◈</i><small>Adventure calls</small><h2>Epic worlds.<br>Legendary thrills.</h2></article>
+        <article data-reel="wild"><i>☀</i><small>Wild Florida</small><h2>Safari mornings.<br>Sunshine afternoons.</h2></article>
+        <article data-reel="space"><i>↗</i><small>Space Coast</small><h2>Real rockets.<br>Limitless discovery.</h2></article>
+        <article data-reel="water"><i>≈</i><small>Make a splash</small><h2>Coasters. Springs.<br>Poolside escapes.</h2></article>
+        <article data-reel="night"><i>✺</i><small>Stay for the finale</small><h2>Parades. Fireworks.<br>Orlando after dark.</h2></article>
+      </div>
+      <div class="morning-finale" data-morning-scene="finale">
+        <small id="morningTodayLabel">Your Orlando adventure</small><h1 id="morningGuestName">Your day starts now</h1>
+        <p id="morningWeatherLine"></p><strong>Go make some magic.</strong>
+      </div>
+      <div class="morning-progress"><i></i></div>
+      <button id="skipMorningShow" class="morning-skip" type="button">Skip</button>
+    </section>
     <div class="sky-glow" aria-hidden="true"></div>
     <div class="stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="theme-art" aria-hidden="true">

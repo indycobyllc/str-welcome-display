@@ -133,6 +133,13 @@
       <h2>Display controls</h2>
       <p class="admin-section-intro">Choose pages, motion, content order, and TV behavior.</p>
       <div class="admin-toggles"><label><input id="showWelcome" type="checkbox" checked> Welcome and park hours</label><label><input id="showEvents" type="checkbox" checked> Events and insights</label><label><input id="showForecast" type="checkbox" checked> Stay forecast</label><label><input id="showHomeInfo" type="checkbox"> Home information</label><label><input id="showStoreyLake" type="checkbox" checked> Storey Lake amenities</label><label><input id="showNearbyMap" type="checkbox" checked> Nearby attractions map</label><label><input id="showNearbyEasy" type="checkbox" checked> Nearby and easy</label><label><input id="showLocalFavorites" type="checkbox"> Local favorites</label><label><input id="showArrival" type="checkbox" checked> Arrival-day cinematic</label><label><input id="showClock" type="checkbox" checked> Header clock</label></div>
+      <div class="morning-show-admin">
+        <div><h3>Orlando Morning Show</h3><p>A once-daily rope-drop countdown and cinematic Orlando sizzle reel.</p></div>
+        <label class="toggle-field">Enable morning show<input id="showMorningShow" type="checkbox" checked></label>
+        <label>Start time<input id="morningShowTime" type="time" value="08:00"></label>
+        <label>Length (seconds)<input id="morningShowDuration" type="number" min="45" max="120" value="75"></label>
+        <button type="button" class="secondary" id="previewMorningShow">Preview show</button>
+      </div>
       <div class="page-schedule">
         <div class="page-schedule-heading"><div><h3>Page schedule, timing & previews</h3><p>Vacation day 1 is check-in day. Duration controls how long each page remains onscreen. Preview opens only that page in a new tab.</p></div></div>
         <div id="scheduleRows"></div>

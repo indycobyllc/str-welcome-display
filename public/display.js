@@ -710,6 +710,8 @@ function stopMorningShow() {
   morningShowTimers.forEach(clearTimeout); morningShowTimers = [];
   const show = $("morningShow");
   show.querySelectorAll("video").forEach(video => { video.pause(); video.currentTime = 0; });
+  const music = $("morningShowMusic");
+  if (music) { music.pause(); music.currentTime = 0; music.volume = 0; }
   show.classList.remove("playing"); show.hidden = true;
 }
 
@@ -736,6 +738,14 @@ function playMorningShow(settings, preview = false) {
   if (hasVideoReel) show.querySelectorAll("video").forEach(video => video.load());
   show.hidden = false;
   requestAnimationFrame(() => show.classList.add("playing"));
+  const music = $("morningShowMusic");
+  if (music) {
+    music.currentTime = 0; music.volume = 0;
+    music.play().then(() => {
+      for (let step = 1; step <= 10; step += 1) morningShowTimers.push(setTimeout(() => { music.volume = Math.min(.3, step * .03); }, step * 250));
+      for (let step = 1; step <= 10; step += 1) morningShowTimers.push(setTimeout(() => { music.volume = Math.max(0, .3 - step * .03); }, (duration - 3 + step * .25) * 1000));
+    }).catch(() => {});
+  }
   [0, 1, 2].forEach(step => morningShowTimers.push(setTimeout(() => { $("ropeDropCount").textContent = String(3 - step); }, (ropeSeconds - 4 + step) * 1000)));
   morningShowTimers.push(setTimeout(() => {
     show.querySelector('[data-morning-scene="rope"]').classList.remove("active");

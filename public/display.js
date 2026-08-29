@@ -735,7 +735,13 @@ function playMorningShow(settings, preview = false) {
   $("morningWeatherLine").textContent = currentWeather ? `${Math.round(currentWeather.temperature)}° now · High ${Math.round(today?.high ?? currentWeather.temperature)}° · ${Math.round(today?.rainChance || 0)}% chance of rain` : "Sunshine, thrills and unforgettable moments are waiting.";
   $("morningTodayLabel").textContent = settings.occasion || "A brand-new Orlando day";
   show.style.setProperty("--morning-duration", `${duration}s`);
-  if (hasVideoReel) show.querySelectorAll("video").forEach(video => video.load());
+  if (hasVideoReel) show.querySelectorAll("video").forEach(video => {
+    const card = video.closest(".video-shot");
+    const markReady = () => card?.classList.add("video-ready");
+    card?.classList.remove("video-ready", "video-fallback");
+    if (video.readyState >= 2) markReady(); else video.addEventListener("loadeddata", markReady, { once:true });
+    video.load();
+  });
   show.hidden = false;
   requestAnimationFrame(() => show.classList.add("playing"));
   const music = $("morningShowMusic");
@@ -878,7 +884,6 @@ refreshAll();
 setInterval(refreshAll, 5 * 60 * 1000);
 window.addEventListener("online", refreshAll);
 window.addEventListener("resize", () => renderDiagnostics(currentSettings));
-$("skipMorningShow")?.addEventListener("click", stopMorningShow);
 window.addEventListener("offline", () => setOffline(true));
 setInterval(() => {
   const x = Math.round(Math.random() * 4 - 2);

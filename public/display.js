@@ -709,15 +709,18 @@ function orlandoClockParts() {
 function stopMorningShow() {
   morningShowTimers.forEach(clearTimeout); morningShowTimers = [];
   const show = $("morningShow");
+  show.querySelectorAll("video").forEach(video => { video.pause(); video.currentTime = 0; });
   show.classList.remove("playing"); show.hidden = true;
 }
 
 function playMorningShow(settings, preview = false) {
   const show = $("morningShow");
   if (!show || show.classList.contains("playing")) return;
-  const duration = Math.max(45, Number(settings.morningShowDuration) || 75);
-  const ropeSeconds = Math.min(10, duration * .14);
-  const finaleSeconds = Math.min(14, duration * .19);
+  let duration = Math.max(45, Number(settings.morningShowDuration) || 75);
+  const hasVideoReel = Boolean(show.querySelector(".video-shot video"));
+  if (hasVideoReel) duration = 47;
+  const ropeSeconds = hasVideoReel ? 8 : Math.min(10, duration * .14);
+  const finaleSeconds = hasVideoReel ? 12 : Math.min(14, duration * .19);
   const reelSeconds = duration - ropeSeconds - finaleSeconds;
   const reelCards = [...show.querySelectorAll("[data-reel]")];
   show.querySelectorAll("[data-morning-scene]").forEach(scene => scene.classList.remove("active"));
@@ -730,6 +733,7 @@ function playMorningShow(settings, preview = false) {
   $("morningWeatherLine").textContent = currentWeather ? `${Math.round(currentWeather.temperature)}° now · High ${Math.round(today?.high ?? currentWeather.temperature)}° · ${Math.round(today?.rainChance || 0)}% chance of rain` : "Sunshine, thrills and unforgettable moments are waiting.";
   $("morningTodayLabel").textContent = settings.occasion || "A brand-new Orlando day";
   show.style.setProperty("--morning-duration", `${duration}s`);
+  if (hasVideoReel) show.querySelectorAll("video").forEach(video => video.load());
   show.hidden = false;
   requestAnimationFrame(() => show.classList.add("playing"));
   [1, 2].forEach(step => morningShowTimers.push(setTimeout(() => { $("ropeDropCount").textContent = String(3 - step); }, step * 1000)));
@@ -738,7 +742,10 @@ function playMorningShow(settings, preview = false) {
     show.querySelector('[data-morning-scene="reel"]').classList.add("active");
     const cardTime = reelSeconds * 1000 / reelCards.length;
     reelCards.forEach((card, index) => morningShowTimers.push(setTimeout(() => {
-      reelCards.forEach(item => item.classList.remove("active")); card.classList.add("active");
+      reelCards.forEach(item => { item.classList.remove("active"); const video = item.querySelector("video"); if (video) video.pause(); });
+      card.classList.add("active");
+      const video = card.querySelector("video");
+      if (video) { video.currentTime = 0; video.play().catch(() => card.classList.add("video-fallback")); }
     }, index * cardTime)));
   }, ropeSeconds * 1000));
   morningShowTimers.push(setTimeout(() => {

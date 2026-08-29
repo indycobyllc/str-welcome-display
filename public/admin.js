@@ -4,6 +4,7 @@ const FIELDS = [
   "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
   "artworkIntensity", "transitionStyle", "lgSignageOptimized"
   , "showMorningShow", "morningShowTime", "morningShowDuration"
+  , "showNightShow", "nightShowTime", "nightShowDuration"
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"
@@ -322,6 +323,12 @@ document.querySelectorAll("[data-preview-page]").forEach(button => button.addEve
 $("previewMorningShow")?.addEventListener("click", () => {
   try { localStorage.setItem("str-preview-draft", JSON.stringify({ savedAt: Date.now(), settings: collect() })); } catch {}
   const params = new URLSearchParams({ previewShow:"morning", previewTheme:$("theme").value });
+  if (displayAccessToken) params.set("displayToken", displayAccessToken);
+  window.open(`/?${params}`, "_blank", "noopener");
+});
+$("previewNightShow")?.addEventListener("click", () => {
+  try { localStorage.setItem("str-preview-draft", JSON.stringify({ savedAt: Date.now(), settings: collect() })); } catch {}
+  const params = new URLSearchParams({ previewShow:"night", previewTheme:$("theme").value });
   if (displayAccessToken) params.set("displayToken", displayAccessToken);
   window.open(`/?${params}`, "_blank", "noopener");
 });

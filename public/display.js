@@ -16,6 +16,9 @@ const DEFAULTS = {
   showMorningShow: true,
   morningShowTime: "08:00",
   morningShowDuration: 75,
+  showNightShow: true,
+  nightShowTime: "20:55",
+  nightShowDuration: 65,
   showHomeInfo: false,
   showStoreyLake: true,
   showNearbyMap: true,
@@ -700,6 +703,7 @@ let slideTimer;
 let eventPageTimer;
 let favoritePageTimer;
 let morningShowTimers = [];
+let nightShowTimers = [];
 
 function orlandoClockParts() {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone:"America/New_York", hour:"2-digit", minute:"2-digit", hourCycle:"h23", year:"numeric", month:"2-digit", day:"2-digit" }).formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
@@ -792,6 +796,60 @@ function scheduleMorningShow(settings) {
   if (now.minutes >= start && now.minutes < start + 30 && !alreadyPlayed) playMorningShow(settings);
 }
 
+function stopNightShow() {
+  nightShowTimers.forEach(clearTimeout); nightShowTimers = [];
+  const show = $("nightShow");
+  show?.querySelectorAll("video").forEach(video => { video.pause(); video.currentTime = 0; });
+  const music = $("nightShowMusic");
+  if (music) { music.pause(); music.currentTime = 0; music.volume = 0; }
+  show?.classList.remove("playing");
+  if (show) show.hidden = true;
+}
+
+function playNightShow(settings, preview = false) {
+  const show = $("nightShow");
+  if (!show || show.classList.contains("playing") || $("morningShow")?.classList.contains("playing")) return;
+  const duration = Math.min(120, Math.max(50, Number(settings.nightShowDuration) || 65));
+  const scenes = [...show.querySelectorAll("[data-night-scene]")];
+  const sceneStarts = [0, duration * .2, duration * .4, duration * .6];
+  scenes.forEach(scene => scene.classList.remove("active")); scenes[0].classList.add("active");
+  const guest = settings.guestName && settings.guestName !== "Welcome!" ? settings.guestName : "Orlando";
+  $("nightGuestLine").textContent = guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`;
+  const today = calendarDate(new Date().toLocaleDateString("en-CA", { timeZone:"America/New_York" }));
+  const checkout = calendarDate(settings.checkOut);
+  const remaining = checkout && today ? Math.max(0, Math.ceil((checkout - today) / 86400000)) : null;
+  $("nightStayLine").textContent = remaining === 0 ? "Until next time" : remaining === 1 ? "One more vacation day awaits" : Number.isFinite(remaining) ? `${remaining} vacation days still ahead` : "What a day";
+  show.hidden = false; requestAnimationFrame(() => show.classList.add("playing"));
+  const music = $("nightShowMusic");
+  if (music) {
+    music.currentTime = 0; music.volume = 0;
+    music.play().then(() => {
+      for (let step = 1; step <= 10; step += 1) nightShowTimers.push(setTimeout(() => { music.volume = Math.min(.34, step * .034); }, step * 300));
+      for (let step = 1; step <= 10; step += 1) nightShowTimers.push(setTimeout(() => { music.volume = Math.max(0, .34 - step * .034); }, (duration - 4 + step * .3) * 1000));
+    }).catch(() => {});
+  }
+  scenes.slice(1).forEach((scene, index) => nightShowTimers.push(setTimeout(() => {
+    const outgoing = scenes.find(item => item.classList.contains("active"));
+    outgoing?.classList.remove("active"); scene.classList.add("active");
+    const video = scene.querySelector("video");
+    if (video) { video.currentTime = 0; video.play().catch(() => {}); }
+  }, sceneStarts[index + 1] * 1000)));
+  nightShowTimers.push(setTimeout(stopNightShow, duration * 1000));
+  if (!preview) try { localStorage.setItem(`str-night-show-${orlandoClockParts().date}`, "played"); } catch {}
+}
+
+function scheduleNightShow(settings) {
+  const preview = new URLSearchParams(location.search).get("previewShow") === "night";
+  if (preview) return playNightShow(settings, true);
+  if (!settings.showNightShow || settings.accessDenied) return;
+  const now = orlandoClockParts();
+  const [hour, minute] = String(settings.nightShowTime || "20:55").split(":").map(Number);
+  const start = hour * 60 + minute;
+  let alreadyPlayed = false;
+  try { alreadyPlayed = Boolean(localStorage.getItem(`str-night-show-${now.date}`)); } catch {}
+  if (now.minutes >= start && now.minutes < start + 20 && !alreadyPlayed) playNightShow(settings);
+}
+
 function showEventPage(index) {
   const pages = [...document.querySelectorAll(".event-page")];
   pages.forEach((page, pageIndex) => page.classList.toggle("active", pageIndex === index));
@@ -875,6 +933,7 @@ async function refreshAll() {
   renderForecast(weather, settings);
   startSlides(settings.slideSeconds);
   scheduleMorningShow(settings);
+  scheduleNightShow(settings);
   setOffline(Boolean(window.__dataOffline));
 }
 

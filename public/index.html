@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/welcome-layout.css">
   <link rel="stylesheet" href="/morning-show.css">
+  <link rel="stylesheet" href="/night-show.css">
 </head>
 <body class="display-body">
   <main id="display" aria-live="polite">
@@ -31,6 +32,27 @@
         <img class="morning-finale-bg" src="/assets/morning-show/morning-finale-castle.jpg" alt="" aria-hidden="true">
         <div class="morning-finale-copy"><small id="morningTodayLabel">Your Orlando adventure</small><h1 id="morningGuestName">Your day starts now</h1>
         <p id="morningWeatherLine"></p><strong>Go make some magic.</strong></div>
+      </div>
+    </section>
+    <section id="nightShow" class="night-show" hidden aria-label="Orlando nighttime show">
+      <audio id="nightShowMusic" preload="auto" playsinline><source src="/assets/morning-show/night-show.mp3" type="audio/mpeg"></audio>
+      <div class="night-bokeh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="night-scene night-river active" data-night-scene="river">
+        <img src="/assets/morning-show/night-river.jpg" alt="" aria-hidden="true">
+        <div class="night-copy"><small>As the lights begin to glow</small><h1>Tonight becomes a memory.</h1></div>
+      </div>
+      <div class="night-scene night-tree" data-night-scene="tree">
+        <img src="/assets/morning-show/night-tree.jpg" alt="" aria-hidden="true">
+        <div class="night-copy"><small>Every adventure leaves</small><h1>A little light behind.</h1></div>
+      </div>
+      <div class="night-scene night-fireworks" data-night-scene="fireworks">
+        <video muted playsinline preload="auto" poster="/assets/morning-show/finale.jpg"><source src="/assets/morning-show/fireworks.m4v" type="video/mp4"></video>
+        <div class="night-flashes" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="night-copy"><small>Before the night is through</small><h1>One more moment of wonder.</h1></div>
+      </div>
+      <div class="night-scene night-finale" data-night-scene="finale">
+        <img src="/assets/morning-show/night-finale.jpg" alt="" aria-hidden="true">
+        <div class="night-copy"><small id="nightStayLine">What a day</small><h1 id="nightGuestLine">Good night, Orlando.</h1><p>Rest well. Tomorrow holds another adventure.</p></div>
       </div>
     </section>
     <div class="sky-glow" aria-hidden="true"></div>

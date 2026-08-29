@@ -287,8 +287,16 @@ function renderHourlyTimeline(weather) {
     const detail = weatherDetails(hour.weatherCode, hourNumber >= 7 && hourNumber < 19);
     return `<div><span>${escapeHtml(label)}</span><b>${detail.icon} ${Math.round(hour.temperature)}°</b><small>${Math.round(hour.rainChance || 0)}% rain</small></div>`;
   }));
-  const sunset = weather.daily?.[0]?.sunset;
-  if (sunset) cells.push(`<div><span>Sunset</span><b>☀ ${formatOrlandoClock(sunset)}</b><small>Golden hour</small></div>`);
+  const currentLocal = weather.updatedAt || `${orlandoHourKey()}:00`;
+  const currentDate = currentLocal.slice(0, 10);
+  const todayWeather = weather.daily?.find(day => day.date === currentDate) || weather.daily?.[0];
+  const sunset = todayWeather?.sunset;
+  if (sunset && currentLocal >= sunset) {
+    const nextMorning = weather.daily?.find(day => day.date > currentDate && day.sunrise);
+    if (nextMorning?.sunrise) cells.push(`<div><span>Sunrise</span><b>☀ ${formatOrlandoClock(nextMorning.sunrise)}</b><small>Tomorrow morning</small></div>`);
+  } else if (sunset) {
+    cells.push(`<div><span>Sunset</span><b>☀ ${formatOrlandoClock(sunset)}</b><small>Golden hour</small></div>`);
+  }
   $("hourlyTimeline").innerHTML = cells.join("");
 }
 

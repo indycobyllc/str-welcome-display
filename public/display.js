@@ -274,18 +274,34 @@ async function loadWeather() {
 }
 
 function renderHourlyTimeline(weather) {
-  const now = new Date();
-  const hours = (weather.hourly || []).filter(hour => new Date(hour.time) >= now).slice(0, 5);
-  if (!hours.length) return $("hourlyTimeline").replaceChildren();
-  const cells = hours.map((hour, index) => {
-    const date = new Date(hour.time);
-    const label = index === 0 ? "Now" : date.toLocaleTimeString("en-US", { hour: "numeric" });
-    const detail = weatherDetails(hour.weatherCode, date.getHours() >= 7 && date.getHours() < 19);
+  const currentKey = weather.updatedAt?.slice(0, 13) || orlandoHourKey();
+  const currentHour = (weather.hourly || []).find(hour => hour.time?.slice(0, 13) === currentKey)
+    || (weather.hourly || []).find(hour => hour.time?.slice(0, 13) > currentKey);
+  const futureHours = (weather.hourly || []).filter(hour => hour.time?.slice(0, 13) > currentKey).slice(0, 4);
+  const currentDetail = weatherDetails(weather.weatherCode, weather.isDay);
+  const cells = [`<div><span>Now</span><b>${currentDetail.icon} ${Math.round(weather.temperature)}°</b><small>${Math.round(currentHour?.rainChance || 0)}% rain</small></div>`];
+  cells.push(...futureHours.map(hour => {
+    const hourNumber = Number(hour.time?.slice(11, 13));
+    const label = `${hourNumber % 12 || 12} ${hourNumber < 12 ? "AM" : "PM"}`;
+    const detail = weatherDetails(hour.weatherCode, hourNumber >= 7 && hourNumber < 19);
     return `<div><span>${escapeHtml(label)}</span><b>${detail.icon} ${Math.round(hour.temperature)}°</b><small>${Math.round(hour.rainChance || 0)}% rain</small></div>`;
-  });
+  }));
   const sunset = weather.daily?.[0]?.sunset;
-  if (sunset) cells.push(`<div><span>Sunset</span><b>☀ ${new Date(sunset).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</b><small>Golden hour</small></div>`);
+  if (sunset) cells.push(`<div><span>Sunset</span><b>☀ ${formatOrlandoClock(sunset)}</b><small>Golden hour</small></div>`);
   $("hourlyTimeline").innerHTML = cells.join("");
+}
+
+function formatOrlandoClock(localTime) {
+  const [hours = 0, minutes = "00"] = String(localTime).slice(11, 16).split(":");
+  const hour = Number(hours);
+  return `${hour % 12 || 12}:${minutes} ${hour < 12 ? "AM" : "PM"}`;
+}
+
+function orlandoHourKey() {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", hourCycle:"h23", timeZone:"America/New_York"
+  }).formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}`;
 }
 
 function forecastHint(day) {

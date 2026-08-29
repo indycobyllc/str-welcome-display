@@ -718,7 +718,7 @@ function playMorningShow(settings, preview = false) {
   if (!show || show.classList.contains("playing")) return;
   let duration = Math.max(45, Number(settings.morningShowDuration) || 75);
   const hasVideoReel = Boolean(show.querySelector(".video-shot video"));
-  if (hasVideoReel) duration = 47;
+  if (hasVideoReel) duration = 42.25;
   const ropeSeconds = hasVideoReel ? 8 : Math.min(10, duration * .14);
   const finaleSeconds = hasVideoReel ? 12 : Math.min(14, duration * .19);
   const reelSeconds = duration - ropeSeconds - finaleSeconds;
@@ -742,13 +742,18 @@ function playMorningShow(settings, preview = false) {
     show.querySelector('[data-morning-scene="reel"]').classList.add("active");
     const cardTime = reelSeconds * 1000 / reelCards.length;
     reelCards.forEach((card, index) => morningShowTimers.push(setTimeout(() => {
-      reelCards.forEach(item => { item.classList.remove("active"); const video = item.querySelector("video"); if (video) video.pause(); });
+      const outgoing = reelCards.find(item => item.classList.contains("active"));
+      if (outgoing && outgoing !== card) {
+        outgoing.classList.add("leaving"); outgoing.classList.remove("active");
+        morningShowTimers.push(setTimeout(() => { outgoing.classList.remove("leaving"); const oldVideo = outgoing.querySelector("video"); if (oldVideo) oldVideo.pause(); }, 450));
+      }
       card.classList.add("active");
       const video = card.querySelector("video");
       if (video) { video.currentTime = 0; video.play().catch(() => card.classList.add("video-fallback")); }
     }, index * cardTime)));
   }, ropeSeconds * 1000));
   morningShowTimers.push(setTimeout(() => {
+    reelCards.forEach(card => { card.classList.remove("active", "leaving"); const video = card.querySelector("video"); if (video) video.pause(); });
     show.querySelector('[data-morning-scene="reel"]').classList.remove("active");
     show.querySelector('[data-morning-scene="finale"]').classList.add("active");
   }, (duration - finaleSeconds) * 1000));

@@ -18,7 +18,8 @@ const DEFAULTS = {
   morningShowDuration: 75,
   showNightShow: true,
   nightShowTime: "20:55",
-  nightShowDuration: 65,
+  nightShowDuration: 50,
+  showFullNightSpectacular: true,
   showHomeInfo: false,
   showStoreyLake: true,
   showNearbyMap: true,
@@ -802,6 +803,9 @@ function stopNightShow() {
   show?.querySelectorAll("video").forEach(video => { video.pause(); video.currentTime = 0; });
   const music = $("nightShowMusic");
   if (music) { music.pause(); music.currentTime = 0; music.volume = 0; }
+  const feature = $("nightFeaturePlayer");
+  if (feature) feature.src = "about:blank";
+  show?.querySelectorAll("[data-night-scene]").forEach(scene => scene.classList.remove("active"));
   show?.classList.remove("playing");
   if (show) show.hidden = true;
 }
@@ -809,10 +813,10 @@ function stopNightShow() {
 function playNightShow(settings, preview = false) {
   const show = $("nightShow");
   if (!show || show.classList.contains("playing") || $("morningShow")?.classList.contains("playing")) return;
-  const duration = Math.min(120, Math.max(50, Number(settings.nightShowDuration) || 65));
-  const scenes = [...show.querySelectorAll("[data-night-scene]")];
+  const duration = Math.min(120, Math.max(50, Number(settings.nightShowDuration) || 50));
+  const scenes = ["river", "tree", "fireworks", "finale"].map(name => show.querySelector(`[data-night-scene="${name}"]`));
   const sceneStarts = [0, duration * .2, duration * .4, duration * .6];
-  scenes.forEach(scene => scene.classList.remove("active")); scenes[0].classList.add("active");
+  show.querySelectorAll("[data-night-scene]").forEach(scene => scene.classList.remove("active")); scenes[0].classList.add("active");
   const guest = settings.guestName && settings.guestName !== "Welcome!" ? settings.guestName : "Orlando";
   $("nightGuestLine").textContent = guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`;
   const today = calendarDate(new Date().toLocaleDateString("en-CA", { timeZone:"America/New_York" }));
@@ -834,7 +838,19 @@ function playNightShow(settings, preview = false) {
     const video = scene.querySelector("video");
     if (video) { video.currentTime = 0; video.play().catch(() => {}); }
   }, sceneStarts[index + 1] * 1000)));
-  nightShowTimers.push(setTimeout(stopNightShow, duration * 1000));
+  nightShowTimers.push(setTimeout(() => {
+    if (!settings.showFullNightSpectacular) return stopNightShow();
+    scenes.forEach(scene => scene.classList.remove("active"));
+    const featureStage = show.querySelector('[data-night-scene="feature"]');
+    featureStage.classList.add("active");
+    const feature = $("nightFeaturePlayer");
+    feature.src = "https://www.youtube-nocookie.com/embed/ypp4iuJUW2I?autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1";
+    nightShowTimers.push(setTimeout(() => {
+      feature.src = "about:blank"; featureStage.classList.remove("active");
+      show.querySelector('[data-night-scene="postlude"]').classList.add("active");
+      nightShowTimers.push(setTimeout(stopNightShow, 12000));
+    }, 1385000));
+  }, duration * 1000));
   if (!preview) try { localStorage.setItem(`str-night-show-${orlandoClockParts().date}`, "played"); } catch {}
 }
 

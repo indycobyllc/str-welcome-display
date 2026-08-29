@@ -5,6 +5,7 @@ const FIELDS = [
   "artworkIntensity", "transitionStyle", "lgSignageOptimized"
   , "showMorningShow", "morningShowTime", "morningShowDuration"
   , "showNightShow", "nightShowTime", "nightShowDuration"
+  , "showFullNightSpectacular"
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"

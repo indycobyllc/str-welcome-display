@@ -2,7 +2,7 @@ const FIELDS = [
   "guestName", "occasion", "welcomeMessage", "checkIn", "checkOut", "theme",
   "wifiName", "wifiPassword", "slideSeconds", "showWelcome", "showEvents",
   "showForecast", "showClock", "showArrival", "parkOrder", "motionIntensity",
-  "artworkIntensity", "transitionStyle"
+  "artworkIntensity", "transitionStyle", "lgSignageOptimized"
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"
@@ -345,6 +345,12 @@ $("copyDisplayUrlButton").addEventListener("click", async () => {
   if (!$("secureDisplayUrl").value) return setStatus("Load current settings first.", "error");
   try { await navigator.clipboard.writeText($("secureDisplayUrl").value); setStatus("Secure OptiSigns URL copied.", "success"); }
   catch { $("secureDisplayUrl").select(); setStatus("Copy the selected secure URL and paste it into OptiSigns.", "success"); }
+});
+$("openDiagnosticsButton").addEventListener("click", () => {
+  if (!$("secureDisplayUrl").value) return setStatus("Load current settings first.", "error");
+  const url = new URL($("secureDisplayUrl").value);
+  url.searchParams.set("diagnostics", "1");
+  window.open(url.href, "_blank", "noopener");
 });
 $("rotateDisplayUrlButton").addEventListener("click", async () => {
   if (!confirm("Rotate TV access? The current OptiSigns URL will stop working immediately and must be replaced with the new URL.")) return;

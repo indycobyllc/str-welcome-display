@@ -74,6 +74,7 @@ Day Trip|Blowing Rocks Preserve|At rough high tide, Atlantic waves burst dramati
   motionIntensity: "full",
   artworkIntensity: 80,
   transitionStyle: "auto"
+  , lgSignageOptimized: true
 };
 
 const PARKS = [
@@ -222,6 +223,7 @@ function sanitize(input) {
     motionIntensity: ["full", "reduced", "still"].includes(input.motionIntensity) ? input.motionIntensity : "full",
     artworkIntensity: Math.min(100, Math.max(20, Number(input.artworkIntensity) || 80)),
     transitionStyle: ["auto", "fade", "cinematic", "quick-wipe"].includes(input.transitionStyle) ? input.transitionStyle : "auto"
+    , lgSignageOptimized: bool(input.lgSignageOptimized)
   };
 }
 

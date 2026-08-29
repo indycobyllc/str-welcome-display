@@ -39,6 +39,7 @@ const DEFAULTS = {
   motionIntensity: "full",
   artworkIntensity: 80,
   transitionStyle: "auto"
+  , lgSignageOptimized: true
 };
 
 const $ = (id) => document.getElementById(id);
@@ -475,6 +476,7 @@ function applySettings(s) {
   $("display").dataset.atmosphere = selectedTheme === "epcot-dynamic" ? resolveEpcotAtmosphere() : "";
   $("display").dataset.celebrationType = s.celebrationType || "birthday";
   $("display").dataset.motion = s.motionIntensity;
+  $("display").dataset.signage = s.lgSignageOptimized ? "lg43" : "standard";
   const themedTransition = /star-wars|iron-man|space-coast/.test(activeTheme) ? "wipe" : /harry|wizard|princess|classic-theme-park/.test(activeTheme) ? "spark" : /spider/.test(activeTheme) ? "web" : /christmas/.test(activeTheme) ? "snow" : /aurora|florida-storm|everglades/.test(activeTheme) ? "curtain" : "cinematic";
   $("display").dataset.transition = s.transitionStyle === "auto" ? themedTransition : s.transitionStyle;
   $("display").style.setProperty("--art-opacity", String((Number(s.artworkIntensity) || 80) / 100));
@@ -543,6 +545,20 @@ function applySettings(s) {
   applyReviewMoment(s, todayValue, checkOut);
   $("currentTime").parentElement.hidden = !s.showClock;
   applyStaySummary(s.checkIn, s.checkOut);
+  renderDiagnostics(s);
+}
+
+function renderDiagnostics(settings) {
+  const panel = $("displayDiagnostics");
+  if (!panel) return;
+  const visible = new URLSearchParams(location.search).get("diagnostics") === "1";
+  panel.hidden = !visible;
+  if (!visible) return;
+  const screenSize = `${screen.width}×${screen.height}`;
+  const viewport = `${window.innerWidth}×${window.innerHeight}`;
+  const ratio = (window.innerWidth / Math.max(1, window.innerHeight)).toFixed(3);
+  const engine = /Web0S|webOS/i.test(navigator.userAgent) ? "LG webOS" : /Android/i.test(navigator.userAgent) ? "Android" : "Browser";
+  panel.innerHTML = `<strong>TV diagnostics</strong><span>Viewport <b>${viewport}</b></span><span>Screen <b>${screenSize}</b></span><span>Pixel ratio <b>${window.devicePixelRatio || 1}</b></span><span>Aspect <b>${ratio}</b></span><span>Engine <b>${engine}</b></span><span>LG optimization <b>${settings.lgSignageOptimized ? "ON" : "OFF"}</b></span><small>${escapeHtml(navigator.userAgent.slice(0, 150))}</small>`;
 }
 
 function resolveDynamicTheme() {
@@ -760,6 +776,7 @@ setInterval(updateClock, 30 * 1000);
 refreshAll();
 setInterval(refreshAll, 5 * 60 * 1000);
 window.addEventListener("online", refreshAll);
+window.addEventListener("resize", () => renderDiagnostics(currentSettings));
 window.addEventListener("offline", () => setOffline(true));
 setInterval(() => {
   const x = Math.round(Math.random() * 4 - 2);

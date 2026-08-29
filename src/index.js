@@ -50,15 +50,15 @@ Food|Teak Neighborhood Grill|Come for the handcrafted burgers—and ask your ser
 Food|Willie's Pinchos|Puerto Rican pinchos, mofongo, loaded fries and bold comfort food.|https://williespinchos.com/|Worth the drive|
 Food|The Edison|A Roaring '20s power-plant atmosphere that is best for a themed night out at Disney Springs.|https://www.theedisonfla.com/|Close by|
 Treats|Gideon's Bakehouse|Nearly half-pound cookies and rotating cake slices; expect a queue at Disney Springs.|https://gideonsbakehouse.com/locations/|Close by|
-Treats|The Dolly Llama|Build an over-the-top combination of waffles, ice cream, sauces and toppings.|https://www.thedollyllamaflorida.com/|Worth the drive|
+Treats|The Dolly Llama|Get a bubble waffle and build it with ice cream, sauces and toppings.|https://www.thedollyllamaflorida.com/|Worth the drive|
 Treats|The Glass Knife|Beautiful cakes, pastries, donuts and brunch in Winter Park.|https://theglassknife.com/|Worth the drive|
 Treats|Better Than Sex|An adults-only dessert experience made for date night or an anniversary.|https://www.betterthansexdesserts.com/|Worth the drive|
 Treats|Salt & Straw|Creative small-batch flavors make this a fun Disney Springs finale.|https://saltandstraw.com/pages/disney-springs|Close by|
 Entertainment|Andretti Indoor Karting|Electric karting, bowling, laser tag, VR and arcade games under one roof.|https://andrettikarting.com/orlando/attractions|Worth the drive|
 Entertainment|SAK Comedy Lab|Audience-driven live improv with the spontaneous energy of Whose Line Is It Anyway?|https://www.sakcomedylab.com/|Worth the drive|
 Entertainment|Orlando Science Center|A strong rainy-day choice for hands-on science, dinosaurs and family discovery.|https://www.osc.org/|Worth the drive|
-Entertainment|Orlando Cat Café|Reserve time for coffee and a room full of adoptable cats.|https://www.orlandocatcafe.com/|Worth the drive|
-Entertainment|Titanic: The Artifact Exhibition|Artifacts, recreated rooms and costumed storytelling create an immersive indoor outing.|https://titanicorlando.com/|Worth the drive|
+Entertainment|Orlando Cat Café|Coffee and time with adoptable cats about four miles west of Animal Kingdom—reserve the cat play area ahead.|https://www.orlandocatcafe.com/|Worth the drive|
+Entertainment|Titanic: The Artifact Exhibition|Authentic artifacts, recreated rooms and guided storytelling make this a memorable indoor escape.|https://rmstitanicinc.com/exhibitions/titanic-orlando/|Worth the drive|
 Nature|Bok Tower Gardens|A peaceful garden escape centered on the historic Singing Tower and carillon.|https://boktowergardens.org/|Half-day trip|
 Nature|King's Landing · Emerald Cut|Paddle through one of Central Florida's clearest and most beautiful spring runs.|https://www.kingslandingfl.com/|Half-day trip|
 Nature|Kelly Park · Rock Springs|A classic Florida spring day with tubing and cool clear water.|https://www.ocfl.net/cultureparks/parks.aspx?m=dtlvw&d=22|Half-day trip|
@@ -66,7 +66,10 @@ Nature|Brevard Zoo Kayaking|A rare chance to kayak around animal habitats; kayak
 Nature|Mead Botanical Garden|A free, relaxed garden walk in Winter Park with trails, wetlands and birdlife.|https://meadgarden.org/|Worth the drive|
 Day Trip|Devil's Den Spring|Snorkel inside a prehistoric underground spring; reservations are required.|https://devilsden.com/|Full-day trip|
 Day Trip|Kennedy Space Center|Real spacecraft, astronaut history and an unforgettable Space Coast day.|https://www.kennedyspacecenter.com/|Full-day trip|
-Day Trip|Blowing Rocks Preserve|At rough high tide, Atlantic waves burst dramatically through the limestone shoreline.|https://www.nature.org/en-us/get-involved/how-to-help/places-we-protect/blowing-rocks-preserve/|Full-day trip|`,
+Day Trip|Blowing Rocks Preserve|At rough high tide, Atlantic waves burst dramatically through the limestone shoreline.|https://www.nature.org/en-us/get-involved/how-to-help/places-we-protect/blowing-rocks-preserve/|Full-day trip|
+Food|Portillo's Kissimmee|Chicago-style hot dogs, Italian beef and a chocolate cake shake in a fun Route 66 garage setting.|https://locations.portillos.com/kissimmee|Close by|
+Treats|Twistee Treat|Classic Florida soft serve from the unmistakable giant ice-cream-cone stand.|https://twisteetreat.com/locations/|Close by|
+Food|Yellow Dog Eats|A quirky local barbecue favorite in Gotha—get the pulled pork nachos.|https://yellowdogeats.com/|Worth the drive|`,
   reviewUrl: "",
   rebookUrl: "",
   reviewMessage: "Thank you for staying with us. If you enjoyed your visit, we would be grateful if you shared your experience.",
@@ -262,6 +265,14 @@ function settingsWithDefaults(stored) {
     if (missingNearbyRows.length) merged.nearbyFavorites = `${String(merged.nearbyFavorites).trim()}\n${missingNearbyRows.join("\n")}`;
   }
   if (!stored?.localFavorites || /Add a favorite (breakfast|dinner|dessert) spot/i.test(stored.localFavorites)) merged.localFavorites = DEFAULTS.localFavorites;
+  else {
+    const requestedRows = DEFAULTS.localFavorites.split("\n").filter(row => REQUESTED_LOCAL_PLACE_NAMES.has(row.split("|")[1]?.trim()));
+    const requestedByName = new Map(requestedRows.map(row => [row.split("|")[1]?.trim(), row]));
+    const savedRows = String(merged.localFavorites).split("\n").map(row => requestedByName.get(row.split("|")[1]?.trim()) || row);
+    const savedNames = new Set(savedRows.map(row => row.split("|")[1]?.trim()));
+    const missingRows = requestedRows.filter(row => !savedNames.has(row.split("|")[1]?.trim()));
+    merged.localFavorites = [...savedRows, ...missingRows].join("\n").trim();
+  }
   merged.nearbyFavorites = verifiedPlaceRows(merged.nearbyFavorites);
   merged.localFavorites = verifiedPlaceRows(merged.localFavorites);
   if (!Array.isArray(stored?.pageOrder)) merged.pageOrder = [...DEFAULTS.pageOrder];
@@ -277,7 +288,13 @@ const VERIFIED_PLACE_NAMES = new Set([
   "Walmart Supercenter", "Publix · Sunrise City Plaza", "Super Target", "King O Falafel", "Sabor Brasil", "Tropico Mofongo",
   "Miller's Ale House", "Zuru Ramen & Hibachi", "Taco Bell", "Cracker Barrel", "Wawa", "Applebee's",
   "Se7en Bites", "Beefy King", "Lazy Moon Pizza", "Andretti Indoor Karting", "Orlando Science Center", "Bok Tower Gardens",
-  "King's Landing · Emerald Cut", "Devil's Den Spring", "Kennedy Space Center", "Blowing Rocks Preserve"
+  "King's Landing · Emerald Cut", "Devil's Den Spring", "Kennedy Space Center", "Blowing Rocks Preserve",
+  "Teak Neighborhood Grill", "Gideon's Bakehouse", "The Dolly Llama", "Orlando Cat Café", "Titanic: The Artifact Exhibition",
+  "SAK Comedy Lab", "Portillo's Kissimmee", "Twistee Treat", "Yellow Dog Eats"
+]);
+const REQUESTED_LOCAL_PLACE_NAMES = new Set([
+  "Teak Neighborhood Grill", "Gideon's Bakehouse", "The Dolly Llama", "Orlando Cat Café", "Titanic: The Artifact Exhibition",
+  "SAK Comedy Lab", "Portillo's Kissimmee", "Twistee Treat", "Yellow Dog Eats"
 ]);
 const UNVERIFIED_DEFAULT_PLACE_NAMES = new Set([
   "Publix · Sunrise City Plaza", "Super Target", "Miller's Ale House", "Wawa", "Tropico Mofongo", "Cracker Barrel",

@@ -171,7 +171,10 @@ const PLACE_ASSETS = {
   "Beefy King":"beefy-king.jpg", "Lazy Moon Pizza":"lazy-moon.jpg", "Andretti Indoor Karting":"andretti.jpg",
   "Orlando Science Center":"orlando-science-center.jpg", "Bok Tower Gardens":"bok-tower-gardens.jpg",
   "King's Landing · Emerald Cut":"kings-landing.jpg",
-  "Devil's Den Spring":"devils-den.jpg", "Kennedy Space Center":"kennedy-space-center.jpg", "Blowing Rocks Preserve":"blowing-rocks.jpg"
+  "Devil's Den Spring":"devils-den.jpg", "Kennedy Space Center":"kennedy-space-center.jpg", "Blowing Rocks Preserve":"blowing-rocks.jpg",
+  "Teak Neighborhood Grill":"teak-neighborhood-grill.jpg", "Gideon's Bakehouse":"gideons-bakehouse.jpg", "The Dolly Llama":"dolly-llama.jpg",
+  "Orlando Cat Café":"orlando-cat-cafe.jpg", "Titanic: The Artifact Exhibition":"titanic-orlando.webp", "SAK Comedy Lab":"sak-comedy-lab.jpg",
+  "Portillo's Kissimmee":"portillos-kissimmee.jpg", "Twistee Treat":"twistee-treat.jpg", "Yellow Dog Eats":"yellow-dog-eats.jpg"
 };
 
 function placeAsset(name = "") { return `/assets/places/${PLACE_ASSETS[name] || ""}`; }

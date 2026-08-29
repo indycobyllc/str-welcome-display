@@ -718,11 +718,11 @@ function playMorningShow(settings, preview = false) {
   if (!show || show.classList.contains("playing")) return;
   let duration = Math.max(45, Number(settings.morningShowDuration) || 75);
   const hasVideoReel = Boolean(show.querySelector(".video-shot video"));
-  if (hasVideoReel) duration = 42.25;
-  const ropeSeconds = hasVideoReel ? 8 : Math.min(10, duration * .14);
-  const finaleSeconds = hasVideoReel ? 12 : Math.min(14, duration * .19);
-  const reelSeconds = duration - ropeSeconds - finaleSeconds;
   const reelCards = [...show.querySelectorAll("[data-reel]")];
+  const reelMilliseconds = reelCards.reduce((total, card) => total + (Number(card.dataset.durationMs) || 4450), 0);
+  const ropeSeconds = hasVideoReel ? 12 : Math.min(10, duration * .14);
+  const finaleSeconds = hasVideoReel ? 12 : Math.min(14, duration * .19);
+  if (hasVideoReel) duration = ropeSeconds + (reelMilliseconds / 1000) + finaleSeconds;
   show.querySelectorAll("[data-morning-scene]").forEach(scene => scene.classList.remove("active"));
   show.querySelector('[data-morning-scene="rope"]').classList.add("active");
   reelCards.forEach(card => card.classList.remove("active"));
@@ -736,12 +736,13 @@ function playMorningShow(settings, preview = false) {
   if (hasVideoReel) show.querySelectorAll("video").forEach(video => video.load());
   show.hidden = false;
   requestAnimationFrame(() => show.classList.add("playing"));
-  [1, 2].forEach(step => morningShowTimers.push(setTimeout(() => { $("ropeDropCount").textContent = String(3 - step); }, step * 1000)));
+  [0, 1, 2].forEach(step => morningShowTimers.push(setTimeout(() => { $("ropeDropCount").textContent = String(3 - step); }, (ropeSeconds - 4 + step) * 1000)));
   morningShowTimers.push(setTimeout(() => {
     show.querySelector('[data-morning-scene="rope"]').classList.remove("active");
     show.querySelector('[data-morning-scene="reel"]').classList.add("active");
-    const cardTime = reelSeconds * 1000 / reelCards.length;
-    reelCards.forEach((card, index) => morningShowTimers.push(setTimeout(() => {
+    let cardOffset = 0;
+    reelCards.forEach(card => {
+      morningShowTimers.push(setTimeout(() => {
       const outgoing = reelCards.find(item => item.classList.contains("active"));
       if (outgoing && outgoing !== card) {
         outgoing.classList.add("leaving"); outgoing.classList.remove("active");
@@ -750,7 +751,9 @@ function playMorningShow(settings, preview = false) {
       card.classList.add("active");
       const video = card.querySelector("video");
       if (video) { video.currentTime = 0; video.play().catch(() => card.classList.add("video-fallback")); }
-    }, index * cardTime)));
+      }, cardOffset));
+      cardOffset += Number(card.dataset.durationMs) || 4450;
+    });
   }, ropeSeconds * 1000));
   morningShowTimers.push(setTimeout(() => {
     reelCards.forEach(card => { card.classList.remove("active", "leaving"); const video = card.querySelector("video"); if (video) video.pause(); });

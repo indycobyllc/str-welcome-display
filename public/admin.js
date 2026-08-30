@@ -12,6 +12,11 @@ const FIELDS = [
   , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationName", "celebrationMessage"
 ];
 const $ = id => document.getElementById(id);
+function cleanGuestName(value) {
+  return String(value || "").trim()
+    .replace(/^welcome(?:\s+to\s+your\s+orlando\s+vacation)?[\s,!:\-–—]*/i, "")
+    .replace(/^the\s+/i, "").replace(/[!.]+$/g, "").trim();
+}
 const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites"];
 const DURATION_PAGES = [...SCHEDULE_PAGES, "celebration", "review"];
 const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", nearbyEasy:"Nearby & easy", localFavorites:"Local favorites" };
@@ -95,7 +100,7 @@ function syncPlaceEditors() {
 
 function editStay(stay = {}) {
   $("stayId").value = stay.id || "";
-  $("stayGuestName").value = stay.guestName || "";
+  $("stayGuestName").value = cleanGuestName(stay.guestName);
   $("stayCheckIn").value = stay.checkIn || "";
   $("stayCheckOut").value = stay.checkOut || "";
   $("stayWelcomeMessage").value = stay.welcomeMessage || "Your adventure begins here!";
@@ -113,7 +118,7 @@ function editStay(stay = {}) {
 
 function collectStay() {
   const celebrationType = $("stayCelebrationType").value;
-  return { id:$("stayId").value, guestName:$("stayGuestName").value.trim(), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
+  return { id:$("stayId").value, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
 }
 
 async function loadStays() {
@@ -180,9 +185,7 @@ function apply(settings) {
   const savedOrder = Array.isArray(settings.pageOrder) ? settings.pageOrder.filter(page => DEFAULT_PAGE_ORDER.includes(page)) : [];
   pageOrder = [...new Set([...savedOrder, ...DEFAULT_PAGE_ORDER])];
   renderPageOrder();
-  if (settings.guestName === "Welcome to Your Orlando Vacation!") {
-    $("guestName").value = "Welcome!";
-  }
+  $("guestName").value = cleanGuestName(settings.guestName);
   updateThemeGallery();
   loadPlaceEditors();
   renderRotationPreview();
@@ -203,6 +206,7 @@ function collect() {
   }]));
   result.pageDurations = Object.fromEntries(DURATION_PAGES.map(page => [page, Number($(`duration-${page}`)?.value) || Number(result.slideSeconds) || 18]));
   result.pageOrder = [...pageOrder];
+  result.guestName = cleanGuestName(result.guestName);
   return result;
 }
 

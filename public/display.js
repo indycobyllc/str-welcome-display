@@ -49,6 +49,17 @@ const DEFAULTS = {
   , lgSignageOptimized: true
 };
 
+function guestAddressName(value) {
+  return String(value || "").trim()
+    .replace(/^welcome(?:\s+to\s+your\s+orlando\s+vacation)?[\s,!:\-–—]*/i, "")
+    .replace(/^the\s+/i, "").replace(/[!.]+$/g, "").trim();
+}
+
+function guestWelcomeHeadline(value) {
+  const name = guestAddressName(value);
+  return name ? `Welcome, ${name}!` : "Welcome!";
+}
+
 const $ = (id) => document.getElementById(id);
 let currentWeather = null;
 let currentParks = null;
@@ -505,10 +516,10 @@ function applySettings(s) {
     return;
   }
   applyLanguage(s.language);
-  const legacyWelcome = "Welcome to Your Orlando Vacation!";
-  const guest = !s.guestName || s.guestName === legacyWelcome ? "Welcome!" : s.guestName;
-  $("guestName").textContent = guest;
-  $("arrivalGuest").textContent = guest;
+  const guest = guestAddressName(s.guestName);
+  const welcomeHeadline = guestWelcomeHeadline(s.guestName);
+  $("guestName").textContent = welcomeHeadline;
+  $("arrivalGuest").textContent = welcomeHeadline;
   $("occasion").textContent = s.occasion || "";
   $("occasion").hidden = !s.occasion;
   $("welcomeMessage").textContent = s.welcomeMessage || "";
@@ -539,7 +550,7 @@ function applySettings(s) {
   $("welcomeEyebrowText").textContent = eyebrow;
   $("vacationDayline").textContent = dayline;
   $("arrivalMessage").textContent = s.occasion || "The adventure is waiting.";
-  $("arrivalGuest").textContent = guest;
+  $("arrivalGuest").textContent = welcomeHeadline;
   document.querySelector(".arrival-slide").hidden = !(s.showArrival && s.checkIn === today);
   document.querySelector(".welcome-slide").hidden = !scheduledPageVisible(s.showWelcome, "welcome", s, todayValue, checkIn, checkOut);
   document.querySelector(".parks-slide").hidden = !scheduledPageVisible(s.showEvents, "events", s, todayValue, checkIn, checkOut);
@@ -734,7 +745,7 @@ function playMorningShow(settings, preview = false) {
   show.querySelector('[data-morning-scene="rope"]').classList.add("active");
   reelCards.forEach(card => card.classList.remove("active"));
   $("ropeDropCount").textContent = "3";
-  const guest = settings.guestName && settings.guestName !== "Welcome!" ? settings.guestName : "Your day starts now";
+  const guest = guestAddressName(settings.guestName) || "Your day starts now";
   $("morningGuestName").textContent = guest === "Your day starts now" ? guest : `Let’s go, ${guest}!`;
   const today = currentWeather?.daily?.[0];
   $("morningWeatherLine").textContent = currentWeather ? `${Math.round(currentWeather.temperature)}° now · High ${Math.round(today?.high ?? currentWeather.temperature)}° · ${Math.round(today?.rainChance || 0)}% chance of rain` : "Sunshine, thrills and unforgettable moments are waiting.";
@@ -817,7 +828,7 @@ function playNightShow(settings, preview = false) {
   const scenes = ["river", "tree", "fireworks", "finale"].map(name => show.querySelector(`[data-night-scene="${name}"]`));
   const sceneStarts = [0, duration * .2, duration * .4, duration * .6];
   show.querySelectorAll("[data-night-scene]").forEach(scene => scene.classList.remove("active")); scenes[0].classList.add("active");
-  const guest = settings.guestName && settings.guestName !== "Welcome!" ? settings.guestName : "Orlando";
+  const guest = guestAddressName(settings.guestName) || "Orlando";
   $("nightGuestLine").textContent = guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`;
   const today = calendarDate(new Date().toLocaleDateString("en-CA", { timeZone:"America/New_York" }));
   const checkin = calendarDate(settings.checkIn);

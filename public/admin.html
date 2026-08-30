@@ -41,7 +41,7 @@
       <div id="stayEditor" class="stay-editor" hidden>
         <input id="stayId" type="hidden">
         <div class="form-grid">
-          <label>Guest name<input id="stayGuestName" maxlength="80" placeholder="The Thompson Family"></label>
+          <label>Guest or family name <small>Name only—greetings are written automatically</small><input id="stayGuestName" maxlength="80" placeholder="Thompson Family"></label>
           <label>Language<select id="stayLanguage"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="de">Deutsch</option></select></label>
           <label>Check-in<input id="stayCheckIn" type="date"></label><label>Checkout<input id="stayCheckOut" type="date"></label>
           <label class="wide">Welcome message<input id="stayWelcomeMessage" maxlength="160" placeholder="Your adventure begins here!"></label>
@@ -61,8 +61,8 @@
       <p class="admin-section-intro">Controls the large welcome area on the left side of the first screen.</p>
       <div class="form-grid">
         <label>
-          Guest name <small>Large headline</small>
-          <input id="guestName" maxlength="80" placeholder="The Thompson Family">
+          Guest or family name <small>Enter the name only; the display builds each greeting</small>
+          <input id="guestName" maxlength="80" placeholder="Thompson Family">
         </label>
         <label>
           Special occasion <small>Highlighted below the name</small>

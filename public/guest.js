@@ -121,7 +121,8 @@ async function load() {
   if (initialized) return;
   const [weatherResponse, parksResponse] = await Promise.all([fetch("/api/weather", { cache:"no-store" }), fetch("/api/parks", { cache:"no-store" })]);
   const weather = await weatherResponse.json().catch(() => ({})), parks = await parksResponse.json().catch(() => ({}));
-  $("guestTitle").textContent = settings.guestName || "Welcome!";
+  const guestName = String(settings.guestName || "").trim().replace(/^welcome(?:\s+to\s+your\s+orlando\s+vacation)?[\s,!:\-–—]*/i, "").replace(/^the\s+/i, "").replace(/[!.]+$/g, "").trim();
+  $("guestTitle").textContent = guestName ? `Welcome, ${guestName}!` : "Welcome!";
   $("guestDates").textContent = settings.checkIn && settings.checkOut ? `${dateText(settings.checkIn)} – ${dateText(settings.checkOut)}` : "Your mobile vacation companion";
   $("guestWifi").textContent = settings.wifiName || "Guest Wi-Fi";
   $("homeDirections").href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(settings.propertyAddress)}`;

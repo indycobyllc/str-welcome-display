@@ -824,10 +824,7 @@ function stopNightShow() {
 function playNightShow(settings, preview = false) {
   const show = $("nightShow");
   if (!show || show.classList.contains("playing") || $("morningShow")?.classList.contains("playing")) return;
-  const duration = Math.min(120, Math.max(50, Number(settings.nightShowDuration) || 50));
-  const scenes = ["river", "tree", "fireworks", "finale"].map(name => show.querySelector(`[data-night-scene="${name}"]`));
-  const sceneStarts = [0, duration * .2, duration * .4, duration * .6];
-  show.querySelectorAll("[data-night-scene]").forEach(scene => scene.classList.remove("active")); scenes[0].classList.add("active");
+  let duration = Math.min(120, Math.max(50, Number(settings.nightShowDuration) || 50));
   const guest = guestAddressName(settings.guestName) || "Orlando";
   $("nightGuestLine").textContent = guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`;
   const today = calendarDate(new Date().toLocaleDateString("en-CA", { timeZone:"America/New_York" }));
@@ -842,6 +839,10 @@ function playNightShow(settings, preview = false) {
     4:{ id:"Fb7uwyGj4OE", title:"Luminous: The Symphony of Us", start:0, seconds:1239, muted:false, instructions:"Enjoy tonight’s EPCOT presentation with sound." }
   };
   const presentation = settings.showFullNightSpectacular ? presentations[rotationNight] : null;
+  if (!presentation) duration = Math.max(75, duration);
+  const scenes = ["river", "tree", "fireworks", "finale"].map(name => show.querySelector(`[data-night-scene="${name}"]`));
+  const sceneStarts = presentation ? [0, duration * .2, duration * .4, duration * .6] : [0, duration * .16, duration * .32, duration * .48];
+  show.querySelectorAll("[data-night-scene]").forEach(scene => scene.classList.remove("active")); scenes[0].classList.add("active");
   show.classList.toggle("spoiler-free", !presentation);
   $("nightFeatureKicker").textContent = presentation ? `Vacation night ${stayNight} · Tonight’s feature` : "A little nighttime magic, just for you";
   $("nightFeatureTitle").textContent = presentation?.title || (guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`);

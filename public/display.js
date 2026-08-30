@@ -844,12 +844,12 @@ function playNightShow(settings, preview = false) {
     const featureStage = show.querySelector('[data-night-scene="feature"]');
     featureStage.classList.add("active");
     const feature = $("nightFeaturePlayer");
-    feature.src = "https://www.youtube-nocookie.com/embed/ypp4iuJUW2I?autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1";
+    feature.src = "https://www.youtube-nocookie.com/embed/ypp4iuJUW2I?autoplay=1&mute=1&start=11&controls=0&rel=0&modestbranding=1&playsinline=1";
     nightShowTimers.push(setTimeout(() => {
       feature.src = "about:blank"; featureStage.classList.remove("active");
       show.querySelector('[data-night-scene="postlude"]').classList.add("active");
       nightShowTimers.push(setTimeout(stopNightShow, 12000));
-    }, 1385000));
+    }, 1372000));
   }, duration * 1000));
   if (!preview) try { localStorage.setItem(`str-night-show-${orlandoClockParts().date}`, "played"); } catch {}
 }

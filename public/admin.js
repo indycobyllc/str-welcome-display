@@ -329,7 +329,7 @@ $("previewMorningShow")?.addEventListener("click", () => {
 });
 $("previewNightShow")?.addEventListener("click", () => {
   try { localStorage.setItem("str-preview-draft", JSON.stringify({ savedAt: Date.now(), settings: collect() })); } catch {}
-  const params = new URLSearchParams({ previewShow:"night", previewTheme:$("theme").value });
+  const params = new URLSearchParams({ previewShow:"night", previewTheme:$("theme").value, previewNight:$("nightShowPreviewNight")?.value || "auto" });
   if (displayAccessToken) params.set("displayToken", displayAccessToken);
   window.open(`/?${params}`, "_blank", "noopener");
 });

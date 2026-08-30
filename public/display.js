@@ -806,7 +806,7 @@ function stopNightShow() {
   const feature = $("nightFeaturePlayer");
   if (feature) feature.src = "about:blank";
   show?.querySelectorAll("[data-night-scene]").forEach(scene => scene.classList.remove("active"));
-  show?.classList.remove("playing");
+  show?.classList.remove("playing", "spoiler-free");
   if (show) show.hidden = true;
 }
 
@@ -820,7 +820,21 @@ function playNightShow(settings, preview = false) {
   const guest = settings.guestName && settings.guestName !== "Welcome!" ? settings.guestName : "Orlando";
   $("nightGuestLine").textContent = guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`;
   const today = calendarDate(new Date().toLocaleDateString("en-CA", { timeZone:"America/New_York" }));
+  const checkin = calendarDate(settings.checkIn);
   const checkout = calendarDate(settings.checkOut);
+  const previewNight = Number(new URLSearchParams(location.search).get("previewNight"));
+  const stayNight = preview && previewNight > 0 ? previewNight : checkin && today ? Math.max(1, Math.floor((today - checkin) / 86400000) + 1) : 1;
+  const rotationNight = ((stayNight - 1) % 4) + 1;
+  const presentations = {
+    2:{ id:"ypp4iuJUW2I", title:"Happily Ever After", start:11, seconds:1370, muted:true, instructions:"Muted presentation · Open your favorite music app and play “Happily Ever After” when the show begins." },
+    3:{ id:"gJ7MkFUA4VA", title:"Fantasmic!", start:0, seconds:1772, muted:true, instructions:"This presentation will play without sound." },
+    4:{ id:"Fb7uwyGj4OE", title:"Luminous: The Symphony of Us", start:0, seconds:1239, muted:false, instructions:"Enjoy tonight’s EPCOT presentation with sound." }
+  };
+  const presentation = settings.showFullNightSpectacular ? presentations[rotationNight] : null;
+  show.classList.toggle("spoiler-free", !presentation);
+  $("nightFeatureKicker").textContent = presentation ? `Vacation night ${stayNight} · Tonight’s feature` : "A little nighttime magic, just for you";
+  $("nightFeatureTitle").textContent = presentation?.title || (guest === "Orlando" ? "Good night, Orlando." : `Good night, ${guest}.`);
+  $("nightFeatureInstructions").textContent = presentation?.instructions || "Rest well. Tomorrow holds another adventure.";
   const remaining = checkout && today ? Math.max(0, Math.ceil((checkout - today) / 86400000)) : null;
   $("nightStayLine").textContent = remaining === 0 ? "Until next time" : remaining === 1 ? "One more vacation day awaits" : Number.isFinite(remaining) ? `${remaining} vacation days still ahead` : "What a day";
   show.hidden = false; requestAnimationFrame(() => show.classList.add("playing"));
@@ -839,17 +853,18 @@ function playNightShow(settings, preview = false) {
     if (video) { video.currentTime = 0; video.play().catch(() => {}); }
   }, sceneStarts[index + 1] * 1000)));
   nightShowTimers.push(setTimeout(() => {
-    if (!settings.showFullNightSpectacular) return stopNightShow();
+    if (!presentation) return nightShowTimers.push(setTimeout(stopNightShow, 5000));
     scenes.forEach(scene => scene.classList.remove("active"));
     const featureStage = show.querySelector('[data-night-scene="feature"]');
     featureStage.classList.add("active");
     const feature = $("nightFeaturePlayer");
-    feature.src = "https://www.youtube-nocookie.com/embed/ypp4iuJUW2I?autoplay=1&mute=1&start=11&controls=0&rel=0&modestbranding=1&playsinline=1";
+    feature.title = `${presentation.title} nighttime spectacular`;
+    feature.src = `https://www.youtube-nocookie.com/embed/${presentation.id}?autoplay=1&mute=${presentation.muted ? 1 : 0}&start=${presentation.start}&controls=0&rel=0&modestbranding=1&playsinline=1`;
     nightShowTimers.push(setTimeout(() => {
       feature.src = "about:blank"; featureStage.classList.remove("active");
       show.querySelector('[data-night-scene="postlude"]').classList.add("active");
       nightShowTimers.push(setTimeout(stopNightShow, 12000));
-    }, 1372000));
+    }, (presentation.seconds + 2) * 1000));
   }, duration * 1000));
   if (!preview) try { localStorage.setItem(`str-night-show-${orlandoClockParts().date}`, "played"); } catch {}
 }

@@ -9,7 +9,7 @@ const FIELDS = [
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"
-  , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationName", "celebrationMessage"
+  , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationEndDate", "celebrationName", "celebrationMessage"
 ];
 const $ = id => document.getElementById(id);
 function cleanGuestName(value) {
@@ -109,6 +109,7 @@ function editStay(stay = {}) {
   $("stayLanguage").value = stay.language || "en";
   $("stayCelebrationType").value = stay.showCelebration ? (stay.celebrationType || "birthday") : "none";
   $("stayCelebrationDate").value = stay.celebrationDate || "";
+  $("stayCelebrationEndDate").value = stay.celebrationEndDate || "";
   $("stayCelebrationName").value = stay.celebrationName || "";
   $("stayCelebrationMessage").value = stay.celebrationMessage || "Wishing you an unforgettable day filled with magic and memories!";
   $("deleteStayButton").hidden = !stay.id;
@@ -118,7 +119,11 @@ function editStay(stay = {}) {
 
 function collectStay() {
   const celebrationType = $("stayCelebrationType").value;
-  return { id:$("stayId").value, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
+  return { id:$("stayId").value, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationEndDate:$("stayCelebrationEndDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
+}
+
+function celebrationRangeIsValid(settings) {
+  return !settings.showCelebration || !settings.celebrationEndDate || !settings.celebrationDate || settings.celebrationEndDate >= settings.celebrationDate;
 }
 
 async function loadStays() {
@@ -140,9 +145,11 @@ async function loadDisplayAccess(rotate = false) {
 
 async function saveStay() {
   if (!token()) return setStatus("Enter the admin password first.", "error");
+  const stay = collectStay();
+  if (!celebrationRangeIsValid(stay)) return setStatus("Celebration end date must be on or after its start date.", "error");
   setStatus("Saving stay…");
   try {
-    const response = await fetch("/api/admin/stays", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ action:"save", stay:collectStay() }) });
+    const response = await fetch("/api/admin/stays", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ action:"save", stay }) });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || "Unable to save stay.");
     plannedStays = body.stays || [];
@@ -235,7 +242,8 @@ async function rotationForDate(settings, dateText) {
   let regular = settings.smartRotation ? preferred.filter(page => enabled.includes(page)).slice(0, settings.maxRotationPages || 6) : enabled;
   const special = [];
   if (settings.showArrival && settings.checkIn === dateText) special.push("arrival");
-  if (settings.showCelebration && settings.celebrationDate === dateText) special.push("celebration");
+  const celebrationEndDate = settings.celebrationEndDate || settings.celebrationDate;
+  if (settings.showCelebration && settings.celebrationDate && dateText >= settings.celebrationDate && dateText <= celebrationEndDate) special.push("celebration");
   if (settings.reviewUrl && remaining <= 1 && remaining >= 0) special.push("review");
   return { pages:[...special, ...regular].sort((a,b) => settings.pageOrder.indexOf(a) - settings.pageOrder.indexOf(b)), reason, weather };
 }
@@ -291,6 +299,8 @@ async function loadSettings() {
 
 async function publish() {
   if (!token()) return setStatus("Enter the admin password first.", "error");
+  const settings = collect();
+  if (!celebrationRangeIsValid(settings)) return setStatus("Celebration end date must be on or after its start date.", "error");
   setStatus("Publishing…");
   try {
     const response = await fetch("/api/admin/settings", {
@@ -299,7 +309,7 @@ async function publish() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token()}`
       },
-      body: JSON.stringify(collect())
+      body: JSON.stringify(settings)
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || (response.status === 401 ? "Incorrect admin password." : "Unable to publish."));

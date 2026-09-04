@@ -48,7 +48,8 @@
           <label class="wide">Special occasion<input id="stayOccasion" maxlength="100" placeholder="Celebrating Emma's 8th Birthday"></label>
           <label>Theme<select id="stayTheme"></select></label>
           <label>Celebration<select id="stayCelebrationType"><option value="none">None</option><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option><option value="baby-girl">Baby Shower · It’s a Girl</option></select></label>
-          <label>Celebration date<input id="stayCelebrationDate" type="date"></label>
+          <label>Celebration starts<input id="stayCelebrationDate" type="date"></label>
+          <label>Celebration ends <small>Optional—leave blank for one day</small><input id="stayCelebrationEndDate" type="date"></label>
           <label>Celebration name(s)<input id="stayCelebrationName" maxlength="100"></label>
           <label class="wide">Celebration message<textarea id="stayCelebrationMessage" rows="2" maxlength="300"></textarea></label>
         </div>
@@ -103,11 +104,12 @@
 
     <section class="admin-card">
       <h2>Special celebration moment</h2>
-      <p class="admin-section-intro">Adds a full-screen animated celebration on the selected date. You can preview it before publishing.</p>
+      <p class="admin-section-intro">Adds a full-screen animated celebration throughout the selected date range. Leave the end date blank for a one-day moment.</p>
       <div class="admin-toggles"><label><input id="showCelebration" type="checkbox"> Enable celebration moment</label></div>
       <div class="form-grid">
         <label>Celebration type<select id="celebrationType"><option value="birthday">Birthday</option><option value="anniversary">Anniversary</option><option value="baby-girl">Baby Shower · It’s a Girl</option></select></label>
-        <label>Celebration date<input id="celebrationDate" type="date"></label>
+        <label>Celebration starts<input id="celebrationDate" type="date"></label>
+        <label>Celebration ends <small>Optional—leave blank for one day</small><input id="celebrationEndDate" type="date"></label>
         <label class="wide">Name or names <small>For example: Emma or Maria & James</small><input id="celebrationName" maxlength="100" placeholder="Emma"></label>
         <label class="wide">Celebration message<textarea id="celebrationMessage" rows="3" maxlength="300"></textarea></label>
       </div>

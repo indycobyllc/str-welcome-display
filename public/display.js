@@ -36,6 +36,7 @@ const DEFAULTS = {
   showCelebration: false,
   celebrationType: "birthday",
   celebrationDate: "",
+  celebrationEndDate: "",
   celebrationName: "",
   celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
@@ -562,7 +563,8 @@ function applySettings(s) {
   document.querySelector(".favorites-slide").hidden = !scheduledPageVisible(s.showLocalFavorites, "localFavorites", s, todayValue, checkIn, checkOut);
   applySmartRotation(s, todayValue, checkIn, checkOut);
   const celebrationPreview = new URLSearchParams(location.search).get("previewPage") === "celebration";
-  const celebrationToday = Boolean(s.celebrationDate) && s.celebrationDate === today;
+  const celebrationEndDate = s.celebrationEndDate || s.celebrationDate;
+  const celebrationToday = Boolean(s.celebrationDate) && today >= s.celebrationDate && today <= celebrationEndDate;
   document.querySelector(".celebration-slide").hidden = !(celebrationPreview || (s.showCelebration && celebrationToday));
   const celebrationWords = TRANSLATIONS[s.language] || TRANSLATIONS.en;
   const celebrationCopy = s.celebrationType === "baby-girl"

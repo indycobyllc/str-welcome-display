@@ -47,6 +47,7 @@ American|Applebee's|An easy group-friendly option for burgers, ribs, appetizers 
   showCelebration: false,
   celebrationType: "birthday",
   celebrationDate: "",
+  celebrationEndDate: "",
   celebrationName: "",
   celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
@@ -228,6 +229,7 @@ function sanitize(input) {
     showCelebration: bool(input.showCelebration, false),
     celebrationType: ["birthday", "anniversary", "baby-girl"].includes(input.celebrationType) ? input.celebrationType : "birthday",
     celebrationDate: text(input.celebrationDate, 10),
+    celebrationEndDate: text(input.celebrationEndDate, 10),
     celebrationName: text(input.celebrationName, 100),
     celebrationMessage: text(input.celebrationMessage, 300),
     homeInfo: text(input.homeInfo, 3000),
@@ -260,6 +262,7 @@ function sanitizeStay(input, existing = {}) {
     showCelebration: Boolean(input.showCelebration),
     celebrationType: clean.celebrationType,
     celebrationDate: clean.celebrationDate,
+    celebrationEndDate: clean.celebrationEndDate,
     celebrationName: clean.celebrationName,
     celebrationMessage: clean.celebrationMessage
   };

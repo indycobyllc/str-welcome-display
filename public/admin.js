@@ -9,7 +9,7 @@ const FIELDS = [
   , "smartRotation", "maxRotationPages"
   , "showHomeInfo", "showStoreyLake", "showNearbyMap", "showLocalFavorites", "propertyAddress", "homeInfo",
   "showNearbyEasy", "nearbyFavorites", "localFavorites", "reviewUrl", "rebookUrl", "reviewMessage"
-  , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationEndDate", "celebrationName", "celebrationMessage"
+  , "language", "showCelebration", "celebrationType", "celebrationDate", "celebrationEndDate", "celebrationName", "celebrationKicker", "celebrationHeadline", "celebrationMessage"
 ];
 const $ = id => document.getElementById(id);
 function cleanGuestName(value) {
@@ -111,6 +111,8 @@ function editStay(stay = {}) {
   $("stayCelebrationDate").value = stay.celebrationDate || "";
   $("stayCelebrationEndDate").value = stay.celebrationEndDate || "";
   $("stayCelebrationName").value = stay.celebrationName || "";
+  $("stayCelebrationKicker").value = stay.celebrationKicker || "";
+  $("stayCelebrationHeadline").value = stay.celebrationHeadline || "";
   $("stayCelebrationMessage").value = stay.celebrationMessage || "Wishing you an unforgettable day filled with magic and memories!";
   $("deleteStayButton").hidden = !stay.id;
   $("stayEditor").hidden = false;
@@ -119,7 +121,7 @@ function editStay(stay = {}) {
 
 function collectStay() {
   const celebrationType = $("stayCelebrationType").value;
-  return { id:$("stayId").value, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationEndDate:$("stayCelebrationEndDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
+  return { id:$("stayId").value, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationEndDate:$("stayCelebrationEndDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationKicker:$("stayCelebrationKicker").value.trim(), celebrationHeadline:$("stayCelebrationHeadline").value.trim(), celebrationMessage:$("stayCelebrationMessage").value.trim() };
 }
 
 function celebrationRangeIsValid(settings) {

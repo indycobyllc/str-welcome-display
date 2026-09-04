@@ -38,6 +38,8 @@ const DEFAULTS = {
   celebrationDate: "",
   celebrationEndDate: "",
   celebrationName: "",
+  celebrationKicker: "",
+  celebrationHeadline: "",
   celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: "Breakfast|Add a favorite breakfast spot|A great start before the parks|\nDinner|Add a favorite dinner spot|A guest-favorite evening out|\nTreats|Add a favorite dessert stop|Perfect after a long park day|",
@@ -572,10 +574,11 @@ function applySettings(s) {
     : s.celebrationType === "anniversary"
       ? { kicker:celebrationWords.anniversaryKicker || TRANSLATIONS.en.anniversaryKicker, heading:celebrationWords.anniversary || TRANSLATIONS.en.anniversary }
       : { kicker:celebrationWords.birthdayKicker || TRANSLATIONS.en.birthdayKicker, heading:celebrationWords.birthday || TRANSLATIONS.en.birthday };
-  $("celebrationKicker").textContent = celebrationCopy.kicker;
-  const celebrationHeading = celebrationCopy.heading;
+  $("celebrationKicker").textContent = s.celebrationKicker || celebrationCopy.kicker;
+  const celebrationHeading = (s.celebrationHeadline || celebrationCopy.heading).replaceAll("{name}", s.celebrationName || "");
   document.querySelector(".celebration-icon").textContent = s.celebrationType === "baby-girl" ? "♡" : "✦";
-  $("celebrationTitle").textContent = `${celebrationHeading}${s.celebrationName ? `, ${s.celebrationName}` : ""}!`;
+  const automaticName = !s.celebrationHeadline && s.celebrationName ? `, ${s.celebrationName}` : "";
+  $("celebrationTitle").textContent = `${celebrationHeading}${automaticName}${/[!?]$/.test(celebrationHeading) ? "" : "!"}`;
   const babyGirlDefault = "Celebrating a sweet little girl and the beautiful adventure ahead.";
   $("celebrationMessage").textContent = s.celebrationType === "baby-girl" && (!s.celebrationMessage || s.celebrationMessage === DEFAULTS.celebrationMessage) ? babyGirlDefault : (s.celebrationMessage || DEFAULTS.celebrationMessage);
   $("mapPropertyAddress").textContent = s.propertyAddress || DEFAULTS.propertyAddress;

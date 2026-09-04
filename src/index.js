@@ -51,6 +51,7 @@ American|Applebee's|An easy group-friendly option for burgers, ribs, appetizers 
   celebrationName: "",
   celebrationKicker: "",
   celebrationHeadline: "",
+  showCelebrationMessage: true,
   celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
   homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
   localFavorites: `Food|Se7en Bites|Southern comfort brunch and bakery favorites—go hungry and share something sweet.|https://www.se7enbites.com/|Worth the drive|
@@ -235,6 +236,7 @@ function sanitize(input) {
     celebrationName: text(input.celebrationName, 100),
     celebrationKicker: text(input.celebrationKicker, 120),
     celebrationHeadline: text(input.celebrationHeadline, 120),
+    showCelebrationMessage: bool(input.showCelebrationMessage),
     celebrationMessage: text(input.celebrationMessage, 300),
     homeInfo: text(input.homeInfo, 3000),
     nearbyFavorites: text(input.nearbyFavorites, 8000),
@@ -270,6 +272,7 @@ function sanitizeStay(input, existing = {}) {
     celebrationName: clean.celebrationName,
     celebrationKicker: clean.celebrationKicker,
     celebrationHeadline: clean.celebrationHeadline,
+    showCelebrationMessage: clean.showCelebrationMessage,
     celebrationMessage: clean.celebrationMessage
   };
 }

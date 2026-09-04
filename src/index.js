@@ -226,7 +226,7 @@ function sanitize(input) {
     maxRotationPages: Math.min(8, Math.max(3, Number(input.maxRotationPages) || 6)),
     language: ["en", "es", "fr", "pt", "de"].includes(input.language) ? input.language : "en",
     showCelebration: bool(input.showCelebration, false),
-    celebrationType: ["birthday", "anniversary"].includes(input.celebrationType) ? input.celebrationType : "birthday",
+    celebrationType: ["birthday", "anniversary", "baby-girl"].includes(input.celebrationType) ? input.celebrationType : "birthday",
     celebrationDate: text(input.celebrationDate, 10),
     celebrationName: text(input.celebrationName, 100),
     celebrationMessage: text(input.celebrationMessage, 300),

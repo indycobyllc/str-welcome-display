@@ -581,10 +581,9 @@ function applySettings(s) {
   document.querySelector(".celebration-icon").textContent = s.celebrationType === "baby-girl" ? "♡" : "✦";
   const automaticName = !customCelebrationHeadline && s.celebrationName ? `, ${s.celebrationName}` : "";
   $("celebrationTitle").textContent = customCelebrationHeadline ? customCelebrationHeadline : `${celebrationHeading}${automaticName}!`;
-  const babyGirlDefault = "Celebrating a sweet little girl and the beautiful adventure ahead.";
   const celebrationMessage = $("celebrationMessage");
-  celebrationMessage.textContent = s.celebrationType === "baby-girl" && (!s.celebrationMessage || s.celebrationMessage === DEFAULTS.celebrationMessage) ? babyGirlDefault : (s.celebrationMessage || DEFAULTS.celebrationMessage);
-  celebrationMessage.hidden = s.showCelebrationMessage === false;
+  celebrationMessage.textContent = s.celebrationMessage || "";
+  celebrationMessage.hidden = s.showCelebrationMessage === false || !s.celebrationMessage;
   $("mapPropertyAddress").textContent = s.propertyAddress || DEFAULTS.propertyAddress;
   renderGuestPages(s);
   applyReviewMoment(s, todayValue, checkOut);

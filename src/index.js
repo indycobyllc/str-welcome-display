@@ -30,7 +30,7 @@ const DEFAULTS = {
   pageDurations: {},
   smartRotation: true,
   maxRotationPages: 6,
-  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
+  pageOrder: ["arrival", "welcome", "events", "forecast", "funFact", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
   nearbyFavorites: `Groceries|Walmart Supercenter|A practical one-stop for groceries, vacation supplies, pickup and delivery.|https://www.walmart.com/store/817-kissimmee-fl/shopping-services|Close by|Delivery & pickup
 Groceries|Publix · Sunrise City Plaza|An easy grocery run with Instacart delivery when you would rather stay by the pool.|https://www.publix.com/|Close by|Delivery available
 Groceries|Super Target|Great for groceries, sunscreen, forgotten chargers and everything the family left at home.|https://www.target.com/sl/kissimmee/1918|Close by|Pickup & delivery
@@ -188,7 +188,7 @@ function sanitize(input) {
       endDay: Math.min(60, Math.max(1, Number(entry.endDay) || 60))
     }];
   }));
-  const durationPages = [...schedulePages, "celebration", "review"];
+  const durationPages = [...schedulePages, "funFact", "celebration", "review"];
   const pageDurations = Object.fromEntries(durationPages.map(page => [page,
     Math.min(120, Math.max(8, Number(input.pageDurations?.[page]) || Number(input.slideSeconds) || 18))
   ]));

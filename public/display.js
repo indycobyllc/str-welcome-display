@@ -30,7 +30,7 @@ const DEFAULTS = {
   pageDurations: {},
   smartRotation: true,
   maxRotationPages: 6,
-  pageOrder: ["arrival", "welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
+  pageOrder: ["arrival", "welcome", "events", "forecast", "funFact", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
   nearbyFavorites: "",
   language: "en",
   showCelebration: false,
@@ -65,6 +65,30 @@ function guestWelcomeHeadline(value) {
 }
 
 const $ = (id) => document.getElementById(id);
+const FUN_FACTS = [
+  ["The City Beautiful", "Orlando is home to more than 100 lakes—and Lake Eola is actually a giant sinkhole with a deepest point of about 80 feet."],
+  ["A walk around an icon", "The path circling Lake Eola is 0.9 miles long, with downtown Orlando’s skyline surrounding the water."],
+  ["Orlando’s feathered residents", "Swans first arrived at Lake Eola in 1922. Today the lake is home to five different swan species."],
+  ["A fountain with serious power", "Lake Eola’s signature fountain was designed to send roughly 6,400 gallons of water into the air each minute."],
+  ["Where the Florida story began", "Walt Disney World opened on October 1, 1971 with Magic Kingdom and two resort hotels."],
+  ["A world of tomorrow", "EPCOT originally stood for Experimental Prototype Community of Tomorrow and opened as EPCOT Center in 1982."],
+  ["A sphere with a secret", "Spaceship Earth is 165 feet in diameter, contains more than two million cubic feet of space, and stands on six legs."],
+  ["Rooms built to slide in", "The Contemporary Resort’s original guest rooms were built and furnished separately, then lifted into its A-frame structure by cranes."],
+  ["Only in Florida", "Country Bear Jamboree, The Hall of Presidents, and the Mickey Mouse Revue were original attractions unique to Walt Disney World."],
+  ["Five worlds, one universe", "Universal Epic Universe connects five immersive worlds through a central hub called Celestial Park."],
+  ["A city symbol", "The Lake Eola fountain is the official symbol of Orlando and appears at the center of the city flag."],
+  ["Pedal-powered tradition", "Orlando’s famous swan boat rides at Lake Eola date back to 1925."],
+  ["Before Lake Eola", "Early Orlando residents knew the spot that became Lake Eola as Sandy Beach—and even used it as a swimming hole."],
+  ["A park since 1888", "Lake Eola was officially recognized as a City of Orlando public park more than 135 years ago."],
+  ["Imagine the city beneath the city", "Walt Disney’s original EPCOT concept routed supply trucks and other traffic beneath the community’s pedestrian areas."]
+];
+let funFactIndex = Math.floor(Date.now() / 86400000) % FUN_FACTS.length;
+function advanceFunFact() {
+  const fact = FUN_FACTS[funFactIndex++ % FUN_FACTS.length];
+  $("funFactTitle").textContent = fact[0];
+  $("funFactText").textContent = fact[1];
+  $("funFactNumber").textContent = String(((funFactIndex - 1) % FUN_FACTS.length) + 1).padStart(2, "0");
+}
 let currentWeather = null;
 let currentParks = null;
 let currentSettings = DEFAULTS;
@@ -648,7 +672,7 @@ function applySmartRotation(s, today, checkIn, checkOut) {
   else if (hasLiveParkOpportunity) preferred = ["welcome", "events", ...preferred.filter(page => !["welcome", "events"].includes(page))];
   const selected = new Set(preferred.filter(enabled).slice(0, Number(s.maxRotationPages) || 6));
   document.querySelectorAll("[data-page-key]").forEach(slide => {
-    if (["arrival", "celebration", "review"].includes(slide.dataset.pageKey)) return;
+    if (["arrival", "funFact", "celebration", "review"].includes(slide.dataset.pageKey)) return;
     if (!slide.hidden && !selected.has(slide.dataset.pageKey)) slide.hidden = true;
   });
 }
@@ -955,6 +979,7 @@ function startSlides(seconds) {
   let index = 0;
   visibleSlides[0].classList.add("active");
   updatePageTitle(visibleSlides[0]);
+  if (visibleSlides[0].dataset.pageKey === "funFact") advanceFunFact();
   const getDuration = slide => Math.max(8, Number(currentSettings.pageDurations?.[slide.dataset.pageKey]) || Number(seconds) || 18) * 1000;
   let duration = getDuration(visibleSlides[0]);
   if (visibleSlides[0].classList.contains("parks-slide")) resetEventPages(duration);
@@ -967,6 +992,7 @@ function startSlides(seconds) {
       index = (index + 1) % visibleSlides.length;
       visibleSlides[index].classList.add("active");
       updatePageTitle(visibleSlides[index]);
+      if (visibleSlides[index].dataset.pageKey === "funFact") advanceFunFact();
       duration = getDuration(visibleSlides[index]);
       if (visibleSlides[index].classList.contains("parks-slide")) {
         resetEventPages(duration);

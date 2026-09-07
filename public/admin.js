@@ -18,9 +18,9 @@ function cleanGuestName(value) {
     .replace(/^the\s+/i, "").replace(/[!.]+$/g, "").trim();
 }
 const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites"];
-const DURATION_PAGES = [...SCHEDULE_PAGES, "celebration", "review"];
+const DURATION_PAGES = [...SCHEDULE_PAGES, "funFact", "celebration", "review"];
 const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", nearbyEasy:"Nearby & easy", localFavorites:"Local favorites" };
-const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, celebration:"Celebration moment", review:"Checkout review" };
+const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, funFact:"Did you know?", celebration:"Celebration moment", review:"Checkout review" };
 const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
 let pageOrder = [...DEFAULT_PAGE_ORDER];
 let plannedStays = [];
@@ -246,6 +246,7 @@ async function rotationForDate(settings, dateText) {
   const special = [];
   if (settings.showArrival && settings.checkIn === dateText) special.push("arrival");
   const celebrationEndDate = settings.celebrationEndDate || settings.celebrationDate;
+  special.push("funFact");
   if (settings.showCelebration && settings.celebrationDate && dateText >= settings.celebrationDate && dateText <= celebrationEndDate) special.push("celebration");
   if (settings.reviewUrl && remaining <= 1 && remaining >= 0) special.push("review");
   return { pages:[...special, ...regular].sort((a,b) => settings.pageOrder.indexOf(a) - settings.pageOrder.indexOf(b)), reason, weather };

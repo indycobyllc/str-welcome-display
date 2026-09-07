@@ -53,7 +53,7 @@ American|Applebee's|An easy group-friendly option for burgers, ribs, appetizers 
   celebrationHeadline: "",
   showCelebrationMessage: true,
   celebrationMessage: "Wishing you an unforgettable day filled with magic and memories!",
-  homeInfo: "Parking|Add parking and vehicle instructions here.\nPool & spa|Add operating and safety guidance here.\nComfort|Add thermostat and home-care guidance here.\nTrash|Add collection days and bin instructions here.\nCheckout|Add the key departure steps here.\nNeed help?|Add the best host contact method here.",
+  homeInfo: "Parking|Park in the garage or driveway. You may also use any available unreserved parking space within the community.\nChandelier fireworks|With the chandelier switched on, say “Alexa, chandelier firework show” and watch it come to life. When finished, say “Alexa, reset chandelier” to restore the regular lighting.\nComfort|The thermostat is upstairs. Please consider the outdoor temperature—71°F is typically a comfortable setting the air conditioner can maintain.\nSolar & EV charging|This home is powered by solar energy! An EV charger is located in the garage. Access to the charger lockbox code is available for purchase.\nMake yourself at home|Everything outside the locked closets is available for your use, including a stroller and Pack ’n Play.\nKitchen essentials|You are welcome to use the air fryer, coffee maker, toaster, blender, oven and other unlocked kitchen amenities.\nTrash pickup|Bag all garbage securely, then place it inside the bin outside the front door. The community team normally collects it daily.\nMade in this home|The 3D-printed park maps, MagicBand replica, EPCOT nightlight, Magic Kingdom sign and other décor were made by us. Interested in your own? Email indycobyenterprisesllc@gmail.com to coordinate an Etsy purchase.\nHelp us improve|We welcome your feedback. Your ideas help us make your future visits—and every guest’s stay—even better.",
   localFavorites: `Food|Se7en Bites|Southern comfort brunch and bakery favorites—go hungry and share something sweet.|https://www.se7enbites.com/|Worth the drive|
 Food|Beefy King|An old-school Orlando landmark for hot steamed roast-beef sandwiches.|https://beefykingorlando.com/|Worth the drive|
 Food|Lazy Moon Pizza|The giant slices and laid-back local-art atmosphere make this more memorable than ordinary pizza.|https://www.lazymoonpizza.com/|Worth the drive|
@@ -279,6 +279,7 @@ function sanitizeStay(input, existing = {}) {
 
 function settingsWithDefaults(stored) {
   const merged = { ...DEFAULTS, ...(stored || {}) };
+  if (!stored?.homeInfo || /Add parking and vehicle instructions here/i.test(stored.homeInfo)) merged.homeInfo = DEFAULTS.homeInfo;
   if (!stored?.nearbyFavorites) merged.nearbyFavorites = DEFAULTS.nearbyFavorites;
   else {
     merged.nearbyFavorites = String(merged.nearbyFavorites).replace(

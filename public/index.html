@@ -4,10 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guest Welcome Display</title>
+  <script>
+    (function () {
+      var query = window.location.search || "";
+      var isLg = /(?:^|[?&])platform=lg(?:&|$)/i.test(query) || /Web0S|webOS|NetCast|SmartTV|LG Browser/i.test(navigator.userAgent || "");
+      if (isLg) document.documentElement.className += " legacy-webos";
+      window.setTimeout(function () {
+        if ((" " + document.documentElement.className + " ").indexOf(" display-ready ") < 0) {
+          document.documentElement.className += " display-fallback";
+          var loading = document.querySelectorAll(".loading");
+          for (var i = 0; i < loading.length; i += 1) loading[i].textContent = "Live information is temporarily unavailable";
+        }
+      }, 15000);
+    }());
+  </script>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/welcome-layout.css">
   <link rel="stylesheet" href="/morning-show.css">
   <link rel="stylesheet" href="/night-show.css">
+  <link rel="stylesheet" href="/lg-webos-compat.css">
 </head>
 <body class="display-body">
   <main id="display" aria-live="polite">

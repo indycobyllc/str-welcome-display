@@ -2,11 +2,14 @@
   "name": "str-welcome-display",
   "private": true,
   "scripts": {
-    "build:qr": "esbuild src/qr-browser.js --bundle --minify --platform=browser --outfile=public/qrcode-local.js",
-    "deploy": "wrangler deploy",
+    "build:qr": "esbuild src/qr-browser.js --bundle --minify --target=chrome79 --platform=browser --outfile=public/qrcode-local.js",
+    "build:display": "esbuild src/display-client.js --bundle --target=chrome79 --format=iife --platform=browser --outfile=public/display.js",
+    "build": "npm run build:qr && npm run build:display",
+    "deploy": "npm run build && wrangler deploy",
     "dev": "wrangler dev"
   },
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "wrangler": "^4.0.0"
   },
   "dependencies": {

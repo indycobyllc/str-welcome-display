@@ -1,0 +1,91 @@
+/* Progressive fallbacks for LG webOS 6 / Chromium 79 signage. */
+html.legacy-webos .theme-art,
+html.legacy-webos .space-scene,
+html.legacy-webos .wizard-scene,
+html.legacy-webos .mustafar-scene,
+html.legacy-webos .seasonal-scene,
+html.legacy-webos .immersive-scene,
+html.legacy-webos .florida-scene,
+html.legacy-webos .slide,
+html.legacy-webos .morning-show,
+html.legacy-webos .morning-sky,
+html.legacy-webos .morning-fireworks,
+html.legacy-webos .morning-show [data-morning-scene],
+html.legacy-webos .morning-reel article,
+html.legacy-webos .night-show,
+html.legacy-webos .night-scene,
+html.legacy-webos .night-bokeh,
+html.legacy-webos .night-flashes,
+html.legacy-webos .custom-bursts,
+html.legacy-webos .finale-sky-wash,
+html.legacy-webos .finale-lasers,
+html.legacy-webos .finale-comets,
+html.legacy-webos .celebration-confetti,
+html.legacy-webos .celebration-theme-fx,
+html.legacy-webos .baby-shower-art {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* Chromium 79 supports grid gaps, but flex gaps arrived later. */
+html.legacy-webos .header-status > * + *,
+html.legacy-webos .welcome-meta > * + *,
+html.legacy-webos .stay-strip > * + * {
+  margin-left: 12px;
+}
+
+/* aspect-ratio arrived after the display's browser. */
+html.legacy-webos .duelist-head { height: 27%; }
+html.legacy-webos .snowman-head { height: 43%; }
+html.legacy-webos .arc-reactor { height: clamp(120px, 13vw, 230px); }
+html.legacy-webos .iron-hand { height: 31%; }
+html.legacy-webos .cape-hero::before { height: 22%; }
+html.legacy-webos .cape-hero b { height: 24%; }
+html.legacy-webos .station-clock { height: 10vw; }
+html.legacy-webos .express-train > i { height: 12%; }
+html.legacy-webos .pokeball-aura { height: 16vw; }
+html.legacy-webos .jarvis-reticle { height: clamp(250px, 32vw, 560px); }
+html.legacy-webos .epcot-sphere { height: 22vw; }
+html.legacy-webos .earth-window { height: 44vw; }
+html.legacy-webos .station-hud { height: 38vw; }
+html.legacy-webos .fl-fireworks i { height: 15vw; }
+html.legacy-webos .review-code img { height: auto; }
+
+/* Equivalent to the sole :has() rule used by the resort hero. */
+html.legacy-webos .resort-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: linear-gradient(transparent, rgba(2, 19, 38, .82));
+  pointer-events: none;
+}
+
+/* Keep translucent panels legible without relying on GPU backdrop filters. */
+html.legacy-webos #display[data-signage="lg43"] .glass-card,
+html.legacy-webos #display[data-signage="lg43"] .panel,
+html.legacy-webos #display[data-signage="lg43"] .weather-card,
+html.legacy-webos #display[data-signage="lg43"] .event-card,
+html.legacy-webos #display[data-signage="lg43"] .favorite-card {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: rgba(8, 20, 39, .9);
+}
+
+html.legacy-webos.display-fallback .loading {
+  opacity: .78;
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.legacy-webos *,
+  html.legacy-webos *::before,
+  html.legacy-webos *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

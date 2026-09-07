@@ -29,6 +29,13 @@ html.legacy-webos .baby-shower-art {
   left: 0;
 }
 
+html.legacy-webos .paragraph-house-scene {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 /* Chromium 79 supports grid gaps, but flex gaps arrived later. */
 html.legacy-webos .header-status > * + *,
 html.legacy-webos .welcome-meta > * + *,

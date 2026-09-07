@@ -176,7 +176,8 @@ function sanitize(input) {
     "tropical-christmas", "beach-day", "pirate-adventure", "luxury-resort", "florida-storm",
     "classic-theme-park", "orange-grove", "dynamic-atmosphere", "enchanted-castle-night", "princess-ball-immersive",
     "safari-sunset", "villains-midnight", "haunted-hotel", "arcade-adventure", "race-night", "north-pole-workshop",
-    "florida-wildlife", "space-station-orlando", "dreamy-cloud-kingdom", "epcot-festival-night", "epcot-dynamic"
+    "florida-wildlife", "space-station-orlando", "dreamy-cloud-kingdom", "epcot-festival-night", "epcot-dynamic",
+    "paragraph-house"
   ]);
   const schedulePages = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites"];
   const scheduleModes = new Set(["always", "stay", "arrival", "first-two", "final-two", "custom"]);

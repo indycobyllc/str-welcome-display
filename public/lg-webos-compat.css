@@ -36,6 +36,26 @@ html.legacy-webos .stay-strip > * + * {
   margin-left: 12px;
 }
 
+html.legacy-webos .stay-strip > div:first-child > * + * {
+  margin-left: 8px;
+}
+
+@media (max-width: 1050px) and (min-aspect-ratio: 3/2) {
+  html.legacy-webos .stay-strip > div:first-child {
+    gap: 0;
+  }
+
+  html.legacy-webos .stay-strip > div:first-child span {
+    font-size: 9px;
+  }
+
+  html.legacy-webos .stay-strip > div:first-child strong,
+  html.legacy-webos .stay-strip > div:first-child small {
+    font-size: 10.5px;
+    line-height: 1.2;
+  }
+}
+
 /* aspect-ratio arrived after the display's browser. */
 html.legacy-webos .duelist-head { height: 27%; }
 html.legacy-webos .snowman-head { height: 43%; }

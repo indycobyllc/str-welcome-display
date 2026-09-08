@@ -45,7 +45,7 @@
     pageDurations: {},
     smartRotation: true,
     maxRotationPages: 6,
-    pageOrder: ["arrival", "welcome", "events", "forecast", "funFact", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
+    pageOrder: ["arrival", "welcome", "holiday", "events", "forecast", "funFact", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites", "celebration", "review"],
     nearbyFavorites: "",
     language: "en",
     showCelebration: false,
@@ -152,6 +152,64 @@
     $("funFactTitle").textContent = fact[0];
     $("funFactText").textContent = fact[1];
     $("funFactNumber").textContent = String((funFactIndex - 1) % FUN_FACTS.length + 1).padStart(2, "0");
+  }
+  function nthWeekdayOfMonth(year, month, weekday, occurrence) {
+    const first = new Date(Date.UTC(year, month - 1, 1));
+    return 1 + (7 + weekday - first.getUTCDay()) % 7 + (occurrence - 1) * 7;
+  }
+  function lastWeekdayOfMonth(year, month, weekday) {
+    const last = new Date(Date.UTC(year, month, 0));
+    return last.getUTCDate() - (7 + last.getUTCDay() - weekday) % 7;
+  }
+  function easterDate(year) {
+    const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+    const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = (h + l - 7 * m + 114) % 31 + 1;
+    return { month, day };
+  }
+  function holidayForDate(dateText) {
+    const parts = String(dateText || "").split("-").map(Number);
+    if (parts.length !== 3 || parts.some((value) => !Number.isFinite(value))) return null;
+    const [year, month, day] = parts;
+    const easter = easterDate(year);
+    const key = `${month}-${day}`;
+    const fixed = {
+      "1-1": ["new-year", "Here\u2019s to a bright new chapter", "Happy New Year!", "May this year begin with joy, adventure and unforgettable memories."],
+      "2-14": ["valentine", "Love is in the air", "Happy Valentine\u2019s Day!", "Wishing you a day filled with favorite people, sweet surprises and plenty of magic."],
+      "3-17": ["st-patrick", "A little extra luck for your adventure", "Happy St. Patrick\u2019s Day!", "May your day be full of lucky moments, green treats and golden memories."],
+      "6-19": ["freedom", "A celebration of freedom", "Happy Juneteenth!", "Today honors freedom, resilience, culture and the continuing journey toward equality."],
+      "7-4": ["independence", "Stars, stripes and spectacular skies", "Happy Fourth of July!", "Wishing you a day of big adventures, bright fireworks and all-American fun."],
+      "10-31": ["halloween", "A delightfully frightful day awaits", "Happy Halloween!", "May your day be filled with happy haunts, sweet treats and just the right amount of spooky magic."],
+      "11-11": ["veterans", "With gratitude and respect", "Thank You, Veterans", "Today we honor everyone who has served and the families who have supported them."],
+      "12-25": ["christmas", "The most wonderful day is here", "Merry Christmas!", "May your day sparkle with wonder, laughter, togetherness and beautiful holiday memories."],
+      "12-31": ["new-years-eve", "The countdown to a new adventure begins", "Happy New Year\u2019s Eve!", "Celebrate every memory made this year\u2014and every possibility waiting in the next."]
+    };
+    if (fixed[key]) return fixed[key];
+    if (month === 1 && day === nthWeekdayOfMonth(year, 1, 1, 3)) return ["dream", "A day to reflect, serve and dream", "Honor the Dream", "May today inspire kindness, courage and the work of building a better tomorrow."];
+    if (month === easter.month && day === easter.day) return ["easter", "A beautiful spring celebration", "Happy Easter!", "Wishing you renewed joy, colorful surprises and a day that feels wonderfully bright."];
+    if (month === 5 && day === nthWeekdayOfMonth(year, 5, 0, 2)) return ["family", "Celebrating the magic she brings", "Happy Mother\u2019s Day!", "Here\u2019s to the mothers and mother figures who make every adventure more meaningful."];
+    if (month === 5 && day === lastWeekdayOfMonth(year, 5, 1)) return ["remembrance", "A day of remembrance", "We Remember", "Today we honor the brave service members who gave their lives for our country."];
+    if (month === 6 && day === nthWeekdayOfMonth(year, 6, 0, 3)) return ["family", "Celebrating the adventures he inspires", "Happy Father\u2019s Day!", "Here\u2019s to the fathers and father figures who make memories, laughter and adventure possible."];
+    if (month === 9 && day === nthWeekdayOfMonth(year, 9, 1, 1)) return ["labor", "Here\u2019s to a well-earned adventure", "Happy Labor Day!", "Relax, recharge and celebrate the people whose work keeps our communities moving."];
+    if (month === 11 && day === nthWeekdayOfMonth(year, 11, 4, 4)) return ["thanksgiving", "A day for gratitude and togetherness", "Happy Thanksgiving!", "May your day be filled with good food, warm company and memories worth treasuring."];
+    return null;
+  }
+  function applyHolidayMoment(today) {
+    const slide = document.querySelector(".holiday-moment-slide");
+    const preview = new URLSearchParams(location.search).get("previewPage") === "holiday";
+    const holiday = holidayForDate(today) || (preview ? ["christmas", "The most wonderful day is here", "Merry Christmas!", "May your day sparkle with wonder, laughter, togetherness and beautiful holiday memories."] : null);
+    slide.hidden = !holiday;
+    if (!holiday) return;
+    const [theme, kicker, headline, message] = holiday;
+    slide.dataset.holiday = theme;
+    slide.dataset.pageTitle = headline.replace(/!$/, "");
+    $("holidayKicker").textContent = kicker;
+    $("holidayHeadline").textContent = headline;
+    $("holidayMessage").textContent = message;
   }
   var currentWeather = null;
   var currentParks = null;
@@ -709,6 +767,7 @@
     document.querySelector(".nearby-map-slide").hidden = !scheduledPageVisible(s.showNearbyMap, "nearbyMap", s, todayValue, checkIn, checkOut);
     document.querySelector(".nearby-easy-slide").hidden = !scheduledPageVisible(s.showNearbyEasy, "nearbyEasy", s, todayValue, checkIn, checkOut);
     document.querySelector(".favorites-slide").hidden = !scheduledPageVisible(s.showLocalFavorites, "localFavorites", s, todayValue, checkIn, checkOut);
+    applyHolidayMoment(today);
     applySmartRotation(s, todayValue, checkIn, checkOut);
     const celebrationPreview = new URLSearchParams(location.search).get("previewPage") === "celebration";
     const celebrationEndDate = s.celebrationEndDate || s.celebrationDate;
@@ -783,7 +842,7 @@
     else if (hasLiveParkOpportunity) preferred = ["welcome", "events", ...preferred.filter((page) => !["welcome", "events"].includes(page))];
     const selected = new Set(preferred.filter(enabled).slice(0, Number(s.maxRotationPages) || 6));
     document.querySelectorAll("[data-page-key]").forEach((slide) => {
-      if (["arrival", "funFact", "celebration", "review"].includes(slide.dataset.pageKey)) return;
+      if (["arrival", "holiday", "funFact", "celebration", "review"].includes(slide.dataset.pageKey)) return;
       if (!slide.hidden && !selected.has(slide.dataset.pageKey)) slide.hidden = true;
     });
   }

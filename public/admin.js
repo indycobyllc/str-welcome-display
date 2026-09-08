@@ -18,9 +18,9 @@ function cleanGuestName(value) {
     .replace(/^the\s+/i, "").replace(/[!.]+$/g, "").trim();
 }
 const SCHEDULE_PAGES = ["welcome", "events", "forecast", "homeInfo", "storeyLake", "nearbyMap", "nearbyEasy", "localFavorites"];
-const DURATION_PAGES = [...SCHEDULE_PAGES, "funFact", "celebration", "review"];
+const DURATION_PAGES = [...SCHEDULE_PAGES, "holiday", "funFact", "celebration", "review"];
 const PAGE_LABELS = { welcome:"Welcome & park hours", events:"Events & insights", forecast:"Stay forecast", homeInfo:"Home information", storeyLake:"Storey Lake amenities", nearbyMap:"Nearby attractions map", nearbyEasy:"Nearby & easy", localFavorites:"Local favorites" };
-const ORDER_LABELS = { arrival:"Arrival cinematic", ...PAGE_LABELS, funFact:"Did you know?", celebration:"Celebration moment", review:"Checkout review" };
+const ORDER_LABELS = { arrival:"Arrival cinematic", welcome:PAGE_LABELS.welcome, holiday:"Automatic holiday moment", events:PAGE_LABELS.events, forecast:PAGE_LABELS.forecast, funFact:"Did you know?", homeInfo:PAGE_LABELS.homeInfo, storeyLake:PAGE_LABELS.storeyLake, nearbyMap:PAGE_LABELS.nearbyMap, nearbyEasy:PAGE_LABELS.nearbyEasy, localFavorites:PAGE_LABELS.localFavorites, celebration:"Celebration moment", review:"Checkout review" };
 const DEFAULT_PAGE_ORDER = Object.keys(ORDER_LABELS);
 let pageOrder = [...DEFAULT_PAGE_ORDER];
 let plannedStays = [];
@@ -57,6 +57,16 @@ function escapeAdmin(value = "") {
 
 function easternToday() {
   return new Intl.DateTimeFormat("en-CA", { timeZone:"America/New_York", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date());
+}
+
+function holidayOnDate(dateText) {
+  const [year, month, day] = String(dateText || "").split("-").map(Number);
+  if (!year || !month || !day) return false;
+  const nth = (targetMonth, weekday, occurrence) => { const first = new Date(Date.UTC(year, targetMonth - 1, 1)); return 1 + ((7 + weekday - first.getUTCDay()) % 7) + (occurrence - 1) * 7; };
+  const last = (targetMonth, weekday) => { const date = new Date(Date.UTC(year, targetMonth, 0)); return date.getUTCDate() - ((7 + date.getUTCDay() - weekday) % 7); };
+  const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),easterMonth=Math.floor((h+l-7*m+114)/31),easterDay=(h+l-7*m+114)%31+1;
+  const fixed = new Set(["1-1","2-14","3-17","6-19","7-4","10-31","11-11","12-25","12-31"]);
+  return fixed.has(`${month}-${day}`) || (month===1&&day===nth(1,1,3)) || (month===easterMonth&&day===easterDay) || (month===5&&day===nth(5,0,2)) || (month===5&&day===last(5,1)) || (month===6&&day===nth(6,0,3)) || (month===9&&day===nth(9,1,1)) || (month===11&&day===nth(11,4,4));
 }
 
 function renderStays() {
@@ -245,6 +255,7 @@ async function rotationForDate(settings, dateText) {
   let regular = settings.smartRotation ? preferred.filter(page => enabled.includes(page)).slice(0, settings.maxRotationPages || 6) : enabled;
   const special = [];
   if (settings.showArrival && settings.checkIn === dateText) special.push("arrival");
+  if (holidayOnDate(dateText)) special.push("holiday");
   const celebrationEndDate = settings.celebrationEndDate || settings.celebrationDate;
   special.push("funFact");
   if (settings.showCelebration && settings.celebrationDate && dateText >= settings.celebrationDate && dateText <= celebrationEndDate) special.push("celebration");

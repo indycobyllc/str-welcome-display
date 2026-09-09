@@ -26,6 +26,7 @@ let pageOrder = [...DEFAULT_PAGE_ORDER];
 let plannedStays = [];
 let placeCollections = { nearby:[], local:[] };
 let displayAccessToken = "";
+let guestRequests = [];
 
 function renderScheduleRows() {
   $("scheduleRows").innerHTML = SCHEDULE_PAGES.map(page => `<div class="schedule-row">
@@ -74,7 +75,7 @@ function renderStays() {
   $("stayPlannerEmpty").hidden = plannedStays.length > 0;
   $("stayPlannerList").innerHTML = plannedStays.map(stay => {
     const state = stay.checkIn <= today && stay.checkOut >= today ? "Active now" : stay.checkIn > today ? "Upcoming" : "Completed";
-    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.theme)}</p></div><div class="planned-stay-actions"><button type="button" class="secondary" data-reset-stay-access="${escapeAdmin(stay.id)}">Reset guest link</button><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></div></article>`;
+    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.guestCount || "—")} guests · ${escapeAdmin(stay.theme)}</p></div><div class="planned-stay-actions"><button type="button" class="secondary" data-copy-prearrival="${escapeAdmin(stay.id)}">Copy pre-arrival link</button><button type="button" class="secondary" data-reset-stay-access="${escapeAdmin(stay.id)}">Reset guest link</button><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></div></article>`;
   }).join("");
   const selected = $("rotationGuest")?.value || "base";
   if ($("rotationGuest")) {
@@ -110,6 +111,8 @@ function syncPlaceEditors() {
 
 function editStay(stay = {}) {
   $("stayId").value = stay.id || "";
+  $("stayReservationName").value = stay.reservationName || "";
+  $("stayGuestCount").value = stay.guestCount || "";
   $("stayGuestName").value = cleanGuestName(stay.guestName);
   $("stayCheckIn").value = stay.checkIn || "";
   $("stayCheckOut").value = stay.checkOut || "";
@@ -132,7 +135,7 @@ function editStay(stay = {}) {
 
 function collectStay() {
   const celebrationType = $("stayCelebrationType").value;
-  return { id:$("stayId").value, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationEndDate:$("stayCelebrationEndDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationKicker:$("stayCelebrationKicker").value.trim(), celebrationHeadline:$("stayCelebrationHeadline").value.trim(), showCelebrationMessage:$("stayShowCelebrationMessage").checked, celebrationMessage:$("stayCelebrationMessage").value.trim() };
+  return { id:$("stayId").value, reservationName:$("stayReservationName").value.trim(), guestCount:Number($("stayGuestCount").value) || 0, guestName:cleanGuestName($("stayGuestName").value), checkIn:$("stayCheckIn").value, checkOut:$("stayCheckOut").value, welcomeMessage:$("stayWelcomeMessage").value.trim(), occasion:$("stayOccasion").value.trim(), theme:$("stayTheme").value, language:$("stayLanguage").value, showCelebration:celebrationType !== "none", celebrationType:celebrationType === "none" ? "birthday" : celebrationType, celebrationDate:$("stayCelebrationDate").value, celebrationEndDate:$("stayCelebrationEndDate").value, celebrationName:$("stayCelebrationName").value.trim(), celebrationKicker:$("stayCelebrationKicker").value.trim(), celebrationHeadline:$("stayCelebrationHeadline").value.trim(), showCelebrationMessage:$("stayShowCelebrationMessage").checked, celebrationMessage:$("stayCelebrationMessage").value.trim() };
 }
 
 function celebrationRangeIsValid(settings) {
@@ -144,6 +147,28 @@ async function loadStays() {
   if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load upcoming stays.");
   plannedStays = (await response.json()).stays || [];
   renderStays();
+}
+
+function renderRequests() {
+  const pending = guestRequests.filter(item => item.status === "pending");
+  $("requestQueueEmpty").hidden = pending.length > 0;
+  $("requestQueueEmpty").textContent = pending.length ? "" : "No pending guest requests.";
+  $("requestQueue").innerHTML = pending.map(item => `<article class="guest-request-card" data-request-id="${escapeAdmin(item.id)}"><div class="request-card-heading"><div><small>PENDING · ${escapeAdmin(new Date(item.submittedAt).toLocaleString())}</small><h3>${escapeAdmin(item.currentGuestName || item.guestName || "Guest request")}</h3></div></div><div class="form-grid"><label>TV welcome name<input data-request-field="greeting" maxlength="80" value="${escapeAdmin(item.greeting)}"></label><label>Celebration<select data-request-field="celebrationType"><option value="none" ${item.celebrationType === "none" ? "selected" : ""}>None</option><option value="birthday" ${item.celebrationType === "birthday" ? "selected" : ""}>Birthday</option><option value="anniversary" ${item.celebrationType === "anniversary" ? "selected" : ""}>Anniversary</option><option value="baby-girl" ${item.celebrationType === "baby-girl" ? "selected" : ""}>Baby shower · It’s a girl</option></select></label><label>Starts<input data-request-field="celebrationDate" type="date" value="${escapeAdmin(item.celebrationDate)}"></label><label>Ends<input data-request-field="celebrationEndDate" type="date" value="${escapeAdmin(item.celebrationEndDate)}"></label><label>Celebration name<input data-request-field="celebrationName" value="${escapeAdmin(item.celebrationName)}"></label><label class="wide">Headline<input data-request-field="celebrationHeadline" value="${escapeAdmin(item.celebrationHeadline)}"></label><label class="wide">Message<textarea data-request-field="celebrationMessage" rows="2">${escapeAdmin(item.celebrationMessage)}</textarea></label></div>${item.note ? `<p class="guest-request-note"><b>Guest note:</b> ${escapeAdmin(item.note)}</p>` : ""}<div class="planner-actions"><button type="button" data-request-action="approve">Approve & publish</button><button type="button" class="danger" data-request-action="decline">Decline</button></div></article>`).join("");
+}
+
+async function loadRequests() {
+  const response = await fetch("/api/admin/requests", { headers:{ Authorization:`Bearer ${token()}` }, cache:"no-store" });
+  if (!response.ok) throw new Error("Unable to load guest requests.");
+  guestRequests = (await response.json()).requests || []; renderRequests();
+}
+
+async function handleRequestAction(card, action) {
+  const request = Object.fromEntries([...card.querySelectorAll("[data-request-field]")].map(field => [field.dataset.requestField, field.value]));
+  const response = await fetch("/api/admin/requests", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ id:card.dataset.requestId, action, request }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) return setStatus(body.error || "Unable to update request.", "error");
+  guestRequests = body.requests || []; renderRequests(); await loadStays();
+  setStatus(action === "approve" ? "Guest request approved and published to the stay." : "Guest request declined.", "success");
 }
 
 async function loadDisplayAccess(rotate = false) {
@@ -166,7 +191,7 @@ async function saveStay() {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || "Unable to save stay.");
     plannedStays = body.stays || [];
-    renderStays();
+    await loadStays();
     $("stayEditor").hidden = true;
     setStatus(body.overlaps?.length ? `Stay saved. Check overlapping dates with: ${body.overlaps.join(", ")}.` : "Upcoming stay saved.", body.overlaps?.length ? "error" : "success");
   } catch (error) { setStatus(error.message, "error"); }
@@ -305,7 +330,7 @@ async function loadSettings() {
     });
     if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load settings.");
     apply(await response.json());
-    await Promise.all([loadStays(), loadDisplayAccess()]);
+    await Promise.all([loadStays(), loadDisplayAccess(), loadRequests()]);
     setStatus("Current settings loaded.", "success");
   } catch (error) {
     setStatus(error.message, "error");
@@ -377,6 +402,15 @@ $("cancelStayButton").addEventListener("click", () => { $("stayEditor").hidden =
 $("saveStayButton").addEventListener("click", saveStay);
 $("deleteStayButton").addEventListener("click", deleteStay);
 $("stayPlannerList").addEventListener("click", event => { const button = event.target.closest("[data-edit-stay]"); if (button) editStay(plannedStays.find(stay => stay.id === button.dataset.editStay)); });
+$("stayPlannerList").addEventListener("click", async event => {
+  const button = event.target.closest("[data-copy-prearrival]"); if (!button) return;
+  const stay = plannedStays.find(item => item.id === button.dataset.copyPrearrival);
+  if (!stay?.preArrivalUrl) return setStatus("Save the stay first to create its link.", "error");
+  try { await navigator.clipboard.writeText(stay.preArrivalUrl); setStatus("Secure pre-arrival link copied. It reveals no property access details before check-in.", "success"); }
+  catch { prompt("Copy this secure pre-arrival link:", stay.preArrivalUrl); }
+});
+$("refreshRequestsButton").addEventListener("click", () => loadRequests().then(() => setStatus("Guest requests refreshed.", "success")).catch(error => setStatus(error.message, "error")));
+$("requestQueue").addEventListener("click", event => { const button = event.target.closest("[data-request-action]"); const card = event.target.closest("[data-request-id]"); if (button && card) handleRequestAction(card, button.dataset.requestAction); });
 $("stayPlannerList").addEventListener("click", async event => {
   const button = event.target.closest("[data-reset-stay-access]");
   if (!button || !confirm("Reset this guest link? Any QR code or bookmarked link already issued for this stay will stop working.")) return;

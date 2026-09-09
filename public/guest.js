@@ -9,6 +9,7 @@ let initialized = false;
 let allPlaces = [];
 let placeSource = "all";
 let placeCategory = "all";
+let guestToken = "";
 
 function farewell(data = {}) {
   initialized = false;
@@ -109,14 +110,46 @@ function wireInteractions(settings) {
   $("placeSearch").oninput = renderDirectory;
   document.querySelectorAll("[data-place-source]").forEach(button => button.onclick = () => { placeSource = button.dataset.placeSource; document.querySelectorAll("[data-place-source]").forEach(item => item.classList.toggle("active", item === button)); renderDirectory(); });
   $("categoryFilters").onclick = event => { const button = event.target.closest("[data-place-category]"); if (!button) return; placeCategory = button.dataset.placeCategory; document.querySelectorAll("[data-place-category]").forEach(item => item.classList.toggle("active", item === button)); renderDirectory(); };
+  $("requestCelebrationType").onchange = event => document.querySelector(".request-celebration-fields").hidden = event.target.value === "none";
+  $("requestCelebrationType").dispatchEvent(new Event("change"));
+  $("guestRequestForm").onsubmit = submitGuestRequest;
+}
+
+async function submitGuestRequest(event) {
+  event.preventDefault();
+  const status = $("requestStatus"), button = $("submitGuestRequest");
+  const payload = { greeting:$("requestGreeting").value, celebrationType:$("requestCelebrationType").value, celebrationDate:$("requestCelebrationDate").value, celebrationEndDate:$("requestCelebrationEndDate").value, celebrationName:$("requestCelebrationName").value, celebrationHeadline:$("requestCelebrationHeadline").value, celebrationMessage:$("requestCelebrationMessage").value, note:$("requestNote").value };
+  button.disabled = true; status.className = "request-status"; status.textContent = "Sending securely…";
+  try {
+    const response = await fetch(`/api/guest/requests?token=${encodeURIComponent(guestToken)}`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Your request could not be sent.");
+    event.target.reset(); $("requestCelebrationType").dispatchEvent(new Event("change"));
+    status.className = "request-status success"; status.textContent = "Request sent! Your host will review it before anything changes on the TV.";
+  } catch (error) { status.className = "request-status error"; status.textContent = error.message; }
+  finally { button.disabled = false; }
+}
+
+function showPreArrival(settings) {
+  document.title = "Personalize Your Upcoming Stay";
+  $("guestTitle").textContent = "Your Orlando stay is coming up!";
+  $("guestDates").textContent = `${dateText(settings.checkIn)} – ${dateText(settings.checkOut)}`;
+  document.querySelectorAll('.app-view:not([data-view="request"])').forEach(view => view.remove());
+  document.querySelectorAll('.bottom-nav button:not([data-view-button="request"])').forEach(button => button.remove());
+  document.querySelector('[data-view="request"]').classList.add("active");
+  document.querySelector('[data-view-button="request"]').classList.add("active");
+  document.querySelector(".request-intro p").textContent = "Tell us how to welcome your group and whether you are celebrating something special. No property access details are available before check-in.";
+  $("guestLoading").hidden = true; $("guestApp").hidden = false; initialized = true;
+  wireInteractions(settings);
 }
 
 async function load() {
-  const token = new URLSearchParams(location.search).get("token") || "";
-  if (!token) return denied("Scan the current QR code on the welcome display to open your guide.");
-  const settingsResponse = await fetch(`/api/guest?token=${encodeURIComponent(token)}`, { cache:"no-store" });
+  guestToken = new URLSearchParams(location.search).get("token") || "";
+  if (!guestToken) return denied("Scan the current QR code on the welcome display to open your guide.");
+  const settingsResponse = await fetch(`/api/guest?token=${encodeURIComponent(guestToken)}`, { cache:"no-store" });
   const settings = await settingsResponse.json().catch(() => ({}));
   if (settingsResponse.status === 410) return farewell(settings);
+  if (settingsResponse.status === 403 && settings.preArrival) return showPreArrival(settings);
   if (!settingsResponse.ok) return denied(settings.error);
   if (initialized) return;
   const [weatherResponse, parksResponse] = await Promise.all([fetch("/api/weather", { cache:"no-store" }), fetch("/api/parks", { cache:"no-store" })]);

@@ -164,6 +164,12 @@ function safeGuestSettings(settings) {
   };
 }
 
+const cleanRequestText = (value, length) => String(value || "").trim().slice(0, length);
+function sanitizeGuestRequest(input, record) {
+  const celebrationType = ["none", "birthday", "anniversary", "baby-girl"].includes(input.celebrationType) ? input.celebrationType : "none";
+  return { id:crypto.randomUUID(), stayId:record.id || "current", guestName:cleanRequestText(record.guestName, 80), greeting:cleanRequestText(input.greeting, 80), celebrationType, celebrationDate:cleanRequestText(input.celebrationDate, 10), celebrationEndDate:cleanRequestText(input.celebrationEndDate, 10), celebrationName:cleanRequestText(input.celebrationName, 100), celebrationHeadline:cleanRequestText(input.celebrationHeadline, 120), celebrationMessage:cleanRequestText(input.celebrationMessage, 300), note:cleanRequestText(input.note, 500), status:"pending", submittedAt:new Date().toISOString(), resolvedAt:"" };
+}
+
 function sanitize(input) {
   const text = (v, n) => String(v ?? "").trim().slice(0, n);
   const bool = (v, fallback = true) => v === undefined ? fallback : Boolean(v);
@@ -259,6 +265,8 @@ function sanitizeStay(input, existing = {}) {
   return {
     id,
     guestAccessNonce: existing.guestAccessNonce || randomNonce(),
+    reservationName: cleanRequestText(input.reservationName, 100),
+    guestCount: Math.min(30, Math.max(0, Number(input.guestCount) || 0)),
     guestName: clean.guestName,
     checkIn: clean.checkIn,
     checkOut: clean.checkOut,
@@ -276,6 +284,22 @@ function sanitizeStay(input, existing = {}) {
     showCelebrationMessage: clean.showCelebrationMessage,
     celebrationMessage: clean.celebrationMessage
   };
+}
+
+function applyApprovedRequest(stay, request) {
+  const next = { ...stay };
+  if (request.greeting) next.guestName = cleanRequestText(request.greeting, 80);
+  if (request.celebrationType && request.celebrationType !== "none") {
+    next.showCelebration = true;
+    next.celebrationType = ["birthday", "anniversary", "baby-girl"].includes(request.celebrationType) ? request.celebrationType : "birthday";
+    next.celebrationDate = cleanRequestText(request.celebrationDate, 10);
+    next.celebrationEndDate = cleanRequestText(request.celebrationEndDate, 10);
+    next.celebrationName = cleanRequestText(request.celebrationName, 100);
+    next.celebrationHeadline = cleanRequestText(request.celebrationHeadline, 120);
+    next.showCelebrationMessage = Boolean(request.celebrationMessage);
+    next.celebrationMessage = cleanRequestText(request.celebrationMessage, 300);
+  }
+  return next;
 }
 
 function settingsWithDefaults(stored) {
@@ -519,10 +543,26 @@ export default {
       const record = await verifiedGuestRecord(url.searchParams.get("token"), [currentRecord, ...(Array.isArray(stays) ? stays : [])], env);
       if (!record) return json({ error:"This guest guide link is invalid or has been revoked." }, 401);
       const access = guestWindowStatus(record);
-      if (access === "not-started") return json({ error:`This guest guide becomes available on ${record.checkIn}.` }, 403);
+      if (access === "not-started") return json({ preArrival:true, checkIn:record.checkIn, checkOut:record.checkOut, guestName:record.guestName, error:`The full guest guide becomes available on ${record.checkIn}.` }, 403, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
       if (access === "expired") return json({ expired:true, message:"Thank you for staying with us. We hope your Orlando memories last long after checkout.", reviewUrl:stored?.reviewUrl || "", rebookUrl:stored?.rebookUrl || "" }, 410, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
       const settings = record.id === "current" ? settingsWithDefaults(record) : { ...settingsWithDefaults(stored), ...record };
       return json(safeGuestSettings(settings), 200, { "cache-control":"private, no-store, max-age=0", "x-robots-tag":"noindex, nofollow, noarchive" });
+    }
+
+    if (url.pathname === "/api/guest/requests" && request.method === "POST") {
+      if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"Guest requests are unavailable." }, 503);
+      const [stored, stays, savedRequests] = await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json"), env.STR_SETTINGS.get("guest-requests", "json")]);
+      const record = await verifiedGuestRecord(url.searchParams.get("token"), [stored ? { ...stored, id:"current" } : null, ...(Array.isArray(stays) ? stays : [])], env);
+      if (!record) return json({ error:"This private link is invalid or has been revoked." }, 401);
+      if (guestWindowStatus(record) === "expired") return json({ error:"This link expired at checkout." }, 410);
+      let body; try { body = await request.json(); } catch { return json({ error:"Invalid request." }, 400); }
+      const item = { ...sanitizeGuestRequest(body || {}, record), reservationName:cleanRequestText(record.reservationName, 100), guestCount:Number(record.guestCount) || 0 };
+      if (!item.greeting && item.celebrationType === "none" && !item.note) return json({ error:"Please enter a greeting, celebration, or note." }, 400);
+      if (item.celebrationEndDate && item.celebrationDate && item.celebrationEndDate < item.celebrationDate) return json({ error:"Celebration end date must follow its start date." }, 400);
+      const queue = Array.isArray(savedRequests) ? savedRequests : [];
+      if (queue.filter(entry => entry.stayId === item.stayId && entry.status === "pending").length >= 5) return json({ error:"Your host already has several requests to review." }, 429);
+      await env.STR_SETTINGS.put("guest-requests", JSON.stringify([item, ...queue].slice(0, 150)));
+      return json({ success:true, id:item.id, status:"pending" }, 201, { "cache-control":"private, no-store", "x-robots-tag":"noindex, nofollow" });
     }
 
     if (url.pathname === "/api/admin/status" && request.method === "GET") {
@@ -581,7 +621,10 @@ export default {
       const stays = await env.STR_SETTINGS.get("planned-stays", "json");
       const current = (Array.isArray(stays) ? stays : []).map(stay => stay.guestAccessNonce ? stay : { ...stay, guestAccessNonce:randomNonce() });
       if (Array.isArray(stays) && current.some((stay, index) => stay.guestAccessNonce !== stays[index]?.guestAccessNonce)) await env.STR_SETTINGS.put("planned-stays", JSON.stringify(current));
-      if (request.method === "GET") return json({ stays: current.sort((a, b) => a.checkIn.localeCompare(b.checkIn)) });
+      if (request.method === "GET") {
+        const withLinks = await Promise.all(current.sort((a, b) => a.checkIn.localeCompare(b.checkIn)).map(async stay => ({ ...stay, preArrivalUrl:`${url.origin}/guest.html?token=${encodeURIComponent(await guestAccessToken(stay, env))}` })));
+        return json({ stays:withLinks });
+      }
       if (request.method === "POST") {
         let body;
         try { body = await request.json(); }
@@ -604,6 +647,37 @@ export default {
         await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
         const overlaps = next.filter(stay => stay.id !== clean.id && stay.checkIn < clean.checkOut && stay.checkOut > clean.checkIn).map(stay => stay.guestName);
         return json({ success: true, stay: clean, stays: next, overlaps });
+      }
+    }
+
+    if (url.pathname === "/api/admin/requests") {
+      if (!authorized(request, env)) return json({ error:"Unauthorized" }, 401);
+      if (!env.STR_SETTINGS) return json({ error:"KV binding STR_SETTINGS is missing." }, 500);
+      const saved = await env.STR_SETTINGS.get("guest-requests", "json");
+      const queue = Array.isArray(saved) ? saved : [];
+      if (request.method === "GET") return json({ requests:queue });
+      if (request.method === "POST") {
+        let body; try { body = await request.json(); } catch { return json({ error:"Invalid JSON" }, 400); }
+        const index = queue.findIndex(item => item.id === body.id);
+        if (index < 0) return json({ error:"Request not found." }, 404);
+        if (body.action === "decline") queue[index] = { ...queue[index], status:"declined", resolvedAt:new Date().toISOString() };
+        else if (body.action === "approve") {
+          const requestItem = { ...queue[index], ...body.request };
+          const stays = await env.STR_SETTINGS.get("planned-stays", "json");
+          if (requestItem.stayId === "current") {
+            const stored = await env.STR_SETTINGS.get("current-display", "json");
+            if (!stored) return json({ error:"Current stay not found." }, 404);
+            const updated = applyApprovedRequest(stored, requestItem);
+            await env.STR_SETTINGS.put("current-display", JSON.stringify(updated));
+          } else {
+            const list = Array.isArray(stays) ? stays : [], found = list.find(stay => stay.id === requestItem.stayId);
+            if (!found) return json({ error:"Planned stay not found." }, 404);
+            await env.STR_SETTINGS.put("planned-stays", JSON.stringify(list.map(stay => stay.id === requestItem.stayId ? applyApprovedRequest(stay, requestItem) : stay)));
+          }
+          queue[index] = { ...requestItem, status:"approved", resolvedAt:new Date().toISOString() };
+        } else return json({ error:"Unknown action." }, 400);
+        await env.STR_SETTINGS.put("guest-requests", JSON.stringify(queue));
+        return json({ success:true, requests:queue });
       }
     }
 

@@ -42,6 +42,8 @@
       <div id="stayEditor" class="stay-editor" hidden>
         <input id="stayId" type="hidden">
         <div class="form-grid">
+          <label>Reservation holder <small>Private—only shown in admin</small><input id="stayReservationName" maxlength="100" placeholder="Vaneska Mendoza"></label>
+          <label>Number of guests<input id="stayGuestCount" type="number" min="1" max="30" placeholder="11"></label>
           <label>Guest or family name <small>Name only—greetings are written automatically</small><input id="stayGuestName" maxlength="80" placeholder="Thompson Family"></label>
           <label>Language<select id="stayLanguage"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="pt">Português</option><option value="de">Deutsch</option></select></label>
           <label>Check-in<input id="stayCheckIn" type="date"></label><label>Checkout<input id="stayCheckOut" type="date"></label>
@@ -59,6 +61,12 @@
         </div>
         <div class="planner-actions"><button id="saveStayButton" type="button">Save stay</button><button id="cancelStayButton" type="button" class="secondary">Cancel</button><button id="deleteStayButton" type="button" class="danger" hidden>Delete stay</button></div>
       </div>
+    </section>
+
+    <section class="admin-card request-admin-card">
+      <div class="planner-heading"><div><h2>Guest requests</h2><p class="admin-section-intro">Review greeting and celebration requests submitted from secure pre-arrival and during-stay links. Nothing appears on the TV until you approve it.</p></div><button id="refreshRequestsButton" type="button" class="secondary">Refresh</button></div>
+      <div id="requestQueueEmpty" class="planner-empty">Load settings to check for guest requests.</div>
+      <div id="requestQueue" class="request-queue"></div>
     </section>
 
     <section class="admin-card">

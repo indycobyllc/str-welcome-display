@@ -74,8 +74,8 @@ function renderStays() {
   const today = easternToday();
   $("stayPlannerEmpty").hidden = plannedStays.length > 0;
   $("stayPlannerList").innerHTML = plannedStays.map(stay => {
-    const state = stay.checkIn <= today && stay.checkOut >= today ? "Active now" : stay.checkIn > today ? "Upcoming" : "Completed";
-    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.guestCount || "—")} guests · ${escapeAdmin(stay.theme)}</p></div><div class="planned-stay-actions"><button type="button" class="secondary" data-copy-prearrival="${escapeAdmin(stay.id)}">Copy pre-arrival link</button><button type="button" class="secondary" data-reset-stay-access="${escapeAdmin(stay.id)}">Reset guest link</button><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></div></article>`;
+    const state = stay.displayApproved === false ? "Needs review" : stay.checkIn <= today && stay.checkOut >= today ? "Active now" : stay.checkIn > today ? "Upcoming" : "Completed";
+    return `<article class="planned-stay ${state === "Active now" ? "active" : ""}"><div><small>${state}</small><h3>${escapeAdmin(stay.guestName)}</h3><p>${escapeAdmin(stay.checkIn)} → ${escapeAdmin(stay.checkOut)} · ${escapeAdmin(stay.guestCount || "—")} guests · ${escapeAdmin(stay.theme)}</p></div><div class="planned-stay-actions">${stay.displayApproved === false ? `<button type="button" data-approve-stay="${escapeAdmin(stay.id)}">Approve for TV</button>` : ""}<button type="button" class="secondary" data-copy-prearrival="${escapeAdmin(stay.id)}">Copy pre-arrival link</button><button type="button" class="secondary" data-reset-stay-access="${escapeAdmin(stay.id)}">Reset guest link</button><button type="button" class="secondary" data-edit-stay="${escapeAdmin(stay.id)}">Edit</button></div></article>`;
   }).join("");
   const selected = $("rotationGuest")?.value || "base";
   if ($("rotationGuest")) {
@@ -178,6 +178,14 @@ async function loadDisplayAccess(rotate = false) {
   displayAccessToken = body.displayToken;
   $("secureDisplayUrl").value = body.displayUrl;
   updateThemeGallery();
+  return body;
+}
+
+async function loadManagerAccess(rotate = false) {
+  const response = await fetch("/api/admin/manager-access", { method:rotate ? "POST" : "GET", headers:{ Authorization:`Bearer ${token()}` }, cache:"no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error || "Unable to load manager access.");
+  $("managerPortalUrl").value = body.managerUrl;
   return body;
 }
 
@@ -330,7 +338,7 @@ async function loadSettings() {
     });
     if (!response.ok) throw new Error(response.status === 401 ? "Incorrect admin password." : "Unable to load settings.");
     apply(await response.json());
-    await Promise.all([loadStays(), loadDisplayAccess(), loadRequests()]);
+    await Promise.all([loadStays(), loadDisplayAccess(), loadManagerAccess(), loadRequests()]);
     setStatus("Current settings loaded.", "success");
   } catch (error) {
     setStatus(error.message, "error");
@@ -403,6 +411,13 @@ $("saveStayButton").addEventListener("click", saveStay);
 $("deleteStayButton").addEventListener("click", deleteStay);
 $("stayPlannerList").addEventListener("click", event => { const button = event.target.closest("[data-edit-stay]"); if (button) editStay(plannedStays.find(stay => stay.id === button.dataset.editStay)); });
 $("stayPlannerList").addEventListener("click", async event => {
+  const button = event.target.closest("[data-approve-stay]"); if (!button) return;
+  const response = await fetch("/api/admin/stays", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token()}` }, body:JSON.stringify({ action:"approve-stay", id:button.dataset.approveStay }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) return setStatus(body.error || "Unable to approve stay.", "error");
+  await loadStays(); setStatus(body.message, "success");
+});
+$("stayPlannerList").addEventListener("click", async event => {
   const button = event.target.closest("[data-copy-prearrival]"); if (!button) return;
   const stay = plannedStays.find(item => item.id === button.dataset.copyPrearrival);
   if (!stay?.preArrivalUrl) return setStatus("Save the stay first to create its link.", "error");
@@ -423,6 +438,16 @@ $("copyDisplayUrlButton").addEventListener("click", async () => {
   if (!$("secureDisplayUrl").value) return setStatus("Load current settings first.", "error");
   try { await navigator.clipboard.writeText($("secureDisplayUrl").value); setStatus("Secure OptiSigns URL copied.", "success"); }
   catch { $("secureDisplayUrl").select(); setStatus("Copy the selected secure URL and paste it into OptiSigns.", "success"); }
+});
+$("copyManagerUrlButton").addEventListener("click", async () => {
+  if (!$("managerPortalUrl").value) return setStatus("Load current settings first.", "error");
+  try { await navigator.clipboard.writeText($("managerPortalUrl").value); setStatus("Reusable property-manager link copied.", "success"); }
+  catch { $("managerPortalUrl").select(); setStatus("Copy the selected manager link.", "success"); }
+});
+$("rotateManagerUrlButton").addEventListener("click", async () => {
+  if (!confirm("Revoke the current property-manager link and create a replacement?")) return;
+  try { await loadManagerAccess(true); setStatus("Manager access rotated. Send the new link to your property manager.", "success"); }
+  catch (error) { setStatus(error.message, "error"); }
 });
 $("openDiagnosticsButton").addEventListener("click", () => {
   if (!$("secureDisplayUrl").value) return setStatus("Load current settings first.", "error");

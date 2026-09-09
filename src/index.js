@@ -130,6 +130,10 @@ async function displayAccessToken(env, version = "1") {
   return hmac(`display-access:${version}`, env);
 }
 
+async function managerAccessToken(env, version = "1") {
+  return hmac(`manager-access:${version}`, env);
+}
+
 async function guestAccessToken(stay, env) {
   return hmac(`guest-access:${stay.id || "current"}:${stay.guestAccessNonce}:${stay.checkIn}:${stay.checkOut}`, env);
 }
@@ -267,6 +271,8 @@ function sanitizeStay(input, existing = {}) {
     guestAccessNonce: existing.guestAccessNonce || randomNonce(),
     reservationName: cleanRequestText(input.reservationName, 100),
     guestCount: Math.min(30, Math.max(0, Number(input.guestCount) || 0)),
+    displayApproved: input.displayApproved === false ? false : existing.displayApproved === false ? false : true,
+    managerSubmitted: Boolean(input.managerSubmitted || existing.managerSubmitted),
     guestName: clean.guestName,
     checkIn: clean.checkIn,
     checkOut: clean.checkOut,
@@ -520,7 +526,7 @@ export default {
         ? await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json")])
         : [null, []];
       const activeStay = (Array.isArray(stays) ? stays : [])
-        .filter(stay => guestWindowStatus(stay) === "active")
+        .filter(stay => stay.displayApproved !== false && guestWindowStatus(stay) === "active")
         .sort((a, b) => b.checkIn.localeCompare(a.checkIn))[0];
       let tokenSource = activeStay;
       if (activeStay && !activeStay.guestAccessNonce) {
@@ -584,6 +590,33 @@ export default {
       return json({ displayToken, displayUrl:`${url.origin}/?displayToken=${encodeURIComponent(displayToken)}`, rotated:request.method === "POST" });
     }
 
+    if (url.pathname === "/api/admin/manager-access") {
+      if (!authorized(request, env)) return json({ error:"Unauthorized" }, 401);
+      if (!env.STR_SETTINGS) return json({ error:"KV binding STR_SETTINGS is missing." }, 500);
+      let version = await env.STR_SETTINGS.get("manager-token-version") || "1";
+      if (request.method === "POST") {
+        version = String(Number(version) + 1);
+        await env.STR_SETTINGS.put("manager-token-version", version);
+      }
+      const managerToken = await managerAccessToken(env, version);
+      return json({ managerUrl:`${url.origin}/manager.html?managerToken=${encodeURIComponent(managerToken)}`, rotated:request.method === "POST" });
+    }
+
+    if (url.pathname === "/api/manager/stays" && request.method === "POST") {
+      if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"Manager intake is unavailable." }, 503);
+      const version = await env.STR_SETTINGS.get("manager-token-version") || "1";
+      if (url.searchParams.get("managerToken") !== await managerAccessToken(env, version)) return json({ error:"This manager link is invalid or has been revoked." }, 401);
+      let body; try { body = await request.json(); } catch { return json({ error:"Invalid request." }, 400); }
+      const stays = await env.STR_SETTINGS.get("planned-stays", "json"), current = Array.isArray(stays) ? stays : [];
+      const clean = sanitizeStay({ reservationName:body.reservationName, guestCount:body.guestCount, guestName:body.guestName, checkIn:body.checkIn, checkOut:body.checkOut, welcomeMessage:"Your adventure begins here!", theme:"paragraph-house", language:"en", showCelebration:false, displayApproved:false, managerSubmitted:true }, {});
+      if (!clean.reservationName || !clean.guestName || !clean.checkIn || !clean.checkOut || clean.checkOut < clean.checkIn) return json({ error:"Enter the reservation holder, TV greeting, and valid stay dates." }, 400);
+      const duplicate = current.find(stay => stay.checkIn === clean.checkIn && stay.checkOut === clean.checkOut && stay.reservationName?.toLowerCase() === clean.reservationName.toLowerCase());
+      if (duplicate) return json({ error:"That reservation has already been added. Contact the display owner if it needs to be edited." }, 409);
+      const next = [...current, clean].sort((a, b) => a.checkIn.localeCompare(b.checkIn));
+      await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
+      return json({ success:true, guestName:clean.guestName, preArrivalUrl:`${url.origin}/guest.html?token=${encodeURIComponent(await guestAccessToken(clean, env))}` }, 201, { "cache-control":"private, no-store", "x-robots-tag":"noindex, nofollow" });
+    }
+
     if (url.pathname === "/api/admin/current-guest-access" && request.method === "POST") {
       if (!authorized(request, env)) return json({ error:"Unauthorized" }, 401);
       if (!env.STR_SETTINGS) return json({ error:"KV binding STR_SETTINGS is missing." }, 500);
@@ -639,6 +672,12 @@ export default {
           if (!next.some(stay => stay.id === body.id)) return json({ error:"Stay not found." }, 404);
           await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
           return json({ success:true, stays:next, message:"The previous guest guide link has been revoked." });
+        }
+        if (body.action === "approve-stay") {
+          const next = current.map(stay => stay.id === body.id ? { ...stay, displayApproved:true } : stay);
+          if (!next.some(stay => stay.id === body.id)) return json({ error:"Stay not found." }, 404);
+          await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));
+          return json({ success:true, stays:next, message:"Manager-submitted stay approved for the display." });
         }
         const existing = current.find(stay => stay.id === body.stay?.id) || {};
         const clean = sanitizeStay(body.stay || {}, existing);

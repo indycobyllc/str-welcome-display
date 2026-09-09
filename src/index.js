@@ -608,7 +608,9 @@ export default {
       if (url.searchParams.get("managerToken") !== await managerAccessToken(env, version)) return json({ error:"This manager link is invalid or has been revoked." }, 401);
       let body; try { body = await request.json(); } catch { return json({ error:"Invalid request." }, 400); }
       const stays = await env.STR_SETTINGS.get("planned-stays", "json"), current = Array.isArray(stays) ? stays : [];
-      const clean = sanitizeStay({ reservationName:body.reservationName, guestCount:body.guestCount, guestName:body.guestName, checkIn:body.checkIn, checkOut:body.checkOut, welcomeMessage:"Your adventure begins here!", theme:"paragraph-house", language:"en", showCelebration:false, displayApproved:false, managerSubmitted:true }, {});
+      const reservationName = cleanRequestText(body.reservationName, 100);
+      const suggestedName = `${reservationName.split(/\s+/).filter(Boolean).slice(-1)[0] || "Guest"} Family`;
+      const clean = sanitizeStay({ reservationName, guestCount:body.guestCount, guestName:cleanRequestText(body.guestName, 80) || suggestedName, checkIn:body.checkIn, checkOut:body.checkOut, welcomeMessage:"Your adventure begins here!", theme:"paragraph-house", language:"en", showCelebration:false, displayApproved:false, managerSubmitted:true }, {});
       if (!clean.reservationName || !clean.guestName || !clean.checkIn || !clean.checkOut || clean.checkOut < clean.checkIn) return json({ error:"Enter the reservation holder, TV greeting, and valid stay dates." }, 400);
       const duplicate = current.find(stay => stay.checkIn === clean.checkIn && stay.checkOut === clean.checkOut && stay.reservationName?.toLowerCase() === clean.reservationName.toLowerCase());
       if (duplicate) return json({ error:"That reservation has already been added. Contact the display owner if it needs to be edited." }, 409);

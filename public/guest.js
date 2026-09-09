@@ -110,6 +110,10 @@ function wireInteractions(settings) {
   $("placeSearch").oninput = renderDirectory;
   document.querySelectorAll("[data-place-source]").forEach(button => button.onclick = () => { placeSource = button.dataset.placeSource; document.querySelectorAll("[data-place-source]").forEach(item => item.classList.toggle("active", item === button)); renderDirectory(); });
   $("categoryFilters").onclick = event => { const button = event.target.closest("[data-place-category]"); if (!button) return; placeCategory = button.dataset.placeCategory; document.querySelectorAll("[data-place-category]").forEach(item => item.classList.toggle("active", item === button)); renderDirectory(); };
+  wireRequestForm();
+}
+
+function wireRequestForm() {
   $("requestCelebrationType").onchange = event => document.querySelector(".request-celebration-fields").hidden = event.target.value === "none";
   $("requestCelebrationType").dispatchEvent(new Event("change"));
   $("guestRequestForm").onsubmit = submitGuestRequest;
@@ -140,7 +144,7 @@ function showPreArrival(settings) {
   document.querySelector('[data-view-button="request"]').classList.add("active");
   document.querySelector(".request-intro p").textContent = "Tell us how to welcome your group and whether you are celebrating something special. No property access details are available before check-in.";
   $("guestLoading").hidden = true; $("guestApp").hidden = false; initialized = true;
-  wireInteractions(settings);
+  wireRequestForm();
 }
 
 async function load() {

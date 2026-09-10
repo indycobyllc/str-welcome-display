@@ -114,7 +114,7 @@ function wireInteractions(settings) {
 }
 
 function wireRequestForm() {
-  $("requestCelebrationType").onchange = event => document.querySelector(".request-celebration-fields").hidden = event.target.value === "none";
+  $("requestCelebrationType").onchange = event => { document.querySelector(".request-celebration-fields").hidden = event.target.value === "none"; $("requestOtherWrap").hidden = event.target.value !== "other"; };
   $("requestCelebrationType").dispatchEvent(new Event("change"));
   $("guestRequestForm").onsubmit = submitGuestRequest;
 }
@@ -122,7 +122,7 @@ function wireRequestForm() {
 async function submitGuestRequest(event) {
   event.preventDefault();
   const status = $("requestStatus"), button = $("submitGuestRequest");
-  const payload = { greeting:$("requestGreeting").value, celebrationType:$("requestCelebrationType").value, celebrationDate:$("requestCelebrationDate").value, celebrationEndDate:$("requestCelebrationEndDate").value, celebrationName:$("requestCelebrationName").value, celebrationHeadline:$("requestCelebrationHeadline").value, celebrationMessage:$("requestCelebrationMessage").value, note:$("requestNote").value };
+  const payload = { greeting:$("requestGreeting").value, celebrationType:$("requestCelebrationType").value, celebrationOther:$("requestCelebrationOther").value, celebrationDate:$("requestCelebrationDate").value, celebrationEndDate:$("requestCelebrationEndDate").value, celebrationName:$("requestCelebrationName").value, celebrationHeadline:$("requestCelebrationHeadline").value, celebrationMessage:$("requestCelebrationMessage").value, note:$("requestNote").value };
   button.disabled = true; status.className = "request-status"; status.textContent = "Sending securely…";
   try {
     const response = await fetch(`/api/guest/requests?token=${encodeURIComponent(guestToken)}`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });

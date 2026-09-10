@@ -170,8 +170,8 @@ function safeGuestSettings(settings) {
 
 const cleanRequestText = (value, length) => String(value || "").trim().slice(0, length);
 function sanitizeGuestRequest(input, record) {
-  const celebrationType = ["none", "birthday", "anniversary", "baby-girl"].includes(input.celebrationType) ? input.celebrationType : "none";
-  return { id:crypto.randomUUID(), stayId:record.id || "current", guestName:cleanRequestText(record.guestName, 80), greeting:cleanRequestText(input.greeting, 80), celebrationType, celebrationDate:cleanRequestText(input.celebrationDate, 10), celebrationEndDate:cleanRequestText(input.celebrationEndDate, 10), celebrationName:cleanRequestText(input.celebrationName, 100), celebrationHeadline:cleanRequestText(input.celebrationHeadline, 120), celebrationMessage:cleanRequestText(input.celebrationMessage, 300), note:cleanRequestText(input.note, 500), status:"pending", submittedAt:new Date().toISOString(), resolvedAt:"" };
+  const celebrationType = ["none", "birthday", "anniversary", "baby-girl", "other"].includes(input.celebrationType) ? input.celebrationType : "none";
+  return { id:crypto.randomUUID(), stayId:record.id || "current", guestName:cleanRequestText(record.guestName, 80), greeting:cleanRequestText(input.greeting, 80), celebrationType, celebrationOther:cleanRequestText(input.celebrationOther, 120), celebrationDate:cleanRequestText(input.celebrationDate, 10), celebrationEndDate:cleanRequestText(input.celebrationEndDate, 10), celebrationName:cleanRequestText(input.celebrationName, 100), celebrationHeadline:cleanRequestText(input.celebrationHeadline, 120), celebrationMessage:cleanRequestText(input.celebrationMessage, 300), note:cleanRequestText(input.note, 500), status:"pending", submittedAt:new Date().toISOString(), resolvedAt:"" };
 }
 
 function sanitize(input) {
@@ -241,7 +241,7 @@ function sanitize(input) {
     maxRotationPages: Math.min(8, Math.max(3, Number(input.maxRotationPages) || 6)),
     language: ["en", "es", "fr", "pt", "de"].includes(input.language) ? input.language : "en",
     showCelebration: bool(input.showCelebration, false),
-    celebrationType: ["birthday", "anniversary", "baby-girl"].includes(input.celebrationType) ? input.celebrationType : "birthday",
+    celebrationType: ["birthday", "anniversary", "baby-girl", "other"].includes(input.celebrationType) ? input.celebrationType : "birthday",
     celebrationDate: text(input.celebrationDate, 10),
     celebrationEndDate: text(input.celebrationEndDate, 10),
     celebrationName: text(input.celebrationName, 100),
@@ -297,11 +297,12 @@ function applyApprovedRequest(stay, request) {
   if (request.greeting) next.guestName = cleanRequestText(request.greeting, 80);
   if (request.celebrationType && request.celebrationType !== "none") {
     next.showCelebration = true;
-    next.celebrationType = ["birthday", "anniversary", "baby-girl"].includes(request.celebrationType) ? request.celebrationType : "birthday";
+    next.celebrationType = ["birthday", "anniversary", "baby-girl", "other"].includes(request.celebrationType) ? request.celebrationType : "birthday";
     next.celebrationDate = cleanRequestText(request.celebrationDate, 10);
     next.celebrationEndDate = cleanRequestText(request.celebrationEndDate, 10);
     next.celebrationName = cleanRequestText(request.celebrationName, 100);
-    next.celebrationHeadline = cleanRequestText(request.celebrationHeadline, 120);
+    next.celebrationHeadline = cleanRequestText(request.celebrationHeadline || request.celebrationOther, 120);
+    if (request.celebrationType === "other") next.celebrationKicker = "A special moment worth celebrating";
     next.showCelebrationMessage = Boolean(request.celebrationMessage);
     next.celebrationMessage = cleanRequestText(request.celebrationMessage, 300);
   }

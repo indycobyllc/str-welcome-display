@@ -728,7 +728,9 @@ function applySettings(s) {
   const celebrationToday = Boolean(s.celebrationDate) && today >= s.celebrationDate && today <= celebrationEndDate;
   document.querySelector(".celebration-slide").hidden = !(celebrationPreview || (s.showCelebration && celebrationToday));
   const celebrationWords = TRANSLATIONS[s.language] || TRANSLATIONS.en;
-  const celebrationCopy = s.celebrationType === "baby-girl"
+  const celebrationCopy = s.celebrationType === "other"
+    ? { kicker:"A special moment worth celebrating", heading:"Let’s Celebrate" }
+    : s.celebrationType === "baby-girl"
     ? { kicker:celebrationWords.babyGirlKicker || TRANSLATIONS.en.babyGirlKicker, heading:celebrationWords.babyGirl || TRANSLATIONS.en.babyGirl }
     : s.celebrationType === "anniversary"
       ? { kicker:celebrationWords.anniversaryKicker || TRANSLATIONS.en.anniversaryKicker, heading:celebrationWords.anniversary || TRANSLATIONS.en.anniversary }

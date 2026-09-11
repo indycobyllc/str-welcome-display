@@ -683,7 +683,7 @@ export default {
           return json({ success:true, stays:next, message:"Manager-submitted stay approved for the display." });
         }
         const existing = current.find(stay => stay.id === body.stay?.id) || {};
-        const clean = sanitizeStay(body.stay || {}, existing);
+        const clean = { ...sanitizeStay(body.stay || {}, existing), displayApproved:true };
         if (!clean.checkIn || !clean.checkOut || clean.checkOut < clean.checkIn) return json({ error: "Enter a valid check-in and checkout date." }, 400);
         const next = [...current.filter(stay => stay.id !== clean.id), clean].sort((a, b) => a.checkIn.localeCompare(b.checkIn));
         await env.STR_SETTINGS.put("planned-stays", JSON.stringify(next));

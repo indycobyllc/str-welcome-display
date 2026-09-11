@@ -656,6 +656,20 @@ async function loadParks() {
   }
 }
 
+let guestQrAttempt = 0;
+function renderGuestHubQr(url) {
+  const link = $("guestHubLink"), image = $("guestHubQr");
+  if (!url) { link.hidden = true; image.removeAttribute("src"); guestQrAttempt = 0; return; }
+  link.href = url; link.hidden = true;
+  if (!window.LocalQRCode?.toDataURL) {
+    if (guestQrAttempt++ < 20) setTimeout(() => renderGuestHubQr(url), 250);
+    return;
+  }
+  window.LocalQRCode.toDataURL(url, { width:240, margin:4, errorCorrectionLevel:"M" })
+    .then(source => { image.onload = () => { link.hidden = false; guestQrAttempt = 0; }; image.onerror = () => { link.hidden = true; }; image.src = source; })
+    .catch(() => { link.hidden = true; image.removeAttribute("src"); });
+}
+
 function applySettings(s) {
   currentSettings = s;
   const previewTheme = new URLSearchParams(location.search).get("previewTheme");
@@ -687,12 +701,8 @@ function applySettings(s) {
   $("stayDates").textContent = formatDateRange(s.checkIn, s.checkOut);
   $("wifiName").textContent = s.wifiName || "Guest Wi-Fi";
   $("wifiPassword").textContent = s.wifiPassword ? `Password: ${s.wifiPassword}` : "";
-  const guestHubUrl = s.guestAccessToken ? `${location.origin}/guest?token=${encodeURIComponent(s.guestAccessToken)}` : "";
-  $("guestHubLink").hidden = !guestHubUrl;
-  if (guestHubUrl) {
-    $("guestHubLink").href = guestHubUrl;
-    window.LocalQRCode?.toDataURL(guestHubUrl, { width:240, margin:4, errorCorrectionLevel:"M" }).then(source => { $("guestHubQr").src = source; });
-  }
+  const guestHubUrl = s.guestAccessToken ? `${location.origin}/guest.html?token=${encodeURIComponent(s.guestAccessToken)}` : "";
+  renderGuestHubQr(guestHubUrl);
   const previewDate = new URLSearchParams(location.search).get("previewDate");
   const today = /^\d{4}-\d{2}-\d{2}$/.test(previewDate || "") ? previewDate : new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const checkIn = calendarDate(s.checkIn), checkOut = calendarDate(s.checkOut), todayValue = calendarDate(today);

@@ -1269,6 +1269,13 @@
     document.documentElement.classList.add("display-fallback");
   });
   setInterval(refreshAll, 5 * 60 * 1e3);
+  function runParagraphChandelierShow() {
+    const display = $("display");
+    if (display.dataset.theme !== "paragraph-house" || display.classList.contains("chandelier-show")) return;
+    display.classList.add("chandelier-show");
+    setTimeout(() => display.classList.remove("chandelier-show"), 20 * 1e3);
+  }
+  setInterval(runParagraphChandelierShow, 5 * 60 * 1e3);
   window.addEventListener("online", refreshAll);
   window.addEventListener("resize", () => renderDiagnostics(currentSettings));
   window.addEventListener("offline", () => setOffline(true));

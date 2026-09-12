@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><title>Guest Pre-Arrival Setup</title><link rel="stylesheet" href="/manager.css"></head>
 <body><main class="manager-shell">
-  <header><span>✦ PROPERTY MANAGER PORTAL</span><h1>Prepare a guest welcome</h1><p>Send reservation details securely, then copy the personalized pre-arrival link into the guest’s Airbnb message thread.</p></header>
+  <header><span>✦ PROPERTY MANAGER PORTAL</span><h1>Prepare the in-home welcome display</h1><p>Each guest is welcomed on a TV display inside the vacation home. Enter the known reservation details, then send the generated pre-arrival link through Airbnb so the guest can request their displayed family name or a personalized celebration.</p></header>
   <section class="manager-card"><form id="managerForm">
     <label>Reservation holder <small>The name shown on the booking</small><input id="reservationName" maxlength="100" autocomplete="off" required placeholder="Jamie Smith"></label>
     <label>Number of guests <small>Optional</small><input id="guestCount" type="number" min="1" max="30" placeholder="11"></label>
-    <label>TV welcome name <small>Optional—defaults to the reservation holder’s last name + Family</small><input id="guestName" maxlength="80" placeholder="Smith Family"></label>
+    <label>Name shown on the in-home display <small>Optional—defaults to the reservation holder’s last name + Family</small><input id="guestName" maxlength="80" placeholder="Smith Family"></label>
     <div class="dates"><label>Check-in<input id="checkIn" type="date" required></label><label>Checkout<input id="checkOut" type="date" required></label></div>
     <button id="createButton" type="submit">Create guest pre-arrival link</button><p id="managerStatus" role="status"></p>
   </form></section>
-  <section id="managerResult" class="manager-card result" hidden><span>READY TO SEND</span><h2 id="resultTitle"></h2><p>This private link lets the guest submit greeting and celebration preferences. It reveals no Wi-Fi, address, or house information before check-in.</p><input id="guestLink" readonly><button id="copyGuestLink" type="button">Copy link for Airbnb</button><button id="addAnother" class="secondary" type="button">Add another reservation</button></section>
+  <section id="managerResult" class="manager-card result" hidden><span>READY TO SEND</span><h2 id="resultTitle"></h2><p>This private link explains the in-home welcome display and lets the guest request its greeting and celebration content. It reveals no Wi-Fi, address, or house information before check-in.</p><input id="guestLink" readonly><button id="copyGuestLink" type="button">Copy link for Airbnb</button><button id="addAnother" class="secondary" type="button">Add another reservation</button></section>
   <footer>This portal has limited access. New reservations require owner approval before they can appear on the TV.</footer>
 </main><script src="/manager.js" defer></script></body></html>

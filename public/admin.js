@@ -152,7 +152,7 @@ async function loadStays() {
 function renderRequests() {
   const pending = guestRequests.filter(item => item.status === "pending");
   $("requestQueueEmpty").hidden = pending.length > 0;
-  $("requestQueueEmpty").textContent = pending.length ? "" : "No pending guest requests.";
+  $("requestQueueEmpty").textContent = pending.length ? "" : "No pending in-home display requests.";
   $("requestQueue").innerHTML = pending.map(item => `<article class="guest-request-card" data-request-id="${escapeAdmin(item.id)}"><div class="request-card-heading"><div><small>PENDING · ${escapeAdmin(new Date(item.submittedAt).toLocaleString())}</small><h3>${escapeAdmin(item.currentGuestName || item.guestName || "Guest request")}</h3></div></div><div class="form-grid"><label>TV welcome name<input data-request-field="greeting" maxlength="80" value="${escapeAdmin(item.greeting)}"></label><label>Celebration<select data-request-field="celebrationType"><option value="none" ${item.celebrationType === "none" ? "selected" : ""}>None</option><option value="birthday" ${item.celebrationType === "birthday" ? "selected" : ""}>Birthday</option><option value="anniversary" ${item.celebrationType === "anniversary" ? "selected" : ""}>Anniversary</option><option value="baby-girl" ${item.celebrationType === "baby-girl" ? "selected" : ""}>Baby shower · It’s a girl</option></select></label><label>Starts<input data-request-field="celebrationDate" type="date" value="${escapeAdmin(item.celebrationDate)}"></label><label>Ends<input data-request-field="celebrationEndDate" type="date" value="${escapeAdmin(item.celebrationEndDate)}"></label><label>Celebration name<input data-request-field="celebrationName" value="${escapeAdmin(item.celebrationName)}"></label><label class="wide">Headline<input data-request-field="celebrationHeadline" value="${escapeAdmin(item.celebrationHeadline)}"></label><label class="wide">Message<textarea data-request-field="celebrationMessage" rows="2">${escapeAdmin(item.celebrationMessage)}</textarea></label></div>${item.note ? `<p class="guest-request-note"><b>Guest note:</b> ${escapeAdmin(item.note)}</p>` : ""}<div class="planner-actions"><button type="button" data-request-action="approve">Approve & publish</button><button type="button" class="danger" data-request-action="decline">Decline</button></div></article>`).join("");
   pending.forEach(item => {
     const card = document.querySelector(`[data-request-id="${item.id}"]`), select = card?.querySelector('[data-request-field="celebrationType"]');
@@ -164,7 +164,7 @@ function renderRequests() {
 
 async function loadRequests() {
   const response = await fetch("/api/admin/requests", { headers:{ Authorization:`Bearer ${token()}` }, cache:"no-store" });
-  if (!response.ok) throw new Error("Unable to load guest requests.");
+  if (!response.ok) throw new Error("Unable to load in-home display requests.");
   guestRequests = (await response.json()).requests || []; renderRequests();
 }
 
@@ -174,7 +174,7 @@ async function handleRequestAction(card, action) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) return setStatus(body.error || "Unable to update request.", "error");
   guestRequests = body.requests || []; renderRequests(); await loadStays();
-  setStatus(action === "approve" ? "Guest request approved and published to the stay." : "Guest request declined.", "success");
+  setStatus(action === "approve" ? "In-home display request approved and published to the stay." : "In-home display request declined.", "success");
 }
 
 async function loadDisplayAccess(rotate = false) {
@@ -430,7 +430,7 @@ $("stayPlannerList").addEventListener("click", async event => {
   try { await navigator.clipboard.writeText(stay.preArrivalUrl); setStatus("Secure pre-arrival link copied. It reveals no property access details before check-in.", "success"); }
   catch { prompt("Copy this secure pre-arrival link:", stay.preArrivalUrl); }
 });
-$("refreshRequestsButton").addEventListener("click", () => loadRequests().then(() => setStatus("Guest requests refreshed.", "success")).catch(error => setStatus(error.message, "error")));
+$("refreshRequestsButton").addEventListener("click", () => loadRequests().then(() => setStatus("In-home display requests refreshed.", "success")).catch(error => setStatus(error.message, "error")));
 $("requestQueue").addEventListener("click", event => { const button = event.target.closest("[data-request-action]"); const card = event.target.closest("[data-request-id]"); if (button && card) handleRequestAction(card, button.dataset.requestAction); });
 $("stayPlannerList").addEventListener("click", async event => {
   const button = event.target.closest("[data-reset-stay-access]");

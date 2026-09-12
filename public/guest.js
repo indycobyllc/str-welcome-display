@@ -127,9 +127,9 @@ async function submitGuestRequest(event) {
   try {
     const response = await fetch(`/api/guest/requests?token=${encodeURIComponent(guestToken)}`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(payload) });
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.error || "Your request could not be sent.");
+    if (!response.ok) throw new Error(body.error || "Your in-home display request could not be sent.");
     event.target.reset(); $("requestCelebrationType").dispatchEvent(new Event("change"));
-    status.className = "request-status success"; status.textContent = "Request sent! Your host will review it before anything changes on the TV.";
+    status.className = "request-status success"; status.textContent = "Display request sent! Your host will review it before anything changes on the TV inside the home.";
   } catch (error) { status.className = "request-status error"; status.textContent = error.message; }
   finally { button.disabled = false; }
 }
@@ -142,7 +142,7 @@ function showPreArrival(settings) {
   document.querySelectorAll('.bottom-nav button:not([data-view-button="request"])').forEach(button => button.remove());
   document.querySelector('[data-view="request"]').classList.add("active");
   document.querySelector('[data-view-button="request"]').classList.add("active");
-  document.querySelector(".request-intro p").textContent = "Tell us how to welcome your group and whether you are celebrating something special. No property access details are available before check-in.";
+  document.querySelector(".request-intro p").textContent = "When you arrive, a TV inside the vacation home will welcome your group and rotate useful stay, weather and Orlando information. Tell us what family name to show or whether we should create a celebration moment. No property access details are available here before check-in.";
   $("guestLoading").hidden = true; $("guestApp").hidden = false; initialized = true;
   wireRequestForm();
 }

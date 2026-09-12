@@ -557,14 +557,14 @@ export default {
     }
 
     if (url.pathname === "/api/guest/requests" && request.method === "POST") {
-      if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"Guest requests are unavailable." }, 503);
+      if (!env.ADMIN_TOKEN || !env.STR_SETTINGS) return json({ error:"In-home display requests are unavailable." }, 503);
       const [stored, stays, savedRequests] = await Promise.all([env.STR_SETTINGS.get("current-display", "json"), env.STR_SETTINGS.get("planned-stays", "json"), env.STR_SETTINGS.get("guest-requests", "json")]);
       const record = await verifiedGuestRecord(url.searchParams.get("token"), [stored ? { ...stored, id:"current" } : null, ...(Array.isArray(stays) ? stays : [])], env);
       if (!record) return json({ error:"This private link is invalid or has been revoked." }, 401);
       if (guestWindowStatus(record) === "expired") return json({ error:"This link expired at checkout." }, 410);
       let body; try { body = await request.json(); } catch { return json({ error:"Invalid request." }, 400); }
       const item = { ...sanitizeGuestRequest(body || {}, record), reservationName:cleanRequestText(record.reservationName, 100), guestCount:Number(record.guestCount) || 0 };
-      if (!item.greeting && item.celebrationType === "none" && !item.note) return json({ error:"Please enter a greeting, celebration, or note." }, 400);
+      if (!item.greeting && item.celebrationType === "none" && !item.note) return json({ error:"Please enter an in-home display greeting, celebration, or note." }, 400);
       if (item.celebrationEndDate && item.celebrationDate && item.celebrationEndDate < item.celebrationDate) return json({ error:"Celebration end date must follow its start date." }, 400);
       const queue = Array.isArray(savedRequests) ? savedRequests : [];
       if (queue.filter(entry => entry.stayId === item.stayId && entry.status === "pending").length >= 5) return json({ error:"Your host already has several requests to review." }, 429);
